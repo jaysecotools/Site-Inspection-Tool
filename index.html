@@ -977,26 +977,124 @@
         );
     }
     
-    // Measure tool
+    // Measure tool - COMPLETELY REWRITTEN
     let measuring = false;
+    let measurePoints = [];
+    let measureLine = null;
+    let measureMarkers = [];
+    
     window.startMeasure = () => {
         if (measuring) {
-            notify('Measure mode off', 'info');
+            // Turn off measure mode
             measuring = false;
+            if (measureLine) {
+                state.map.removeLayer(measureLine);
+                measureLine = null;
+            }
+            measureMarkers.forEach(m => state.map.removeLayer(m));
+            measureMarkers = [];
+            measurePoints = [];
+            state.map.off('click', measureClickHandler);
+            notify('📏 Measure mode OFF', 'info');
             return;
         }
+        
+        // Turn on measure mode
         measuring = true;
-        notify('Click two points on map to measure distance', 'info');
-        let pts = [];
-        state.map.once('click', e1 => {
-            pts.push(e1.latlng);
-            state.map.once('click', e2 => {
-                pts.push(e2.latlng);
-                const dist = turf.distance(turf.point([pts[0].lng, pts[0].lat]), turf.point([pts[1].lng, pts[1].lat]), { units: 'km' });
-                notify(`Distance: ${dist.toFixed(3)} km`, 'success');
-                measuring = false;
-            });
-        });
+        measurePoints = [];
+        notify('📏 MEASURE MODE ON - Click two points on the map', 'info');
+        
+        // Define click handler
+        const measureClickHandler = (e) => {
+            if (!measuring) return;
+            
+            const latlng = e.latlng;
+            measurePoints.push(latlng);
+            
+            // Add a permanent marker for each point
+            const marker = L.marker(latlng, {
+                icon: L.divIcon({ 
+                    html: `<div style="background:#f59e0b;color:white;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-weight:bold;border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.3);">${measurePoints.length}</div>`,
+                    iconSize: [24, 24],
+                    className: 'measure-marker'
+                })
+            }).addTo(state.map);
+            measureMarkers.push(marker);
+            
+            if (measurePoints.length === 1) {
+                notify(`📍 Point 1 set at ${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}. Click second point.`, 'info');
+            } else if (measurePoints.length === 2) {
+                // Calculate distance using Haversine formula directly (more reliable than turf)
+                function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+                    const R = 6371; // Radius of the earth in km
+                    const dLat = deg2rad(lat2 - lat1);
+                    const dLon = deg2rad(lon2 - lon1);
+                    const a = 
+                        Math.sin(dLat/2) * Math.sin(dLat/2) +
+                        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+                        Math.sin(dLon/2) * Math.sin(dLon/2);
+                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                    return R * c;
+                }
+                
+                function deg2rad(deg) {
+                    return deg * (Math.PI/180);
+                }
+                
+                const p1 = measurePoints[0];
+                const p2 = measurePoints[1];
+                const distanceKm = getDistanceFromLatLonInKm(p1.lat, p1.lng, p2.lat, p2.lng);
+                const distanceM = distanceKm * 1000;
+                
+                let distanceText = '';
+                if (distanceKm >= 1) {
+                    distanceText = `${distanceKm.toFixed(3)} kilometers (${(distanceKm * 1000).toFixed(0)} meters)`;
+                } else if (distanceM >= 1) {
+                    distanceText = `${distanceM.toFixed(1)} meters`;
+                } else {
+                    distanceText = `${(distanceM * 100).toFixed(0)} centimeters`;
+                }
+                
+                // Draw a line between points
+                if (measureLine) state.map.removeLayer(measureLine);
+                measureLine = L.polyline(measurePoints, { 
+                    color: '#f59e0b', 
+                    weight: 4, 
+                    dashArray: '8, 8',
+                    opacity: 0.8
+                }).addTo(state.map);
+                
+                // Add a label in the middle of the line
+                const midLat = (p1.lat + p2.lat) / 2;
+                const midLng = (p1.lng + p2.lng) / 2;
+                const label = L.divIcon({
+                    html: `<div style="background:#1a5f4a;color:white;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:bold;white-space:nowrap;border:1px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.2);">📏 ${distanceText}</div>`,
+                    iconSize: [null, null],
+                    className: 'measure-label'
+                });
+                const labelMarker = L.marker([midLat, midLng], { icon: label }).addTo(state.map);
+                measureMarkers.push(labelMarker);
+                
+                // Show prominent notification
+                setTimeout(() => {
+                    alert(`📏 Measurement Result:\n${distanceText}\n\nFrom: ${p1.lat.toFixed(5)}, ${p1.lng.toFixed(5)}\nTo: ${p2.lat.toFixed(5)}, ${p2.lng.toFixed(5)}`);
+                }, 100);
+                
+                notify(`📏 DISTANCE: ${distanceText}`, 'success');
+                
+                // Automatically turn off measure mode after 1 second
+                setTimeout(() => {
+                    if (measuring) {
+                        measuring = false;
+                        state.map.off('click', measureClickHandler);
+                        notify('📏 Measure mode OFF. Click Measure button to measure again.', 'info');
+                    }
+                }, 1000);
+            }
+        };
+        
+        // Attach click handler
+        state.map.on('click', measureClickHandler);
     };
     
     // ======================= FORM & UI =======================
