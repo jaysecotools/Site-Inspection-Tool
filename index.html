@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
-        /* ... (keep your existing styles, they're good) ... */
+        /* Your existing styles - keeping them the same for brevity */
         * {
             margin: 0;
             padding: 0;
@@ -60,7 +60,6 @@
             overflow: hidden;
         }
 
-        /* Sidebar */
         .sidebar {
             width: 280px;
             background: linear-gradient(180deg, #0a241f 0%, #0a1f1a 100%);
@@ -122,7 +121,6 @@
             font-size: 1.1rem;
         }
 
-        /* Main content */
         .main {
             flex: 1;
             display: flex;
@@ -132,7 +130,6 @@
             z-index: 10;
         }
 
-        /* Toolbar */
         .toolbar {
             background: white;
             padding: 12px 20px;
@@ -145,7 +142,6 @@
             box-shadow: var(--shadow-sm);
         }
 
-        /* Map container */
         .map-container {
             flex: 1;
             position: relative;
@@ -162,7 +158,6 @@
             z-index: 1;
         }
 
-        /* Buttons */
         .btn {
             padding: 10px 18px;
             border-radius: 12px;
@@ -215,7 +210,6 @@
             font-size: 0.75rem;
         }
 
-        /* Panel */
         .panel {
             position: fixed;
             top: 0;
@@ -252,7 +246,6 @@
             overflow-y: auto;
         }
 
-        /* Form sections */
         .form-section {
             margin-bottom: 20px;
             border: 1px solid var(--gray-200);
@@ -321,7 +314,6 @@
             padding: 0;
         }
 
-        /* Species list */
         .species-item {
             display: flex;
             align-items: center;
@@ -343,7 +335,6 @@
             min-width: 100px;
         }
 
-        /* Photo grid */
         .photo-grid {
             display: flex;
             flex-wrap: wrap;
@@ -410,7 +401,6 @@
             text-align: center;
         }
 
-        /* Status indicators */
         .status-badge {
             position: absolute;
             bottom: 16px;
@@ -445,7 +435,6 @@
             pointer-events: none;
         }
 
-        /* Notifications */
         .notification {
             position: fixed;
             bottom: 24px;
@@ -469,7 +458,6 @@
             100% { opacity: 0; transform: translateX(-50%) translateY(-20px); visibility: hidden; }
         }
 
-        /* Cards */
         .inspection-card {
             border: 1px solid var(--gray-200);
             border-radius: 16px;
@@ -514,7 +502,6 @@
         .badge-mod { background: var(--warning); color: white; }
         .badge-poor { background: var(--danger); color: white; }
 
-        /* Layer toggle */
         .layer-toggle {
             position: absolute;
             top: 80px;
@@ -570,7 +557,6 @@
             transform: scale(1.02);
         }
 
-        /* Storage indicator */
         .storage-info {
             position: fixed;
             bottom: 20px;
@@ -584,26 +570,6 @@
             font-family: monospace;
         }
 
-        /* PDF-specific styles that won't affect the main app */
-        .pdf-report {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 40px;
-            background: white;
-        }
-        .pdf-report h1 { color: #1a5f4a; border-bottom: 4px solid #1a5f4a; padding-bottom: 10px; }
-        .pdf-report h3 { color: #1a5f4a; margin-top: 20px; margin-bottom: 10px; }
-        .pdf-report .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
-        .pdf-report .health-bar { background: #e2e8f0; border-radius: 30px; height: 12px; margin: 10px 0; overflow: hidden; }
-        .pdf-report .health-fill-pdf { height: 100%; border-radius: 30px; background: linear-gradient(90deg, #dc2626, #f59e0b, #10b981); }
-        .pdf-report .photo-grid-pdf { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin: 10px 0; }
-        .pdf-report .photo-grid-pdf img { width: 100%; border-radius: 8px; border: 1px solid #e2e8f0; }
-        .pdf-report .map-container-pdf { width: 100%; max-width: 600px; margin: 10px 0; border: 2px solid #1a5f4a; border-radius: 12px; overflow: hidden; }
-        .pdf-report .map-container-pdf img { width: 100%; display: block; }
-        .pdf-report .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 10px; text-align: center; color: #666; }
-
-        /* Responsive */
         @media (max-width: 768px) {
             .sidebar { width: 70px; }
             .sidebar-header h1, .nav-item span, .version { display: none; }
@@ -612,7 +578,6 @@
             .toolbar .btn i { margin: 0; }
             .btn { padding: 10px 14px; }
             .draw-info { font-size: 10px; gap: 8px; white-space: nowrap; }
-            .pdf-report .grid-2 { grid-template-columns: 1fr; }
         }
 
         @media (prefers-color-scheme: dark) {
@@ -679,7 +644,6 @@
 
 <script>
 // ======================= TASMANIA ECOLOGICAL ASSESSMENT TOOL v2.1 =======================
-// Improved PDF generation with map capture
 
 class TASEnvironmentalInspector {
     constructor() {
@@ -703,8 +667,7 @@ class TASEnvironmentalInspector {
             measuring: false,
             measurePoints: [],
             measureLine: null,
-            measureMarkers: [],
-            mapCaptureReady: false
+            measureMarkers: []
         };
         
         this.tasmanianVegetationTypes = [
@@ -999,11 +962,6 @@ class TASEnvironmentalInspector {
         this.state.map.on('click', (e) => {
             this.state.currentLat = e.latlng.lat;
             this.state.currentLng = e.latlng.lng;
-        });
-        
-        // Map is ready for capture
-        this.state.map.whenReady(() => {
-            this.state.mapCaptureReady = true;
         });
         
         const toggleDiv = document.createElement('div');
@@ -1342,96 +1300,130 @@ class TASEnvironmentalInspector {
         });
     }
 
-    // IMPROVED: Capture map as image with proper timing
+    // FIXED: Simple and reliable map capture
     async captureMapImage() {
         return new Promise((resolve) => {
-            // Wait for map to be ready
-            if (!this.state.map || !this.state.mapCaptureReady) {
-                setTimeout(() => resolve(null), 500);
-                return;
-            }
-            
-            // Force a brief delay to ensure all tiles are loaded
-            setTimeout(() => {
-                try {
-                    // Get the map container
-                    const mapContainer = document.getElementById('map');
-                    if (!mapContainer) return resolve(null);
-                    
-                    // Use html2canvas on the map container
-                    html2canvas(mapContainer, {
-                        scale: 1.5,
-                        useCORS: true,
-                        backgroundColor: '#ffffff',
-                        logging: false,
-                        width: mapContainer.clientWidth,
-                        height: mapContainer.clientHeight,
-                        onclone: (clonedDoc, element) => {
-                            // Ensure leaflet tiles are loaded in cloned document
-                            const clonedMap = clonedDoc.getElementById('map');
-                            if (clonedMap) {
-                                // Wait for any leaflet tiles to load
-                                const tiles = clonedMap.querySelectorAll('img.leaflet-tile');
-                                let loaded = 0;
-                                const total = tiles.length;
-                                if (total === 0) return;
-                                tiles.forEach(tile => {
-                                    if (tile.complete) loaded++;
-                                    else tile.addEventListener('load', () => {
-                                        loaded++;
-                                        if (loaded >= total) {
-                                            // All tiles loaded
-                                        }
-                                    });
-                                });
-                            }
-                        }
-                    }).then(canvas => {
-                        if (canvas) {
-                            resolve(canvas.toDataURL('image/jpeg', 0.85));
-                        } else {
-                            resolve(null);
-                        }
-                    }).catch(() => resolve(null));
-                } catch (e) {
-                    console.warn('Map capture failed:', e);
+            try {
+                const mapContainer = document.getElementById('map');
+                if (!mapContainer) {
                     resolve(null);
+                    return;
                 }
-            }, 800);
+
+                // Use html2canvas directly on the map container
+                html2canvas(mapContainer, {
+                    scale: 1.2,
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    width: mapContainer.clientWidth,
+                    height: mapContainer.clientHeight,
+                    onclone: function(doc) {
+                        // Make sure leaflet tiles are visible in the clone
+                        const clonedMap = doc.getElementById('map');
+                        if (clonedMap) {
+                            clonedMap.style.position = 'relative';
+                            clonedMap.style.height = '100%';
+                            clonedMap.style.width = '100%';
+                        }
+                    }
+                }).then(canvas => {
+                    if (canvas) {
+                        resolve(canvas.toDataURL('image/jpeg', 0.85));
+                    } else {
+                        resolve(null);
+                    }
+                }).catch((err) => {
+                    console.warn('Map capture error:', err);
+                    resolve(null);
+                });
+            } catch (e) {
+                console.warn('Map capture failed:', e);
+                resolve(null);
+            }
         });
     }
 
-    // IMPROVED: Generate professional PDF with map
+    // FIXED: Generate PDF with proper content - separate from app UI
     async generatePDF(inspection) {
-        // Show notification
-        this.showNotification('Generating PDF report with map...', 'info');
+        this.showNotification('Generating PDF report...', 'info');
         
-        // Capture map image
+        // Capture the map
         let mapImage = await this.captureMapImage();
         
-        // If map capture failed, try one more time with a longer delay
+        // If map capture failed, try once more with a delay
         if (!mapImage) {
-            this.showNotification('Retrying map capture...', 'info');
-            await new Promise(r => setTimeout(r, 1500));
+            await new Promise(r => setTimeout(r, 1000));
             mapImage = await this.captureMapImage();
-        }
-        
-        // If still no map, use a placeholder
-        if (!mapImage) {
-            this.showNotification('Map image could not be captured - using placeholder', 'warning');
         }
         
         const eco = inspection.ecologicalScore || this.calculateEcologicalScore(inspection);
         
-        // Build the HTML for the PDF
-        const html = `
-            <div class="pdf-report">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 4px solid #1a5f4a; padding-bottom: 15px; margin-bottom: 25px;">
+        // Build the report HTML - completely separate from the app's DOM
+        const reportHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Environmental Assessment Report</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { 
+                    font-family: 'Segoe UI', Arial, sans-serif; 
+                    background: white;
+                    padding: 40px;
+                    color: #1e293b;
+                }
+                .report {
+                    max-width: 1100px;
+                    margin: 0 auto;
+                }
+                .header {
+                    border-bottom: 4px solid #1a5f4a;
+                    padding-bottom: 15px;
+                    margin-bottom: 25px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                }
+                .header h1 { color: #1a5f4a; font-size: 28px; }
+                .header h2 { color: #2d8a6e; font-size: 18px; font-weight: 400; margin-top: 5px; }
+                .header-right { text-align: right; font-size: 12px; color: #666; }
+                .header-right div { margin: 2px 0; }
+                .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 20px; }
+                h3 { color: #1a5f4a; margin: 20px 0 10px 0; font-size: 16px; }
+                .info-table { width: 100%; font-size: 13px; border-collapse: collapse; }
+                .info-table td { padding: 4px 8px 4px 0; }
+                .info-table .label { font-weight: bold; width: 120px; }
+                .health-bar { background: #e2e8f0; border-radius: 30px; height: 12px; margin: 8px 0 12px 0; overflow: hidden; }
+                .health-fill { height: 100%; border-radius: 30px; background: linear-gradient(90deg, #dc2626, #f59e0b, #10b981); }
+                .score-box { background: #f8fafc; padding: 12px; border-radius: 8px; font-size: 13px; margin-top: 10px; }
+                .score-box table { width: 100%; font-size: 12px; }
+                .score-box td { padding: 2px 8px 2px 0; }
+                .badge { display: inline-block; padding: 2px 10px; border-radius: 50px; font-size: 12px; font-weight: 700; }
+                .badge-good { background: #10b981; color: white; }
+                .badge-mod { background: #f59e0b; color: white; }
+                .badge-poor { background: #dc2626; color: white; }
+                .observation-box { background: #f8fafc; padding: 12px; border-radius: 8px; margin: 5px 0 15px 0; font-size: 13px; }
+                .map-container { margin: 15px 0; border: 2px solid #1a5f4a; border-radius: 12px; overflow: hidden; max-width: 600px; }
+                .map-container img { width: 100%; display: block; }
+                .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin: 10px 0; }
+                .photo-grid img { width: 100%; border-radius: 8px; border: 1px solid #e2e8f0; }
+                .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 10px; text-align: center; color: #666; }
+                .footer p { margin: 2px 0; }
+                .map-placeholder { padding: 40px; background: #fef3c7; border-radius: 8px; text-align: center; color: #92400e; }
+                @media print { body { padding: 20px; } }
+                @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+            </style>
+        </head>
+        <body>
+            <div class="report">
+                <div class="header">
                     <div>
-                        <h1 style="color: #1a5f4a; font-size: 28px; margin: 0;">Tasmanian Environmental Inspector</h1>
-                        <h2 style="color: #2d8a6e; font-size: 18px; font-weight: 400; margin: 5px 0 0 0;">Ecological Assessment Report</h2>
+                        <h1>Tasmanian Environmental Inspector</h1>
+                        <h2>Ecological Assessment Report</h2>
                     </div>
-                    <div style="text-align: right; font-size: 12px; color: #666;">
+                    <div class="header-right">
                         <div><strong>Report ID:</strong> ${inspection.id}</div>
                         <div><strong>Generated:</strong> ${new Date().toLocaleString()}</div>
                         <div><strong>Status:</strong> Finalised</div>
@@ -1441,86 +1433,80 @@ class TASEnvironmentalInspector {
                 <div class="grid-2">
                     <div>
                         <h3>Site Information</h3>
-                        <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
-                            <tr><td style="padding: 4px 8px 4px 0; font-weight: bold; width: 120px;">Site:</td><td style="padding: 4px 0;">${this.escapeHtml(inspection.siteName)}</td></tr>
-                            <tr><td style="padding: 4px 8px 4px 0; font-weight: bold;">Inspector:</td><td style="padding: 4px 0;">${this.escapeHtml(inspection.inspector || 'Not specified')}</td></tr>
-                            <tr><td style="padding: 4px 8px 4px 0; font-weight: bold;">Organization:</td><td style="padding: 4px 0;">${this.escapeHtml(inspection.organization || 'Not specified')}</td></tr>
-                            <tr><td style="padding: 4px 8px 4px 0; font-weight: bold;">Date:</td><td style="padding: 4px 0;">${inspection.dateTime || 'Not recorded'}</td></tr>
-                            <tr><td style="padding: 4px 8px 4px 0; font-weight: bold;">Location:</td><td style="padding: 4px 0;">${inspection.coords || 'Not recorded'}</td></tr>
-                            <tr><td style="padding: 4px 8px 4px 0; font-weight: bold;">Vegetation Type:</td><td style="padding: 4px 0;">${inspection.vegetationType || 'Not recorded'}</td></tr>
-                            <tr><td style="padding: 4px 8px 4px 0; font-weight: bold;">Tenure:</td><td style="padding: 4px 0;">${this.escapeHtml(inspection.tenure || 'Not recorded')}</td></tr>
-                            <tr><td style="padding: 4px 8px 4px 0; font-weight: bold;">Weather:</td><td style="padding: 4px 0;">${this.escapeHtml(inspection.weather || 'Not recorded')}</td></tr>
-                            <tr><td style="padding: 4px 8px 4px 0; font-weight: bold;">Soil:</td><td style="padding: 4px 0;">${this.escapeHtml(inspection.soilCondition || 'Not recorded')}</td></tr>
+                        <table class="info-table">
+                            <tr><td class="label">Site:</td><td>${this.escapeHtml(inspection.siteName)}</td></tr>
+                            <tr><td class="label">Inspector:</td><td>${this.escapeHtml(inspection.inspector || 'Not specified')}</td></tr>
+                            <tr><td class="label">Organization:</td><td>${this.escapeHtml(inspection.organization || 'Not specified')}</td></tr>
+                            <tr><td class="label">Date:</td><td>${inspection.dateTime || 'Not recorded'}</td></tr>
+                            <tr><td class="label">Location:</td><td>${inspection.coords || 'Not recorded'}</td></tr>
+                            <tr><td class="label">Vegetation:</td><td>${inspection.vegetationType || 'Not recorded'}</td></tr>
+                            <tr><td class="label">Tenure:</td><td>${this.escapeHtml(inspection.tenure || 'Not recorded')}</td></tr>
+                            <tr><td class="label">Weather:</td><td>${this.escapeHtml(inspection.weather || 'Not recorded')}</td></tr>
+                            <tr><td class="label">Soil:</td><td>${this.escapeHtml(inspection.soilCondition || 'Not recorded')}</td></tr>
                         </table>
                     </div>
                     <div>
                         <h3>Ecological Health</h3>
                         <div style="font-size: 14px;">
                             <div><strong>Condition Score:</strong> <span style="font-size: 24px; color: #1a5f4a;">${eco.conditionScore}</span>/10</div>
-                            <div class="health-bar" style="margin: 8px 0 12px 0;">
-                                <div class="health-fill-pdf" style="width: ${eco.conditionScore * 10}%;"></div>
-                            </div>
-                            <div><strong>Risk Rating:</strong> <span class="badge ${eco.conditionScore >= 7 ? 'badge-good' : (eco.conditionScore >= 5 ? 'badge-mod' : 'badge-poor')}" style="font-size: 12px;">${eco.riskRating}</span></div>
+                            <div class="health-bar"><div class="health-fill" style="width: ${eco.conditionScore * 10}%;"></div></div>
+                            <div><strong>Risk Rating:</strong> <span class="badge ${eco.conditionScore >= 7 ? 'badge-good' : (eco.conditionScore >= 5 ? 'badge-mod' : 'badge-poor')}">${eco.riskRating}</span></div>
                             <div><strong>Management Priority:</strong> ${eco.managementPriority}</div>
                             <div><strong>Tasmanian Significance:</strong> ${eco.tasmanianSignificance}</div>
                         </div>
-                        <div style="margin-top: 15px; background: #f8fafc; padding: 12px; border-radius: 8px; font-size: 13px;">
-                            <h4 style="margin: 0 0 8px 0; color: #1a5f4a;">Assessment Metrics</h4>
-                            <table style="width: 100%; font-size: 12px;">
-                                <tr><td style="padding: 2px 8px 2px 0;">Vegetation Health:</td><td>${inspection.vegHealth || 0}/10</td></tr>
-                                <tr><td style="padding: 2px 8px 2px 0;">Species Richness:</td><td>${inspection.speciesRichness || 0}/10</td></tr>
-                                <tr><td style="padding: 2px 8px 2px 0;">Regeneration:</td><td>${inspection.regeneration || 0}/10</td></tr>
-                                <tr><td style="padding: 2px 8px 2px 0;">Weed Cover:</td><td>${inspection.weedCover || 0}%</td></tr>
-                                <tr><td style="padding: 2px 8px 2px 0;">Habitat Quality:</td><td>${inspection.habitatQuality || 0}/10</td></tr>
-                                <tr><td style="padding: 2px 8px 2px 0;">Disturbance Level:</td><td>${inspection.disturbance || 0}/10</td></tr>
+                        <div class="score-box">
+                            <h4 style="margin: 0 0 8px 0; color: #1a5f4a; font-size: 13px;">Assessment Metrics</h4>
+                            <table>
+                                <tr><td>Vegetation Health:</td><td>${inspection.vegHealth || 0}/10</td></tr>
+                                <tr><td>Species Richness:</td><td>${inspection.speciesRichness || 0}/10</td></tr>
+                                <tr><td>Regeneration:</td><td>${inspection.regeneration || 0}/10</td></tr>
+                                <tr><td>Weed Cover:</td><td>${inspection.weedCover || 0}%</td></tr>
+                                <tr><td>Habitat Quality:</td><td>${inspection.habitatQuality || 0}/10</td></tr>
+                                <tr><td>Disturbance Level:</td><td>${inspection.disturbance || 0}/10</td></tr>
                             </table>
                         </div>
                     </div>
                 </div>
                 
-                <div style="margin-top: 20px;">
+                <div>
                     <h3>Threats & Management</h3>
-                    <table style="width: 100%; font-size: 13px; border-collapse: collapse; margin-bottom: 15px;">
-                        <tr><td style="padding: 4px 8px 4px 0; font-weight: bold; width: 150px;">Declared Weeds:</td><td style="padding: 4px 0;">${this.escapeHtml(inspection.weedsList) || 'None recorded'}</td></tr>
-                        <tr><td style="padding: 4px 8px 4px 0; font-weight: bold;">Feral Animals:</td><td style="padding: 4px 0;">${inspection.feralAnimals || 'Not recorded'}</td></tr>
-                        <tr><td style="padding: 4px 8px 4px 0; font-weight: bold;">Fire History:</td><td style="padding: 4px 0;">${this.escapeHtml(inspection.fireHistory) || 'Not recorded'}</td></tr>
-                        <tr><td style="padding: 4px 8px 4px 0; font-weight: bold;">Threat Level:</td><td style="padding: 4px 0;"><span class="badge ${inspection.threatLevel === 'Critical' || inspection.threatLevel === 'High' ? 'badge-poor' : (inspection.threatLevel === 'Medium' ? 'badge-mod' : 'badge-good')}" style="font-size: 11px;">${inspection.threatLevel || 'Not rated'}</span></td></tr>
+                    <table class="info-table">
+                        <tr><td class="label">Declared Weeds:</td><td>${this.escapeHtml(inspection.weedsList) || 'None recorded'}</td></tr>
+                        <tr><td class="label">Feral Animals:</td><td>${inspection.feralAnimals || 'Not recorded'}</td></tr>
+                        <tr><td class="label">Fire History:</td><td>${this.escapeHtml(inspection.fireHistory) || 'Not recorded'}</td></tr>
+                        <tr><td class="label">Threat Level:</td><td><span class="badge ${inspection.threatLevel === 'Critical' || inspection.threatLevel === 'High' ? 'badge-poor' : (inspection.threatLevel === 'Medium' ? 'badge-mod' : 'badge-good')}">${inspection.threatLevel || 'Not rated'}</span></td></tr>
                     </table>
                     
                     <h3>Field Observations</h3>
-                    <div style="background: #f8fafc; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 13px;">
-                        ${this.escapeHtml(inspection.observations) || 'No observations recorded'}
-                    </div>
+                    <div class="observation-box">${this.escapeHtml(inspection.observations) || 'No observations recorded'}</div>
                     
                     <h3>Management Recommendations</h3>
-                    <div style="background: #f8fafc; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 13px;">
-                        ${this.escapeHtml(inspection.recommendations) || 'No recommendations provided'}
-                    </div>
+                    <div class="observation-box">${this.escapeHtml(inspection.recommendations) || 'No recommendations provided'}</div>
                 </div>
                 
                 ${mapImage ? `
-                <div style="margin-top: 20px;">
+                <div>
                     <h3>Site Map</h3>
-                    <div class="map-container-pdf">
-                        <img src="${mapImage}" alt="Site Map" style="width: 100%; display: block;">
+                    <div class="map-container">
+                        <img src="${mapImage}" alt="Site Map">
                     </div>
                     <div style="font-size: 11px; color: #666; margin-top: 4px;">
-                        <i class="fas fa-map-marker-alt"></i> Map showing inspection location and drawn features
+                        <i>Map showing inspection location and drawn features</i>
                     </div>
                 </div>
                 ` : `
-                <div style="margin-top: 20px; padding: 20px; background: #fef3c7; border-radius: 8px; text-align: center; color: #92400e;">
-                    <i class="fas fa-map"></i> Map image could not be captured for this report.
+                <div style="margin: 15px 0; padding: 20px; background: #fef3c7; border-radius: 8px; text-align: center; color: #92400e;">
+                    <strong>Map image could not be captured for this report.</strong>
                 </div>
                 `}
                 
                 ${inspection.photos && inspection.photos.length > 0 ? `
-                <div style="margin-top: 20px;">
+                <div>
                     <h3>Photo Documentation (${inspection.photos.length} images)</h3>
-                    <div class="photo-grid-pdf">
+                    <div class="photo-grid">
                         ${inspection.photos.slice(0, 8).map(p => `
-                            <div style="position: relative;">
-                                <img src="${p.dataURL}" alt="Field photo" style="width: 100%; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <div>
+                                <img src="${p.dataURL}" alt="Field photo">
                                 <div style="font-size: 9px; color: #666; margin-top: 2px; text-align: center;">
                                     ${new Date(p.timestamp).toLocaleDateString()}
                                 </div>
@@ -1537,40 +1523,48 @@ class TASEnvironmentalInspector {
                     <p>Report ID: ${inspection.id} | ${new Date().toISOString().split('T')[0]}</p>
                 </div>
             </div>
+        </body>
+        </html>
         `;
         
-        // Create a container for the PDF
-        const container = document.createElement('div');
-        container.style.cssText = 'position: fixed; left: -9999px; top: 0; width: 1100px; background: white; padding: 20px; z-index: 9999;';
-        container.innerHTML = html;
+        // Create a temporary iframe to render the report
+        const iframe = document.createElement('iframe');
+        iframe.style.cssText = 'position: fixed; left: -9999px; top: 0; width: 1100px; height: 100vh; border: none; z-index: 9999;';
+        document.body.appendChild(iframe);
         
-        // Add PDF-specific styles to the container
-        const style = document.createElement('style');
-        style.textContent = `
-            .pdf-report { font-family: 'Segoe UI', Arial, sans-serif; max-width: 1100px; margin: 0 auto; padding: 20px; background: white; color: #1e293b; }
-            .pdf-report h1 { color: #1a5f4a; }
-            .pdf-report h3 { color: #1a5f4a; margin-top: 20px; margin-bottom: 10px; }
-            .pdf-report .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
-            .pdf-report .health-bar { background: #e2e8f0; border-radius: 30px; height: 12px; overflow: hidden; }
-            .pdf-report .health-fill-pdf { height: 100%; border-radius: 30px; background: linear-gradient(90deg, #dc2626, #f59e0b, #10b981); }
-            .pdf-report .photo-grid-pdf { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
-            .pdf-report .photo-grid-pdf img { width: 100%; border-radius: 8px; border: 1px solid #e2e8f0; }
-            .pdf-report .map-container-pdf { width: 100%; max-width: 600px; margin: 10px 0; border: 2px solid #1a5f4a; border-radius: 12px; overflow: hidden; }
-            .pdf-report .map-container-pdf img { width: 100%; display: block; }
-            .pdf-report .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 10px; text-align: center; color: #666; }
-            .pdf-report .badge { display: inline-block; padding: 2px 10px; border-radius: 50px; font-size: 0.7rem; font-weight: 700; }
-            .pdf-report .badge-good { background: #10b981; color: white; }
-            .pdf-report .badge-mod { background: #f59e0b; color: white; }
-            .pdf-report .badge-poor { background: #dc2626; color: white; }
-            @media print { .pdf-report { padding: 20px; } .pdf-report .grid-2 { grid-template-columns: 1fr 1fr; } }
-            @media (max-width: 768px) { .pdf-report .grid-2 { grid-template-columns: 1fr; } }
-        `;
-        container.appendChild(style);
+        // Write the report HTML to the iframe
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        doc.open();
+        doc.write(reportHTML);
+        doc.close();
         
-        document.body.appendChild(container);
+        // Wait for images to load
+        await new Promise(resolve => {
+            const images = doc.querySelectorAll('img');
+            let loaded = 0;
+            const total = images.length;
+            if (total === 0) { resolve(); return; }
+            images.forEach(img => {
+                if (img.complete) {
+                    loaded++;
+                    if (loaded === total) resolve();
+                } else {
+                    img.onload = () => {
+                        loaded++;
+                        if (loaded === total) resolve();
+                    };
+                    img.onerror = () => {
+                        loaded++;
+                        if (loaded === total) resolve();
+                    };
+                }
+            });
+            // Timeout after 5 seconds
+            setTimeout(resolve, 5000);
+        });
         
+        // Generate PDF from the iframe content
         try {
-            // Generate PDF with improved settings
             const pdfOptions = {
                 margin: [10, 10, 10, 10],
                 filename: `TAS_Enviro_Report_${inspection.id}.pdf`,
@@ -1579,25 +1573,24 @@ class TASEnvironmentalInspector {
                     scale: 1.5,
                     useCORS: true,
                     logging: false,
-                    letterRendering: true
+                    letterRendering: true,
+                    width: 1100
                 },
                 jsPDF: { 
                     unit: 'mm', 
                     format: 'a4', 
                     orientation: 'portrait'
-                },
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                }
             };
             
-            await html2pdf().set(pdfOptions).from(container).save();
-            
+            await html2pdf().set(pdfOptions).from(iframe.contentDocument.body).save();
         } catch (e) {
             console.error('PDF generation failed:', e);
             this.showNotification('PDF generation failed. Please try again.', 'error');
         }
         
         // Clean up
-        document.body.removeChild(container);
+        document.body.removeChild(iframe);
     }
 
     async exportToCSV() {
@@ -1624,8 +1617,6 @@ class TASEnvironmentalInspector {
             'Habitat Quality': i.habitatQuality,
             'Disturbance': i.disturbance,
             'Threat Level': i.threatLevel,
-            'Observations': i.observations,
-            'Recommendations': i.recommendations,
             'Photo Count': i.photos?.length || 0,
             'Geometry Count': i.geometry?.length || 0,
             'Waypoints': i.waypoints?.length || 0
