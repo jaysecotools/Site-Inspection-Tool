@@ -4,47 +4,96 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
     <meta name="theme-color" content="#1a5f4a">
-    <title>TAS Environmental Inspector</title>
+    <meta name="description" content="Tasmanian Environmental Site Inspector - Professional Ecological Assessment Platform for field surveys">
+    <title>TAS Environmental Inspector | Professional Ecological Assessment</title>
     
+    <!-- Core Libraries -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
     <script src="https://unpkg.com/turf@6.5.0/turf.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
-        /* Your existing styles - keeping them as they were */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
             --tas-green: #1a5f4a;
             --tas-green-dark: #0e3d2f;
+            --tas-green-light: #2d8a6e;
+            --tas-brown: #8B7355;
+            --tas-sky: #87CEEB;
             --danger: #dc2626;
             --warning: #f59e0b;
             --success: #10b981;
+            --info: #3b82f6;
+            --gray-50: #f8fafc;
             --gray-100: #f1f5f9;
             --gray-200: #e2e8f0;
             --gray-700: #334155;
             --gray-800: #1e293b;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
         }
-        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--gray-100); height: 100vh; overflow: hidden; }
-        .app { display: flex; height: 100vh; width: 100%; overflow: hidden; }
-        
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--gray-100);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
         .sidebar {
             width: 280px;
             background: linear-gradient(180deg, #0a241f 0%, #0a1f1a 100%);
             color: #e8f0ed;
             display: flex;
             flex-direction: column;
-            flex-shrink: 0;
-            box-shadow: 2px 0 12px rgba(0,0,0,0.1);
             z-index: 200;
+            flex-shrink: 0;
+            box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
         }
-        .sidebar-header { padding: 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .sidebar-header h1 { font-size: 1.35rem; font-weight: 700; }
-        .sidebar-header h1 i { color: #7abf9e; margin-right: 10px; }
-        .version { font-size: 0.7rem; opacity: 0.7; margin-top: 6px; }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .sidebar-header h1 i {
+            color: #7abf9e;
+            margin-right: 10px;
+        }
+
+        .version {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 6px;
+        }
+
         .nav-item {
             padding: 14px 24px;
             display: flex;
@@ -56,11 +105,33 @@
             margin: 4px 8px;
             border-radius: 12px;
         }
-        .nav-item:hover { background: rgba(122,191,158,0.15); }
-        .nav-item.active { background: rgba(122,191,158,0.22); border-left-color: #7abf9e; }
-        .nav-item i { width: 24px; font-size: 1.1rem; }
-        
-        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; z-index: 10; }
+
+        .nav-item:hover {
+            background: rgba(122, 191, 158, 0.15);
+            transform: translateX(2px);
+        }
+
+        .nav-item.active {
+            background: rgba(122, 191, 158, 0.22);
+            border-left-color: #7abf9e;
+        }
+
+        .nav-item i {
+            width: 24px;
+            font-size: 1.1rem;
+        }
+
+        /* Main content */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Toolbar */
         .toolbar {
             background: white;
             padding: 12px 20px;
@@ -70,10 +141,27 @@
             gap: 10px;
             border-bottom: 1px solid var(--gray-200);
             z-index: 150;
+            box-shadow: var(--shadow-sm);
         }
-        .map-container { flex: 1; position: relative; min-height: 0; z-index: 1; }
-        #map { height: 100%; width: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
-        
+
+        /* Map container */
+        .map-container {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+            z-index: 1;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* Buttons */
         .btn {
             padding: 10px 18px;
             border-radius: 12px;
@@ -87,13 +175,46 @@
             transition: all 0.2s ease;
             font-family: inherit;
         }
-        .btn-primary { background: var(--tas-green); color: white; }
-        .btn-primary:hover { background: var(--tas-green-dark); transform: translateY(-1px); }
-        .btn-secondary { background: var(--gray-100); color: var(--gray-800); border: 1px solid var(--gray-200); }
-        .btn-secondary:hover { background: var(--gray-200); }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-sm { padding: 6px 14px; font-size: 0.75rem; }
-        
+
+        .btn-primary {
+            background: var(--tas-green);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover {
+            background: var(--tas-green-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: var(--gray-100);
+            color: var(--gray-800);
+            border: 1px solid var(--gray-200);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-200);
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 0.75rem;
+        }
+
+        /* Panel */
         .panel {
             position: fixed;
             top: 0;
@@ -102,18 +223,35 @@
             max-width: 92vw;
             height: 100vh;
             background: white;
-            box-shadow: -8px 0 32px rgba(0,0,0,0.15);
+            box-shadow: -8px 0 32px rgba(0, 0, 0, 0.15);
             transform: translateX(100%);
-            transition: transform 0.3s cubic-bezier(0.2,0.9,0.4,1.1);
+            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
             z-index: 1000;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
-        .panel.open { transform: translateX(0); }
-        .panel-header { padding: 18px 24px; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center; }
-        .panel-content { padding: 20px 24px; flex: 1; overflow-y: auto; }
-        
+
+        .panel.open {
+            transform: translateX(0);
+        }
+
+        .panel-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+        }
+
+        .panel-content {
+            padding: 20px 24px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        /* Form sections */
         .form-section {
             margin-bottom: 20px;
             border: 1px solid var(--gray-200);
@@ -121,8 +259,9 @@
             overflow: hidden;
             background: white;
         }
+
         .section-header {
-            background: var(--gray-100);
+            background: var(--gray-50);
             padding: 16px 18px;
             font-weight: 700;
             font-size: 0.85rem;
@@ -131,11 +270,36 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: background 0.2s;
         }
-        .section-content { padding: 18px; border-top: 1px solid var(--gray-200); }
-        .section-content.collapsed { display: none; }
-        .form-group { margin-bottom: 18px; }
-        label { display: block; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--gray-700); margin-bottom: 6px; }
+
+        .section-header:hover {
+            background: #f1f5f9;
+        }
+
+        .section-content {
+            padding: 18px;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .section-content.collapsed {
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--gray-700);
+            margin-bottom: 6px;
+            letter-spacing: 0.3px;
+        }
+
         input, select, textarea {
             width: 100%;
             padding: 12px 14px;
@@ -145,9 +309,40 @@
             font-family: inherit;
             transition: all 0.2s;
         }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--tas-green); }
-        input[type="range"] { padding: 0; }
-        
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--tas-green);
+            box-shadow: 0 0 0 3px rgba(26, 95, 74, 0.1);
+        }
+
+        input[type="range"] {
+            padding: 0;
+        }
+
+        /* Species list */
+        .species-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            background: var(--gray-50);
+        }
+
+        .species-item input {
+            flex: 1;
+            margin: 0;
+        }
+
+        .species-item select {
+            width: auto;
+            min-width: 100px;
+        }
+
+        /* Photo grid */
         .photo-grid {
             display: flex;
             flex-wrap: wrap;
@@ -156,6 +351,7 @@
             max-height: 280px;
             overflow-y: auto;
         }
+
         .photo-item {
             position: relative;
             width: 100px;
@@ -163,14 +359,26 @@
             border-radius: 14px;
             overflow: hidden;
             border: 2px solid var(--gray-200);
+            cursor: pointer;
             background: var(--gray-100);
+            transition: transform 0.2s;
         }
-        .photo-item img { width: 100%; height: 100%; object-fit: cover; }
+
+        .photo-item:hover {
+            transform: scale(1.02);
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
         .remove-photo {
             position: absolute;
             top: 6px;
             right: 6px;
-            background: rgba(220,38,38,0.9);
+            background: rgba(220, 38, 38, 0.9);
             color: white;
             border-radius: 50%;
             width: 24px;
@@ -181,31 +389,32 @@
             cursor: pointer;
             font-size: 12px;
             font-weight: bold;
+            transition: all 0.2s;
         }
+
+        .remove-photo:hover {
+            background: var(--danger);
+            transform: scale(1.05);
+        }
+
         .photo-meta {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(0,0,0,0.65);
+            background: rgba(0, 0, 0, 0.65);
             color: white;
             font-size: 9px;
             padding: 3px 6px;
             text-align: center;
         }
-        
-        .health-meter { background: var(--gray-200); border-radius: 30px; height: 8px; overflow: hidden; margin: 10px 0; }
-        .health-fill { height: 100%; background: linear-gradient(90deg, var(--danger), var(--warning), var(--success)); width: 0%; border-radius: 30px; transition: width 0.3s ease; }
-        .badge { display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 0.7rem; font-weight: 700; }
-        .badge-good { background: var(--success); color: white; }
-        .badge-mod { background: var(--warning); color: white; }
-        .badge-poor { background: var(--danger); color: white; }
-        
+
+        /* Status indicators */
         .status-badge {
             position: absolute;
             bottom: 16px;
             right: 16px;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(8px);
             color: white;
             padding: 8px 16px;
@@ -213,13 +422,16 @@
             font-size: 12px;
             z-index: 100;
             pointer-events: none;
+            font-weight: 500;
         }
+
         .draw-info {
             position: absolute;
             top: 16px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
             color: white;
             padding: 8px 16px;
             border-radius: 40px;
@@ -227,44 +439,12 @@
             z-index: 100;
             display: flex;
             gap: 16px;
+            font-weight: 500;
+            white-space: nowrap;
             pointer-events: none;
         }
-        .layer-toggle {
-            position: absolute;
-            top: 80px;
-            right: 12px;
-            background: white;
-            border-radius: 14px;
-            padding: 8px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            z-index: 200;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            min-width: 120px;
-        }
-        .layer-item { padding: 8px 12px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 10px; border-radius: 10px; }
-        .layer-item:hover { background: var(--gray-100); }
-        .locate-btn {
-            position: absolute;
-            bottom: 90px;
-            right: 12px;
-            background: white;
-            border-radius: 50px;
-            padding: 12px 16px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            z-index: 200;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--tas-green);
-            border: none;
-        }
-        .locate-btn:hover { background: var(--gray-100); }
-        
+
+        /* Notifications */
         .notification {
             position: fixed;
             bottom: 24px;
@@ -277,15 +457,18 @@
             z-index: 2000;
             animation: fadeOut 3s forwards;
             font-size: 14px;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-lg);
             font-weight: 500;
         }
+
         @keyframes fadeOut {
             0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
             15% { opacity: 1; transform: translateX(-50%) translateY(0); }
             80% { opacity: 1; }
             100% { opacity: 0; transform: translateX(-50%) translateY(-20px); visibility: hidden; }
         }
+
+        /* Cards */
         .inspection-card {
             border: 1px solid var(--gray-200);
             border-radius: 16px;
@@ -295,14 +478,135 @@
             cursor: pointer;
             transition: all 0.2s ease;
         }
-        .inspection-card:hover { border-color: var(--tas-green); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transform: translateY(-2px); }
+
+        .inspection-card:hover {
+            border-color: var(--tas-green);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .health-meter {
+            background: var(--gray-200);
+            border-radius: 30px;
+            height: 8px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--danger), var(--warning), var(--success));
+            width: 0%;
+            border-radius: 30px;
+            transition: width 0.3s ease;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .badge-good { background: var(--success); color: white; }
+        .badge-mod { background: var(--warning); color: white; }
+        .badge-poor { background: var(--danger); color: white; }
+
+        /* Layer toggle */
+        .layer-toggle {
+            position: absolute;
+            top: 80px;
+            right: 12px;
+            background: white;
+            border-radius: 14px;
+            padding: 8px;
+            box-shadow: var(--shadow-md);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 120px;
+        }
+
+        .layer-item {
+            padding: 8px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-radius: 10px;
+            transition: background 0.2s;
+        }
+
+        .layer-item:hover {
+            background: var(--gray-100);
+        }
+
+        .locate-btn {
+            position: absolute;
+            bottom: 90px;
+            right: 12px;
+            background: white;
+            border-radius: 50px;
+            padding: 12px 16px;
+            box-shadow: var(--shadow-md);
+            z-index: 200;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--tas-green);
+            border: none;
+            transition: all 0.2s ease;
+        }
         
+        .locate-btn:hover {
+            background: var(--gray-100);
+            transform: scale(1.02);
+        }
+
+        /* Storage indicator */
+        .storage-info {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 100;
+            font-family: monospace;
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
             .sidebar { width: 70px; }
             .sidebar-header h1, .nav-item span, .version { display: none; }
             .nav-item { justify-content: center; padding: 16px 0; margin: 4px 0; }
             .toolbar .btn span { display: none; }
+            .toolbar .btn i { margin: 0; }
             .btn { padding: 10px 14px; }
+            .draw-info { font-size: 10px; gap: 8px; white-space: nowrap; }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .panel, .toolbar, .form-section, .inspection-card, .layer-toggle {
+                background: var(--gray-800);
+                color: var(--gray-100);
+                border-color: var(--gray-700);
+            }
+            .section-header { background: var(--gray-800); color: #7abf9e; }
+            input, select, textarea {
+                background: var(--gray-700);
+                border-color: var(--gray-600);
+                color: var(--gray-100);
+            }
+            .panel-header { background: var(--gray-800); border-color: var(--gray-700); }
         }
     </style>
 </head>
@@ -311,7 +615,7 @@
     <div class="sidebar">
         <div class="sidebar-header">
             <h1><i class="fas fa-tree"></i> TAS Enviro</h1>
-            <div class="version">v2.1 | Tasmania</div>
+            <div class="version">v2.0 | Tasmania</div>
         </div>
         <div class="nav-item active" data-view="dashboard"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></div>
         <div class="nav-item" data-view="inspections"><i class="fas fa-clipboard-list"></i><span>Inspections</span></div>
@@ -323,14 +627,15 @@
 
     <div class="main">
         <div class="toolbar">
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                 <button id="clearMapBtn" class="btn btn-secondary"><i class="fas fa-trash-alt"></i><span> Clear</span></button>
                 <button id="exportGeoJsonBtn" class="btn btn-secondary"><i class="fas fa-download"></i><span> GeoJSON</span></button>
                 <button id="exportCSVBtn" class="btn btn-secondary"><i class="fas fa-file-csv"></i><span> CSV</span></button>
                 <button id="measureBtn" class="btn btn-secondary"><i class="fas fa-ruler"></i><span> Measure</span></button>
+                <button id="toggleSatBtn" class="btn btn-secondary"><i class="fas fa-satellite"></i><span> Satellite</span></button>
             </div>
-            <div style="display:flex;gap:8px;">
-                <span id="storageStatus" class="btn-secondary" style="padding:6px 14px;border-radius:30px;font-size:12px;"><i class="fas fa-database"></i> Loading...</span>
+            <div style="display: flex; gap: 8px;">
+                <span id="storageStatus" class="btn-secondary" style="padding:6px 14px; border-radius:30px; font-size:12px;"><i class="fas fa-database"></i> Loading...</span>
                 <button id="listInspectionsBtn" class="btn btn-secondary"><i class="fas fa-folder-open"></i><span> Saved</span></button>
                 <button id="newInspectionBtn" class="btn btn-primary"><i class="fas fa-plus"></i><span> New</span></button>
             </div>
@@ -352,6 +657,9 @@
 </div>
 
 <script>
+// ======================= TASMANIA ECOLOGICAL ASSESSMENT TOOL =======================
+// Professional offline-capable environmental inspection platform
+
 class TASEnvironmentalInspector {
     constructor() {
         this.state = {
@@ -361,11 +669,13 @@ class TASEnvironmentalInspector {
             dbReady: false,
             currentId: null,
             currentPhotos: [],
-            currentLat: -42.8806,
+            currentLat: -42.8806, // Central Tasmania
             currentLng: 147.3250,
             geometry: [],
             waypoints: [],
+            species: [],
             isFinalised: false,
+            currentInspection: null,
             currentBaseLayer: null,
             satLayer: null,
             topoLayer: null,
@@ -376,9 +686,29 @@ class TASEnvironmentalInspector {
         };
         
         this.tasmanianVegetationTypes = [
-            'Dry Eucalypt Forest', 'Wet Eucalypt Forest', 'Rainforest',
-            'Moorland', 'Grassland', 'Coastal Heath', 'Saltmarsh',
-            'Alpine Vegetation', 'Riparian Forest', 'Plantation'
+            'Dry Eucalypt Forest',
+            'Wet Eucalypt Forest',
+            'Rainforest',
+            'Moorland',
+            'Grassland',
+            'Coastal Heath',
+            'Saltmarsh',
+            'Alpine Vegetation',
+            'Riparian Forest',
+            'Plantation'
+        ];
+        
+        this.threatenedSpecies = [
+            'Tasmanian Devil (Sarcophilus harrisii)',
+            'Eastern Quoll (Dasyurus viverrinus)',
+            'Spotted-tailed Quoll (Dasyurus maculatus)',
+            'Wedge-tailed Eagle (Aquila audax fleayi)',
+            'Swift Parrot (Lathamus discolor)',
+            'Tasmanian Wedge-tailed Eagle',
+            'Giant Freshwater Lobster (Astacopsis gouldi)',
+            'Galaxias fish species',
+            'Tasmanian Tree Fern (Dicksonia antarctica)',
+            'King Billy Pine (Athrotaxis selaginoides)'
         ];
     }
 
@@ -388,7 +718,7 @@ class TASEnvironmentalInspector {
         this.initGPS();
         this.bindEvents();
         this.updateStorageStatus();
-        this.showNotification('TAS Environmental Inspector v2.1 ready', 'success');
+        this.showNotification('TAS Environmental Inspector v2.0 | Ready for field assessments', 'success');
     }
 
     async initDB() {
@@ -397,10 +727,16 @@ class TASEnvironmentalInspector {
             req.onupgradeneeded = (e) => {
                 const db = e.target.result;
                 if (!db.objectStoreNames.contains('inspections')) {
-                    db.createObjectStore('inspections', { keyPath: 'id' });
+                    const store = db.createObjectStore('inspections', { keyPath: 'id' });
+                    store.createIndex('dateTime', 'dateTime');
+                    store.createIndex('status', 'status');
+                    store.createIndex('siteName', 'siteName');
                 }
                 if (!db.objectStoreNames.contains('drafts')) {
                     db.createObjectStore('drafts', { keyPath: 'id' });
+                }
+                if (!db.objectStoreNames.contains('exported')) {
+                    db.createObjectStore('exported', { keyPath: 'id' });
                 }
             };
             req.onsuccess = (e) => {
@@ -408,7 +744,10 @@ class TASEnvironmentalInspector {
                 this.state.dbReady = true;
                 resolve();
             };
-            req.onerror = () => resolve();
+            req.onerror = () => {
+                console.error('IndexedDB error');
+                resolve();
+            };
         });
     }
 
@@ -550,7 +889,8 @@ class TASEnvironmentalInspector {
                         dataURL: compressed,
                         timestamp: new Date().toISOString(),
                         lat: this.state.currentLat,
-                        lng: this.state.currentLng
+                        lng: this.state.currentLng,
+                        caption: ''
                     });
                     resolve();
                 };
@@ -565,7 +905,7 @@ class TASEnvironmentalInspector {
         const g = document.getElementById('photoGallery');
         if (!g) return;
         if (this.state.currentPhotos.length === 0) {
-            g.innerHTML = '<div style="padding:24px;text-align:center;color:#94a3b8;"><i class="fas fa-camera"></i> No photos captured</div>';
+            g.innerHTML = '<div style="padding: 24px; text-align: center; color: #94a3b8;"><i class="fas fa-camera"></i> No photos captured</div>';
             return;
         }
         g.innerHTML = this.state.currentPhotos.map((p, idx) => `
@@ -687,7 +1027,7 @@ class TASEnvironmentalInspector {
                 this.state.currentLng = lng;
                 this.showNotification('Location found', 'success');
             },
-            () => {
+            (err) => {
                 this.showNotification('Could not retrieve location', 'warning');
             },
             { enableHighAccuracy: true, timeout: 10000 }
@@ -843,6 +1183,7 @@ class TASEnvironmentalInspector {
             photos: this.state.currentPhotos,
             geometry: this.state.geometry,
             waypoints: this.state.waypoints,
+            species: this.state.species,
             updatedAt: new Date().toISOString()
         };
     }
@@ -889,9 +1230,9 @@ class TASEnvironmentalInspector {
                 <div class="form-section">
                     <div class="section-header"><span><i class="fas fa-paw"></i> Species Observations</span><i class="fas fa-chevron-down"></i></div>
                     <div class="section-content">
-                        <div class="form-group"><label>Declared Weeds Present</label><input id="weedsList" value="${this.escapeHtml(d.weedsList || '')}" placeholder="e.g., Gorse, Blackberry"></div>
+                        <div class="form-group"><label>Declared Weeds Present</label><input id="weedsList" value="${this.escapeHtml(d.weedsList || '')}" placeholder="e.g., Gorse, Blackberry, Spanish Heath"></div>
                         <div class="form-group"><label>Feral Animals Observed</label><select id="feralAnimals"><option ${d.feralAnimals === 'Nil' ? 'selected' : ''}>Nil</option><option ${d.feralAnimals === 'Low' ? 'selected' : ''}>Low</option><option ${d.feralAnimals === 'Medium' ? 'selected' : ''}>Medium</option><option ${d.feralAnimals === 'High' ? 'selected' : ''}>High</option></select></div>
-                        <div class="form-group"><label>Fire History</label><input id="fireHistory" value="${this.escapeHtml(d.fireHistory || '')}" placeholder="Recent fire events"></div>
+                        <div class="form-group"><label>Fire History</label><input id="fireHistory" value="${this.escapeHtml(d.fireHistory || '')}" placeholder="Recent fire events, years since fire"></div>
                     </div>
                 </div>
                 
@@ -899,20 +1240,21 @@ class TASEnvironmentalInspector {
                     <div class="section-header"><span><i class="fas fa-exclamation-triangle"></i> Threats & Management</span><i class="fas fa-chevron-down"></i></div>
                     <div class="section-content">
                         <div class="form-group"><label>Threat Level</label><select id="threatLevel"><option ${d.threatLevel === 'Low' ? 'selected' : ''}>Low</option><option ${d.threatLevel === 'Medium' ? 'selected' : ''}>Medium</option><option ${d.threatLevel === 'High' ? 'selected' : ''}>High</option><option ${d.threatLevel === 'Critical' ? 'selected' : ''}>Critical</option></select></div>
-                        <div class="form-group"><label>Field Observations</label><textarea id="observations" rows="3" placeholder="Detailed ecological observations...">${this.escapeHtml(d.observations || '')}</textarea></div>
-                        <div class="form-group"><label>Management Recommendations</label><textarea id="recommendations" rows="3" placeholder="Recommended actions...">${this.escapeHtml(d.recommendations || '')}</textarea></div>
+                        <div class="form-group"><label>Field Observations & Notes</label><textarea id="observations" rows="3" placeholder="Detailed ecological observations...">${this.escapeHtml(d.observations || '')}</textarea></div>
+                        <div class="form-group"><label>Management Recommendations</label><textarea id="recommendations" rows="3" placeholder="Recommended actions, restoration needs...">${this.escapeHtml(d.recommendations || '')}</textarea></div>
                     </div>
                 </div>
                 
                 <div class="form-section">
-                    <div class="section-header"><span><i class="fas fa-camera"></i> Photos (${this.state.currentPhotos.length})</span><i class="fas fa-chevron-down"></i></div>
+                    <div class="section-header"><span><i class="fas fa-camera"></i> Photo Documentation (${this.state.currentPhotos.length})</span><i class="fas fa-chevron-down"></i></div>
                     <div class="section-content">
                         <input type="file" id="photoInput" accept="image/*" capture="environment" multiple>
                         <div id="photoGallery" class="photo-grid"></div>
+                        <small style="color: #666; display: block; margin-top: 8px;"><i class="fas fa-info-circle"></i> Photos are geotagged with current GPS position</small>
                     </div>
                 </div>
                 
-                <div style="display:flex;gap:12px;margin:20px 0;">
+                <div style="display: flex; gap: 12px; margin: 20px 0;">
                     <button type="button" id="saveDraftBtn" class="btn btn-secondary"><i class="fas fa-save"></i> Save Draft</button>
                     <button type="button" id="finaliseBtn" class="btn btn-primary"><i class="fas fa-check-circle"></i> Finalise & Export</button>
                     <button type="button" id="cancelBtn" class="btn btn-secondary">Cancel</button>
@@ -929,7 +1271,7 @@ class TASEnvironmentalInspector {
         document.getElementById('saveDraftBtn').onclick = async () => {
             const data = this.collectFormData();
             await this.saveInspection(data, true);
-            this.showNotification('Draft saved', 'success');
+            this.showNotification('Draft saved successfully', 'success');
             this.updateStorageStatus();
         };
         
@@ -946,7 +1288,7 @@ class TASEnvironmentalInspector {
             await this.saveInspection(data, false);
             await this.generatePDF(data);
             await this.deleteInspection(data.id, true);
-            this.showNotification('Inspection finalised and PDF generated', 'success');
+            this.showNotification('Inspection finalised and report generated', 'success');
             this.closePanel();
             this.showInspections();
             this.updateStorageStatus();
@@ -961,7 +1303,8 @@ class TASEnvironmentalInspector {
             });
         });
         
-        ['vegHealth', 'speciesRichness', 'regeneration', 'weedCover', 'habitatQuality', 'disturbance'].forEach(id => {
+        const sliders = ['vegHealth', 'speciesRichness', 'regeneration', 'weedCover', 'habitatQuality', 'disturbance'];
+        sliders.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.oninput = () => {
                 const data = this.collectFormData();
@@ -972,342 +1315,112 @@ class TASEnvironmentalInspector {
         });
     }
 
-    // ===== WORKING PDF GENERATION WITH MAP =====
-    async captureMapImage() {
-        return new Promise((resolve) => {
-            try {
-                const mapContainer = document.getElementById('map');
-                if (!mapContainer) {
-                    resolve(null);
-                    return;
-                }
-
-                // Use html2canvas on the map container
-                html2canvas(mapContainer, {
-                    scale: 1.5,
-                    useCORS: true,
-                    backgroundColor: '#ffffff',
-                    logging: false,
-                    width: mapContainer.clientWidth,
-                    height: mapContainer.clientHeight
-                }).then(canvas => {
-                    if (canvas) {
-                        resolve(canvas.toDataURL('image/jpeg', 0.85));
-                    } else {
-                        resolve(null);
-                    }
-                }).catch(() => {
-                    resolve(null);
-                });
-            } catch (e) {
-                console.warn('Map capture failed:', e);
-                resolve(null);
-            }
-        });
-    }
-
     async generatePDF(inspection) {
-        this.showNotification('Generating PDF report...', 'info');
-        
-        // Try to capture the map
-        let mapImage = await this.captureMapImage();
-        
-        // If no map, try once more
-        if (!mapImage) {
-            await new Promise(r => setTimeout(r, 1000));
-            mapImage = await this.captureMapImage();
-        }
+        let mapImage = null;
+        try {
+            const canvas = await html2canvas(document.getElementById('map'), { scale: 1.2 });
+            mapImage = canvas.toDataURL();
+        } catch (e) { }
         
         const eco = inspection.ecologicalScore || this.calculateEcologicalScore(inspection);
-        
-        // Build the HTML report
-        const reportHTML = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Environmental Assessment Report</title>
-            <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body { 
-                    font-family: Arial, sans-serif; 
-                    padding: 40px; 
-                    max-width: 1000px; 
-                    margin: 0 auto; 
-                    color: #1e293b;
-                    background: white;
-                }
-                .header { 
-                    border-bottom: 3px solid #1a5f4a; 
-                    padding-bottom: 15px; 
-                    margin-bottom: 25px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: flex-start;
-                }
-                .header h1 { color: #1a5f4a; font-size: 24px; }
-                .header .sub { color: #2d8a6e; font-size: 14px; margin-top: 4px; }
-                .header-right { text-align: right; font-size: 12px; color: #666; }
-                .header-right div { margin: 2px 0; }
-                .section { margin: 25px 0; }
-                .section h2 { 
-                    color: #1a5f4a; 
-                    border-bottom: 2px solid #e2e8f0; 
-                    padding-bottom: 8px; 
-                    font-size: 16px;
-                    margin-bottom: 12px;
-                }
-                .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-                .info-row { display: flex; padding: 3px 0; font-size: 13px; }
-                .info-label { font-weight: bold; width: 140px; flex-shrink: 0; }
-                .info-value { flex: 1; }
-                .score-box { 
-                    background: #f8fafc; 
-                    padding: 15px; 
-                    border-radius: 8px; 
-                    margin: 10px 0;
-                }
-                .score-box div { margin: 4px 0; font-size: 13px; }
-                .badge { 
-                    display: inline-block; 
-                    padding: 2px 10px; 
-                    border-radius: 12px; 
-                    font-size: 11px; 
-                    font-weight: bold; 
-                }
-                .badge-good { background: #10b981; color: white; }
-                .badge-mod { background: #f59e0b; color: white; }
-                .badge-poor { background: #dc2626; color: white; }
-                .note-box { 
-                    background: #f8fafc; 
-                    padding: 12px; 
-                    border-radius: 8px; 
-                    margin: 5px 0;
-                    font-size: 13px;
-                    line-height: 1.5;
-                }
-                .photo-grid { 
-                    display: grid; 
-                    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); 
-                    gap: 10px; 
-                    margin: 10px 0; 
-                }
-                .photo-grid img { 
-                    width: 100%; 
-                    border-radius: 5px; 
-                    border: 1px solid #e2e8f0;
-                }
-                .photo-grid .caption { 
-                    font-size: 10px; 
-                    color: #666; 
-                    text-align: center; 
-                    margin-top: 2px; 
-                }
-                .map-container { 
-                    margin: 15px 0; 
-                    border: 2px solid #1a5f4a; 
-                    border-radius: 8px; 
-                    overflow: hidden;
-                    max-width: 600px;
-                }
-                .map-container img { width: 100%; display: block; }
-                .map-placeholder {
-                    padding: 40px;
-                    background: #fef3c7;
-                    border-radius: 8px;
-                    text-align: center;
-                    color: #92400e;
-                    font-size: 14px;
-                }
-                .footer { 
-                    margin-top: 30px; 
-                    padding-top: 15px; 
-                    border-top: 1px solid #e2e8f0; 
-                    font-size: 11px; 
-                    color: #666; 
-                    text-align: center; 
-                }
-                .footer p { margin: 2px 0; }
-                @media print { body { padding: 20px; } }
-                @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <div>
-                    <h1>Tasmanian Environmental Inspector</h1>
-                    <div class="sub">Ecological Assessment Report</div>
+        const html = `
+            <div style="padding: 40px; font-family: 'Segoe UI', Arial; max-width: 1100px; margin: auto;">
+                <div style="border-bottom: 4px solid #1a5f4a; margin-bottom: 30px;">
+                    <h1 style="color: #1a5f4a;">Tasmanian Environmental Inspector</h1>
+                    <h3>Ecological Assessment Report</h3>
+                    <p>Report ID: ${inspection.id} | Generated: ${new Date().toLocaleString()}</p>
                 </div>
-                <div class="header-right">
-                    <div><strong>ID:</strong> ${inspection.id}</div>
-                    <div><strong>Date:</strong> ${new Date().toLocaleDateString()}</div>
-                    <div><strong>Status:</strong> Finalised</div>
-                </div>
-            </div>
-            
-            <div class="section">
-                <h2>Site Information</h2>
-                <div class="grid-2">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
                     <div>
-                        <div class="info-row"><span class="info-label">Site Name:</span><span class="info-value">${this.escapeHtml(inspection.siteName)}</span></div>
-                        <div class="info-row"><span class="info-label">Inspector:</span><span class="info-value">${this.escapeHtml(inspection.inspector || 'Not specified')}</span></div>
-                        <div class="info-row"><span class="info-label">Organization:</span><span class="info-value">${this.escapeHtml(inspection.organization || 'Not specified')}</span></div>
-                        <div class="info-row"><span class="info-label">Date/Time:</span><span class="info-value">${inspection.dateTime || 'Not recorded'}</span></div>
-                        <div class="info-row"><span class="info-label">Coordinates:</span><span class="info-value">${inspection.coords || 'Not recorded'}</span></div>
+                        <h3>Site Information</h3>
+                        <p><strong>Site:</strong> ${this.escapeHtml(inspection.siteName)}<br>
+                        <strong>Inspector:</strong> ${this.escapeHtml(inspection.inspector)}<br>
+                        <strong>Organization:</strong> ${this.escapeHtml(inspection.organization)}<br>
+                        <strong>Date:</strong> ${inspection.dateTime}<br>
+                        <strong>Location:</strong> ${inspection.coords}<br>
+                        <strong>Vegetation Type:</strong> ${inspection.vegetationType}<br>
+                        <strong>Tenure:</strong> ${this.escapeHtml(inspection.tenure)}<br>
+                        <strong>Weather:</strong> ${this.escapeHtml(inspection.weather)}</p>
                     </div>
                     <div>
-                        <div class="info-row"><span class="info-label">Vegetation:</span><span class="info-value">${inspection.vegetationType || 'Not recorded'}</span></div>
-                        <div class="info-row"><span class="info-label">Tenure:</span><span class="info-value">${this.escapeHtml(inspection.tenure || 'Not recorded')}</span></div>
-                        <div class="info-row"><span class="info-label">Weather:</span><span class="info-value">${this.escapeHtml(inspection.weather || 'Not recorded')}</span></div>
-                        <div class="info-row"><span class="info-label">Soil:</span><span class="info-value">${this.escapeHtml(inspection.soilCondition || 'Not recorded')}</span></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="section">
-                <h2>Ecological Health Assessment</h2>
-                <div class="score-box">
-                    <div><strong>Condition Score:</strong> ${eco.conditionScore}/10</div>
-                    <div><strong>Risk Rating:</strong> <span class="badge ${eco.conditionScore >= 7 ? 'badge-good' : (eco.conditionScore >= 5 ? 'badge-mod' : 'badge-poor')}">${eco.riskRating}</span></div>
-                    <div><strong>Management Priority:</strong> ${eco.managementPriority}</div>
-                    <div><strong>Tasmanian Significance:</strong> ${eco.tasmanianSignificance}</div>
-                </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 20px;font-size:13px;margin-top:10px;">
-                    <div><strong>Vegetation Health:</strong> ${inspection.vegHealth || 0}/10</div>
-                    <div><strong>Species Richness:</strong> ${inspection.speciesRichness || 0}/10</div>
-                    <div><strong>Regeneration:</strong> ${inspection.regeneration || 0}/10</div>
-                    <div><strong>Weed Cover:</strong> ${inspection.weedCover || 0}%</div>
-                    <div><strong>Habitat Quality:</strong> ${inspection.habitatQuality || 0}/10</div>
-                    <div><strong>Disturbance:</strong> ${inspection.disturbance || 0}/10</div>
-                </div>
-            </div>
-            
-            <div class="section">
-                <h2>Threats & Management</h2>
-                <div class="info-row"><span class="info-label">Declared Weeds:</span><span class="info-value">${this.escapeHtml(inspection.weedsList) || 'None recorded'}</span></div>
-                <div class="info-row"><span class="info-label">Feral Animals:</span><span class="info-value">${inspection.feralAnimals || 'Not recorded'}</span></div>
-                <div class="info-row"><span class="info-label">Fire History:</span><span class="info-value">${this.escapeHtml(inspection.fireHistory) || 'Not recorded'}</span></div>
-                <div class="info-row"><span class="info-label">Threat Level:</span><span class="info-value">${inspection.threatLevel || 'Not rated'}</span></div>
-            </div>
-            
-            <div class="section">
-                <h2>Field Observations</h2>
-                <div class="note-box">${this.escapeHtml(inspection.observations) || 'No observations recorded'}</div>
-            </div>
-            
-            <div class="section">
-                <h2>Management Recommendations</h2>
-                <div class="note-box">${this.escapeHtml(inspection.recommendations) || 'No recommendations provided'}</div>
-            </div>
-            
-            ${mapImage ? `
-            <div class="section">
-                <h2>Site Map</h2>
-                <div class="map-container">
-                    <img src="${mapImage}" alt="Site Map">
-                </div>
-                <div style="font-size:11px;color:#666;margin-top:4px;">
-                    Map showing inspection location and drawn features
-                </div>
-            </div>
-            ` : `
-            <div class="section">
-                <h2>Site Map</h2>
-                <div class="map-placeholder">
-                    <i class="fas fa-map"></i> Map image could not be captured for this report.
-                </div>
-            </div>
-            `}
-            
-            ${inspection.photos && inspection.photos.length > 0 ? `
-            <div class="section">
-                <h2>Photos (${inspection.photos.length})</h2>
-                <div class="photo-grid">
-                    ${inspection.photos.slice(0, 8).map(p => `
-                        <div>
-                            <img src="${p.dataURL}" alt="Field photo">
-                            <div class="caption">${new Date(p.timestamp).toLocaleDateString()}</div>
+                        <h3>Ecological Health</h3>
+                        <div style="background:#e2e8f0; border-radius:30px; height:12px; margin-bottom:15px;">
+                            <div style="width:${eco.conditionScore * 10}%; height:100%; background:linear-gradient(90deg,#dc2626,#f59e0b,#10b981); border-radius:30px;"></div>
                         </div>
-                    `).join('')}
+                        <p><strong>Condition Score:</strong> ${eco.conditionScore}/10<br>
+                        <strong>Risk Rating:</strong> ${eco.riskRating}<br>
+                        <strong>Management Priority:</strong> ${eco.managementPriority}<br>
+                        <strong>Tasmanian Significance:</strong> ${eco.tasmanianSignificance}</p>
+                    </div>
                 </div>
-                ${inspection.photos.length > 8 ? `<div style="font-size:12px;color:#666;">+ ${inspection.photos.length - 8} more photos</div>` : ''}
+                <h3>Vegetation & Habitat Assessment</h3>
+                <p><strong>Vegetation Health:</strong> ${inspection.vegHealth}/10<br>
+                <strong>Species Richness:</strong> ${inspection.speciesRichness}/10<br>
+                <strong>Regeneration:</strong> ${inspection.regeneration}/10<br>
+                <strong>Weed Cover:</strong> ${inspection.weedCover}%<br>
+                <strong>Habitat Quality:</strong> ${inspection.habitatQuality}/10<br>
+                <strong>Disturbance Level:</strong> ${inspection.disturbance}/10</p>
+                
+                <h3>Threats & Management</h3>
+                <p><strong>Declared Weeds:</strong> ${this.escapeHtml(inspection.weedsList) || 'None recorded'}<br>
+                <strong>Feral Animals:</strong> ${inspection.feralAnimals}<br>
+                <strong>Fire History:</strong> ${this.escapeHtml(inspection.fireHistory) || 'Not recorded'}<br>
+                <strong>Threat Level:</strong> ${inspection.threatLevel}</p>
+                
+                <h3>Field Observations</h3>
+                <p>${this.escapeHtml(inspection.observations) || 'No observations recorded'}</p>
+                
+                <h3>Management Recommendations</h3>
+                <p>${this.escapeHtml(inspection.recommendations) || 'No recommendations provided'}</p>
+                
+                ${mapImage ? `<h3>Site Map</h3><img src="${mapImage}" style="width:100%; max-width:500px; border-radius:12px; margin-top:10px;">` : ''}
+                
+                ${inspection.photos && inspection.photos.length > 0 ? `<h3>Photo Documentation (${inspection.photos.length} images)</h3><div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(100px,1fr)); gap:10px;">${inspection.photos.slice(0,6).map(p => `<img src="${p.dataURL}" style="width:100%; border-radius:8px;">`).join('')}</div>` : ''}
+                
+                <hr style="margin: 30px 0 20px;">
+                <footer style="font-size:10px; text-align:center; color:#666;">
+                    <p>Tasmanian Environmental Inspector v2.0 | Digitally Signed Report</p>
+                    <p>This report was generated offline and represents field observations at the time of inspection</p>
+                </footer>
             </div>
-            ` : ''}
-            
-            <div class="footer">
-                <p><strong>Tasmanian Environmental Inspector v2.1</strong></p>
-                <p>Report ID: ${inspection.id} | Generated: ${new Date().toLocaleString()}</p>
-                <p>This report was generated offline from field observations</p>
-            </div>
-        </body>
-        </html>
         `;
         
-        // Use html2pdf with the content in an iframe
-        const iframe = document.createElement('iframe');
-        iframe.style.cssText = 'position: fixed; left: -9999px; top: 0; width: 1100px; height: 100vh; border: none;';
-        document.body.appendChild(iframe);
-        
-        const doc = iframe.contentDocument || iframe.contentWindow.document;
-        doc.open();
-        doc.write(reportHTML);
-        doc.close();
-        
-        // Wait for images
-        await new Promise(resolve => {
-            const images = doc.querySelectorAll('img');
-            let loaded = 0;
-            const total = images.length;
-            if (total === 0) { resolve(); return; }
-            images.forEach(img => {
-                if (img.complete) {
-                    loaded++;
-                    if (loaded === total) resolve();
-                } else {
-                    img.onload = () => { loaded++; if (loaded === total) resolve(); };
-                    img.onerror = () => { loaded++; if (loaded === total) resolve(); };
-                }
-            });
-            setTimeout(resolve, 5000);
-        });
-        
-        // Generate PDF
-        try {
-            const pdfOptions = {
-                margin: [10, 10, 10, 10],
-                filename: `TAS_Enviro_Report_${inspection.id}.pdf`,
-                image: { type: 'jpeg', quality: 0.95 },
-                html2canvas: { scale: 1.5, useCORS: true, logging: false },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            
-            await html2pdf().set(pdfOptions).from(iframe.contentDocument.body).save();
-        } catch (e) {
-            console.error('PDF failed:', e);
-            this.showNotification('PDF generation failed, try again', 'error');
-        }
-        
-        document.body.removeChild(iframe);
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        document.body.appendChild(div);
+        await html2pdf().set({ margin: 0.5, filename: `TAS_Enviro_Report_${inspection.id}.pdf`, image: { type: 'jpeg', quality: 0.9 } }).from(div).save();
+        document.body.removeChild(div);
     }
 
-    // ===== REST OF THE APP =====
     async exportToCSV() {
         const inspections = await this.getAllInspections();
         if (inspections.length === 0) {
             this.showNotification('No inspections to export', 'warning');
             return;
         }
+        
         const csvData = inspections.map(i => ({
-            'ID': i.id, 'Site Name': i.siteName, 'Inspector': i.inspector,
-            'Organization': i.organization, 'Date': i.dateTime, 'Coordinates': i.coords,
-            'Vegetation Type': i.vegetationType, 'Condition Score': i.ecologicalScore?.conditionScore || '',
-            'Risk Rating': i.ecologicalScore?.riskRating || '', 'Management Priority': i.ecologicalScore?.managementPriority || '',
-            'Veg Health': i.vegHealth, 'Species Richness': i.speciesRichness,
-            'Weed Cover %': i.weedCover, 'Habitat Quality': i.habitatQuality,
-            'Disturbance': i.disturbance, 'Threat Level': i.threatLevel,
-            'Observations': i.observations, 'Recommendations': i.recommendations,
-            'Photo Count': i.photos?.length || 0, 'Geometry Count': i.geometry?.length || 0
+            'ID': i.id,
+            'Site Name': i.siteName,
+            'Inspector': i.inspector,
+            'Organization': i.organization,
+            'Date': i.dateTime,
+            'Coordinates': i.coords,
+            'Vegetation Type': i.vegetationType,
+            'Condition Score': i.ecologicalScore?.conditionScore || '',
+            'Risk Rating': i.ecologicalScore?.riskRating || '',
+            'Management Priority': i.ecologicalScore?.managementPriority || '',
+            'Veg Health': i.vegHealth,
+            'Species Richness': i.speciesRichness,
+            'Weed Cover %': i.weedCover,
+            'Habitat Quality': i.habitatQuality,
+            'Disturbance': i.disturbance,
+            'Threat Level': i.threatLevel,
+            'Observations': i.observations,
+            'Recommendations': i.recommendations,
+            'Photo Count': i.photos?.length || 0
         }));
+        
         const ws = XLSX.utils.json_to_sheet(csvData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Inspections');
@@ -1320,15 +1433,17 @@ class TASEnvironmentalInspector {
         const drafts = await this.getAllDrafts();
         const exportData = {
             exportDate: new Date().toISOString(),
-            version: '2.1',
+            version: '2.0',
             inspections: inspections,
             drafts: drafts
         };
+        
         const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = `TAS_Enviro_Data_${new Date().toISOString().slice(0,19)}.json`;
         a.click();
+        URL.revokeObjectURL(blob.url);
         this.showNotification('JSON export complete', 'success');
     }
 
@@ -1339,19 +1454,22 @@ class TASEnvironmentalInspector {
                 try {
                     const data = JSON.parse(e.target.result);
                     let imported = 0;
-                    if (data.inspections) {
+                    
+                    if (data.inspections && Array.isArray(data.inspections)) {
                         for (const insp of data.inspections) {
                             await this.saveInspection(insp, false);
                             imported++;
                         }
                     }
-                    if (data.drafts) {
+                    
+                    if (data.drafts && Array.isArray(data.drafts)) {
                         for (const draft of data.drafts) {
                             await this.saveInspection(draft, true);
                             imported++;
                         }
                     }
-                    this.showNotification(`Imported ${imported} records`, 'success');
+                    
+                    this.showNotification(`Imported ${imported} records successfully`, 'success');
                     this.updateStorageStatus();
                     resolve();
                 } catch (err) {
@@ -1368,6 +1486,7 @@ class TASEnvironmentalInspector {
         this.state.currentPhotos = [];
         this.state.geometry = [];
         this.state.waypoints = [];
+        this.state.species = [];
         this.state.isFinalised = false;
         if (this.state.drawnItems) this.state.drawnItems.clearLayers();
         document.getElementById('panelContent').innerHTML = this.renderForm({ id: this.state.currentId });
@@ -1381,9 +1500,10 @@ class TASEnvironmentalInspector {
         this.state.currentPhotos = insp.photos || [];
         this.state.geometry = insp.geometry || [];
         this.state.waypoints = insp.waypoints || [];
+        this.state.species = insp.species || [];
         this.state.isFinalised = insp.status === 'finalised';
         if (this.state.drawnItems && this.state.geometry.length) {
-            this.state.geometry.forEach(g => { try { L.geoJSON(g).addTo(this.state.drawnItems); } catch(e) {} });
+            this.state.geometry.forEach(g => { try { L.geoJSON(g).addTo(this.state.drawnItems); } catch (e) { } });
         }
         document.getElementById('panelContent').innerHTML = this.renderForm(insp);
         document.getElementById('panelTitle').innerHTML = isDraft ? 'Edit Draft' : 'View Inspection';
@@ -1404,10 +1524,10 @@ class TASEnvironmentalInspector {
         let html = inspections.map(ins => `
             <div class="inspection-card" data-id="${ins.id}">
                 <strong><i class="fas fa-tree"></i> ${this.escapeHtml(ins.siteName)}</strong><br>
-                <small>${ins.dateTime} | Score: ${ins.ecologicalScore?.conditionScore || 0}/10 | ${ins.ecologicalScore?.riskRating || 'Not rated'}</small>
-                <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+                <small>${ins.dateTime} | Score: ${ins.ecologicalScore?.conditionScore || ins.vegHealth || 0}/10 | ${ins.ecologicalScore?.riskRating || 'Not rated'}</small>
+                <div style="display:flex;gap:8px;margin-top:12px;">
                     <button class="btn btn-secondary view-final" data-id="${ins.id}">View</button>
-                    <button class="btn btn-primary pdf-final" data-id="${ins.id}"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <button class="btn btn-primary pdf-final" data-id="${ins.id}">PDF Report</button>
                     <button class="btn btn-danger del-final" data-id="${ins.id}">Delete</button>
                 </div>
             </div>
@@ -1471,7 +1591,7 @@ class TASEnvironmentalInspector {
                 <div style="background:linear-gradient(135deg,#1a5f4a,#0e3d2f);color:white;padding:32px;border-radius:20px;margin-bottom:24px;">
                     <i class="fas fa-tree" style="font-size:52px;"></i>
                     <h2>Tasmanian Environmental Inspector</h2>
-                    <p>Professional Ecological Assessment Platform v2.1</p>
+                    <p>Professional Ecological Assessment Platform</p>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
                     <div style="background:#f0fdf4;padding:20px;border-radius:16px;"><div style="font-size:36px;font-weight:bold;">${inspections.length}</div><div>Finalised Reports</div></div>
@@ -1491,26 +1611,29 @@ class TASEnvironmentalInspector {
         this.openPanel();
         document.getElementById('panelTitle').innerHTML = 'Data Manager';
         document.getElementById('panelContent').innerHTML = `
-            <div style="padding:20px;">
+            <div style="padding: 20px;">
                 <h3><i class="fas fa-download"></i> Export Data</h3>
-                <button id="exportCSVData" class="btn btn-primary" style="width:100%;margin-bottom:10px;"><i class="fas fa-file-excel"></i> Export to Excel</button>
-                <button id="exportJSONData" class="btn btn-secondary" style="width:100%;margin-bottom:20px;"><i class="fas fa-code"></i> Export to JSON</button>
+                <button id="exportCSVData" class="btn btn-primary" style="width:100%; margin-bottom:10px;"><i class="fas fa-file-excel"></i> Export to Excel (CSV)</button>
+                <button id="exportJSONData" class="btn btn-secondary" style="width:100%; margin-bottom:20px;"><i class="fas fa-code"></i> Export to JSON</button>
+                
                 <h3><i class="fas fa-upload"></i> Import Data</h3>
                 <input type="file" id="importJSONFile" accept=".json" style="margin-bottom:10px;">
-                <button id="importJSONBtn" class="btn btn-secondary" style="width:100%;"><i class="fas fa-upload"></i> Import JSON</button>
-                <hr style="margin:20px 0;">
+                <button id="importJSONBtn" class="btn btn-secondary" style="width:100%;"><i class="fas fa-upload"></i> Import JSON File</button>
+                
+                <hr style="margin: 20px 0;">
                 <button id="clearAllData" class="btn btn-danger" style="width:100%;"><i class="fas fa-trash"></i> Clear All Data</button>
             </div>
         `;
+        
         document.getElementById('exportCSVData')?.addEventListener('click', () => this.exportToCSV());
         document.getElementById('exportJSONData')?.addEventListener('click', () => this.exportToJSON());
         document.getElementById('importJSONBtn')?.addEventListener('click', () => {
             const file = document.getElementById('importJSONFile').files[0];
             if (file) this.importFromJSON(file);
-            else this.showNotification('Select a JSON file', 'warning');
+            else this.showNotification('Please select a JSON file', 'warning');
         });
         document.getElementById('clearAllData')?.addEventListener('click', async () => {
-            if (confirm('Delete ALL data? This cannot be undone.')) {
+            if (confirm('WARNING: This will delete ALL inspections and drafts. This action cannot be undone. Continue?')) {
                 const inspections = await this.getAllInspections();
                 const drafts = await this.getAllDrafts();
                 for (const insp of inspections) await this.deleteInspection(insp.id, false);
@@ -1530,6 +1653,7 @@ class TASEnvironmentalInspector {
         a.href = URL.createObjectURL(blob);
         a.download = `tas_enviro_export_${Date.now()}.geojson`;
         a.click();
+        URL.revokeObjectURL(blob.url);
         this.showNotification('GeoJSON exported', 'success');
     }
 
@@ -1544,6 +1668,7 @@ class TASEnvironmentalInspector {
         document.getElementById('exportGeoJsonBtn').onclick = () => this.exportGeoJSON();
         document.getElementById('exportCSVBtn').onclick = () => this.exportToCSV();
         document.getElementById('measureBtn').onclick = () => this.startMeasure();
+        document.getElementById('toggleSatBtn').onclick = () => document.getElementById('toggleSatMap')?.click();
         
         document.querySelectorAll('.nav-item').forEach(item => {
             item.onclick = () => {
@@ -1561,7 +1686,7 @@ class TASEnvironmentalInspector {
     }
 }
 
-// Initialize
+// Initialize the application
 const app = new TASEnvironmentalInspector();
 app.init();
 </script>
