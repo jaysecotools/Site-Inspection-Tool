@@ -2,12 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#0f3b2e">
-    <meta name="description" content="EcoMaintenance Professional - Enterprise Environmental Management Platform">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EcoMaintenance Professional</title>
     
-    <!-- Core Libraries -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
@@ -18,128 +15,63 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     
     <style>
-        /* ============================================================
-        DESIGN SYSTEM
-        ============================================================ */
-        :root {
-            --brand-forest: #0f3b2e;
-            --brand-canopy: #1a5f4a;
-            --brand-fern: #2d8a6e;
-            --brand-gold: #d4a843;
-            --brand-mist: #e8f0ed;
-            
-            --neutral-50: #fafbfc;
-            --neutral-100: #f0f3f5;
-            --neutral-200: #dce3e8;
-            --neutral-300: #b8c4cc;
-            --neutral-400: #8a9ba8;
-            --neutral-500: #6b7d8a;
-            --neutral-600: #4a5a66;
-            --neutral-700: #2d3a42;
-            --neutral-800: #1a242b;
-            --neutral-900: #0d1419;
-            
-            --success: #1a9c6e;
-            --warning: #d4a843;
-            --danger: #c0392b;
-            --info: #3498db;
-            
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-            --shadow-md: 0 4px 16px rgba(0,0,0,0.10);
-            --shadow-lg: 0 12px 40px rgba(0,0,0,0.15);
-            --shadow-xl: 0 24px 64px rgba(0,0,0,0.20);
-            
-            --radius-sm: 6px;
-            --radius-md: 10px;
-            --radius-lg: 16px;
-            --radius-xl: 24px;
-            
-            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-med: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-slow: 500ms cubic-bezier(0.22, 1, 0.36, 1);
-        }
-        
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: var(--neutral-100);
-            height: 100vh;
-            overflow: hidden;
-            color: var(--neutral-800);
-            -webkit-font-smoothing: antialiased;
+        :root {
+            --primary: #1a5f4a;
+            --primary-dark: #0f3b2e;
+            --primary-light: #2d8a6e;
+            --gold: #d4a843;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #dc2626;
+            --info: #3b82f6;
+            --shadow: 0 4px 16px rgba(0,0,0,0.10);
+            --shadow-lg: 0 12px 40px rgba(0,0,0,0.15);
+            --radius: 10px;
+            --radius-sm: 6px;
         }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--gray-100); height: 100vh; overflow: hidden; }
         
-        /* ============================================================
-        APP LAYOUT
-        ============================================================ */
-        .app-container { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
+        .app { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
         
         /* Sidebar */
         .sidebar {
-            width: 250px;
-            background: linear-gradient(180deg, var(--brand-forest) 0%, #0a241f 100%);
-            color: var(--brand-mist);
+            width: 240px;
+            background: linear-gradient(180deg, var(--primary-dark) 0%, #0a241f 100%);
+            color: #e8f0ed;
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
             z-index: 200;
-            box-shadow: 2px 0 24px rgba(0,0,0,0.15);
-            transition: transform var(--transition-med);
+            box-shadow: 2px 0 20px rgba(0,0,0,0.15);
         }
-        
-        .sidebar-brand {
-            padding: 18px 20px 14px;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-            flex-shrink: 0;
-        }
-        
-        .sidebar-brand h1 {
-            font-size: 1.2rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .sidebar-brand h1 i { color: var(--brand-fern); font-size: 1.3rem; }
-        .sidebar-brand .subtitle {
-            font-size: 0.55rem;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            opacity: 0.4;
-            margin-top: 2px;
-            font-weight: 500;
-        }
-        
-        .sidebar-nav {
-            flex: 1;
-            padding: 10px 10px;
-            overflow-y: auto;
-        }
-        
-        .sidebar-nav .nav-label {
-            font-size: 0.55rem;
-            text-transform: uppercase;
-            letter-spacing: 1.2px;
-            opacity: 0.35;
-            padding: 10px 12px 4px;
-            font-weight: 600;
-        }
-        
+        .sidebar-brand { padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .sidebar-brand h1 { font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .sidebar-brand h1 i { color: var(--primary-light); }
+        .sidebar-brand .version { font-size: 0.55rem; opacity: 0.4; margin-top: 2px; text-transform: uppercase; letter-spacing: 1px; }
+        .sidebar-nav { flex: 1; padding: 10px; overflow-y: auto; }
         .nav-item {
-            padding: 9px 14px;
+            padding: 10px 14px;
             display: flex;
             align-items: center;
             gap: 12px;
             cursor: pointer;
-            border-radius: var(--radius-md);
-            margin: 1px 0;
-            transition: all var(--transition-fast);
-            font-size: 0.82rem;
+            border-radius: var(--radius-sm);
+            margin: 2px 0;
+            transition: all 0.15s;
+            font-size: 0.85rem;
             color: rgba(255,255,255,0.65);
             border: none;
             background: transparent;
@@ -148,23 +80,12 @@
             font-family: inherit;
         }
         .nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
-        .nav-item.active {
-            background: rgba(45, 138, 110, 0.25);
-            color: #fff;
-            box-shadow: inset 3px 0 0 var(--brand-fern);
-        }
-        .nav-item i { width: 20px; font-size: 0.9rem; text-align: center; flex-shrink: 0; }
-        .nav-item .badge {
-            margin-left: auto;
-            background: rgba(255,255,255,0.12);
-            padding: 0px 8px;
-            border-radius: 20px;
-            font-size: 0.55rem;
-            font-weight: 600;
-        }
+        .nav-item.active { background: rgba(45, 138, 110, 0.25); color: #fff; border-left: 3px solid var(--primary-light); }
+        .nav-item i { width: 20px; text-align: center; }
+        .nav-item .badge { margin-left: auto; background: rgba(255,255,255,0.12); padding: 0px 8px; border-radius: 20px; font-size: 0.55rem; font-weight: 600; }
         
-        /* Main Content */
-        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--neutral-50); }
+        /* Main */
+        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--gray-50); }
         
         /* Toolbar */
         .toolbar {
@@ -176,27 +97,14 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 6px;
-            border-bottom: 1px solid var(--neutral-200);
+            border-bottom: 1px solid var(--gray-200);
             z-index: 150;
             flex-shrink: 0;
-            min-height: 50px;
+            min-height: 48px;
         }
+        .toolbar-left, .toolbar-right { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+        .toolbar-divider { width: 1px; height: 24px; background: var(--gray-200); margin: 0 4px; }
         
-        .toolbar-left, .toolbar-right {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            flex-wrap: wrap;
-        }
-        
-        .toolbar-divider {
-            width: 1px;
-            height: 24px;
-            background: var(--neutral-200);
-            margin: 0 4px;
-        }
-        
-        /* Buttons */
         .btn {
             padding: 6px 12px;
             border-radius: var(--radius-sm);
@@ -207,37 +115,24 @@
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            transition: all var(--transition-fast);
+            transition: all 0.15s;
             font-family: inherit;
             white-space: nowrap;
-            line-height: 1.4;
         }
         .btn:active { transform: scale(0.97); }
-        
-        .btn-primary { background: var(--brand-canopy); color: white; box-shadow: var(--shadow-sm); }
-        .btn-primary:hover { background: var(--brand-forest); box-shadow: var(--shadow-md); }
-        
-        .btn-secondary { background: var(--neutral-100); color: var(--neutral-700); border: 1px solid var(--neutral-200); }
-        .btn-secondary:hover { background: var(--neutral-200); }
-        
-        .btn-success { background: var(--success); color: white; }
-        .btn-success:hover { background: #158b5f; }
-        
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary { background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-200); }
+        .btn-secondary:hover { background: var(--gray-200); }
         .btn-danger { background: var(--danger); color: white; }
-        .btn-danger:hover { background: #a93226; }
-        
+        .btn-danger:hover { background: #b91c1c; }
         .btn-sm { padding: 3px 8px; font-size: 0.6rem; }
-        .btn-lg { padding: 8px 18px; font-size: 0.8rem; }
-        .btn-icon { padding: 6px 7px; }
-        
-        .btn i { font-size: 0.8rem; }
         
         /* Map */
         .map-wrapper { flex: 1; position: relative; min-height: 0; overflow: hidden; }
         #map { height: 100%; width: 100%; position: absolute; top: 0; left: 0; }
         
-        /* Map Status Bar */
-        .map-status-bar {
+        .map-status {
             position: absolute;
             bottom: 12px;
             left: 50%;
@@ -254,54 +149,8 @@
             align-items: center;
             pointer-events: none;
             font-weight: 500;
-            letter-spacing: 0.2px;
         }
-        .map-status-bar .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 4px; }
-        .map-status-bar .dot.green { background: var(--success); }
-        .map-status-bar .dot.yellow { background: var(--warning); }
-        .map-status-bar .dot.red { background: var(--danger); }
         
-        /* Layer Control */
-        .layer-control {
-            position: absolute;
-            top: 70px;
-            left: 10px;
-            background: white;
-            border-radius: var(--radius-md);
-            padding: 4px;
-            box-shadow: var(--shadow-md);
-            z-index: 200;
-            min-width: 100px;
-        }
-        .layer-control .layer-item {
-            padding: 5px 10px;
-            font-size: 0.65rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-radius: var(--radius-sm);
-            transition: all var(--transition-fast);
-            font-weight: 500;
-            color: var(--neutral-600);
-            border: none;
-            background: transparent;
-            width: 100%;
-            text-align: left;
-            font-family: inherit;
-        }
-        .layer-control .layer-item:hover { background: var(--neutral-100); }
-        .layer-control .layer-item.active { background: var(--brand-canopy); color: white; }
-        .layer-control .layer-item .indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            border: 2px solid var(--neutral-300);
-            flex-shrink: 0;
-        }
-        .layer-control .layer-item.active .indicator { border-color: white; background: var(--brand-fern); }
-        
-        /* Map Tools */
         .map-tools {
             position: absolute;
             top: 70px;
@@ -315,33 +164,33 @@
             background: white;
             border: none;
             border-radius: var(--radius-sm);
-            padding: 7px 9px;
-            box-shadow: var(--shadow-md);
+            padding: 7px;
+            box-shadow: var(--shadow);
             cursor: pointer;
-            transition: all var(--transition-fast);
-            color: var(--neutral-600);
+            transition: all 0.15s;
+            color: var(--gray-600);
             font-size: 0.8rem;
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .map-tools .tool-btn:hover { background: var(--brand-canopy); color: white; transform: scale(1.05); }
-        .map-tools .tool-btn.active { background: var(--brand-canopy); color: white; }
+        .map-tools .tool-btn:hover { background: var(--primary); color: white; }
+        .map-tools .tool-btn.active { background: var(--primary); color: white; }
         
         /* Panel */
         .panel {
             position: fixed;
             top: 0;
             right: 0;
-            width: 680px;
+            width: 660px;
             max-width: 94vw;
             height: 100vh;
             background: white;
-            box-shadow: var(--shadow-xl);
+            box-shadow: var(--shadow-lg);
             transform: translateX(100%);
-            transition: transform var(--transition-slow) cubic-bezier(0.22, 1, 0.36, 1);
+            transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
             z-index: 1000;
             display: flex;
             flex-direction: column;
@@ -351,17 +200,16 @@
         
         .panel-header {
             padding: 14px 20px;
-            border-bottom: 1px solid var(--neutral-200);
+            border-bottom: 1px solid var(--gray-200);
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: white;
             flex-shrink: 0;
-            min-height: 56px;
+            min-height: 54px;
         }
-        .panel-header h3 { font-size: 0.95rem; font-weight: 700; color: var(--neutral-800); display: flex; align-items: center; gap: 8px; }
-        .panel-header h3 i { color: var(--brand-canopy); }
-        .panel-header .panel-actions { display: flex; gap: 4px; align-items: center; }
+        .panel-header h3 { font-size: 0.95rem; font-weight: 700; color: var(--gray-800); display: flex; align-items: center; gap: 8px; }
+        .panel-header h3 i { color: var(--primary); }
         
         .panel-body {
             flex: 1;
@@ -369,39 +217,37 @@
             padding: 16px 20px 24px;
         }
         .panel-body::-webkit-scrollbar { width: 5px; }
-        .panel-body::-webkit-scrollbar-track { background: transparent; }
-        .panel-body::-webkit-scrollbar-thumb { background: var(--neutral-300); border-radius: 10px; }
+        .panel-body::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 10px; }
         
         /* Forms */
         .form-section {
             margin-bottom: 14px;
-            border: 1px solid var(--neutral-200);
-            border-radius: var(--radius-md);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius);
             overflow: hidden;
             background: white;
         }
         .section-header {
-            background: var(--neutral-50);
+            background: var(--gray-50);
             padding: 10px 14px;
             font-weight: 700;
             font-size: 0.7rem;
-            color: var(--brand-canopy);
+            color: var(--primary);
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            user-select: none;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
             border: none;
             width: 100%;
             font-family: inherit;
             text-align: left;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .section-header:hover { background: var(--neutral-100); }
-        .section-header i:last-child { transition: transform var(--transition-fast); }
+        .section-header:hover { background: var(--gray-100); }
+        .section-header i:last-child { transition: transform 0.2s; }
         .section-header.collapsed i:last-child { transform: rotate(-90deg); }
-        .section-content { padding: 14px; border-top: 1px solid var(--neutral-200); }
+        .section-content { padding: 14px; border-top: 1px solid var(--gray-200); }
         .section-content.collapsed { display: none; }
         
         .form-group { margin-bottom: 12px; }
@@ -411,75 +257,58 @@
             font-size: 0.65rem;
             font-weight: 700;
             text-transform: uppercase;
-            color: var(--neutral-600);
+            color: var(--gray-600);
             margin-bottom: 3px;
             letter-spacing: 0.4px;
         }
-        .form-group label .required { color: var(--danger); margin-left: 2px; }
-        .form-group .hint { font-size: 0.6rem; color: var(--neutral-400); margin-top: 2px; }
-        
+        .form-group label .required { color: var(--danger); }
         input, select, textarea {
             width: 100%;
             padding: 7px 10px;
-            border: 1.5px solid var(--neutral-200);
+            border: 1.5px solid var(--gray-200);
             border-radius: var(--radius-sm);
             font-size: 0.8rem;
             font-family: inherit;
-            transition: all var(--transition-fast);
+            transition: all 0.15s;
             background: white;
-            color: var(--neutral-800);
+            color: var(--gray-800);
         }
         input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: var(--brand-canopy);
+            border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(26, 95, 74, 0.1);
         }
         textarea { resize: vertical; min-height: 50px; }
         input[type="range"] { padding: 0; border: none; }
-        
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
         
-        /* Photo Gallery */
+        /* Photos */
         .photo-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
             gap: 8px;
             margin-top: 8px;
-            max-height: 240px;
+            max-height: 220px;
             overflow-y: auto;
-            padding: 2px;
         }
         .photo-item {
             position: relative;
             aspect-ratio: 1;
             border-radius: var(--radius-sm);
             overflow: hidden;
-            border: 2px solid var(--neutral-200);
+            border: 2px solid var(--gray-200);
             cursor: pointer;
-            background: var(--neutral-100);
-            transition: all var(--transition-fast);
+            background: var(--gray-100);
+            transition: all 0.15s;
         }
-        .photo-item:hover { border-color: var(--brand-canopy); transform: scale(1.02); }
+        .photo-item:hover { border-color: var(--primary); transform: scale(1.02); }
         .photo-item img { width: 100%; height: 100%; object-fit: cover; }
-        .photo-item .photo-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 3px 5px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.6));
-            color: white;
-            font-size: 0.55rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
         .photo-item .remove-photo {
             position: absolute;
             top: 3px;
             right: 3px;
-            background: rgba(192, 57, 43, 0.9);
+            background: rgba(220, 38, 38, 0.9);
             color: white;
             border-radius: 50%;
             width: 20px;
@@ -492,82 +321,58 @@
             font-weight: bold;
             border: none;
         }
-        .photo-item .remove-photo:hover { transform: scale(1.1); background: var(--danger); }
+        .photo-item .remove-photo:hover { background: var(--danger); }
         .photo-item .hero-badge {
             position: absolute;
             top: 3px;
             left: 3px;
             background: var(--warning);
-            color: var(--neutral-900);
+            color: var(--gray-900);
             padding: 0px 6px;
             border-radius: 20px;
             font-size: 0.5rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
         }
-        
         .photo-upload-area {
-            border: 2px dashed var(--neutral-300);
-            border-radius: var(--radius-md);
+            border: 2px dashed var(--gray-300);
+            border-radius: var(--radius);
             padding: 20px;
             text-align: center;
             cursor: pointer;
-            transition: all var(--transition-fast);
-            background: var(--neutral-50);
+            transition: all 0.15s;
+            background: var(--gray-50);
         }
-        .photo-upload-area:hover { border-color: var(--brand-canopy); background: rgba(26, 95, 74, 0.04); }
-        .photo-upload-area i { font-size: 1.6rem; color: var(--neutral-400); display: block; margin-bottom: 4px; }
-        .photo-upload-area p { font-size: 0.7rem; color: var(--neutral-500); }
+        .photo-upload-area:hover { border-color: var(--primary); background: rgba(26, 95, 74, 0.04); }
+        .photo-upload-area i { font-size: 1.6rem; color: var(--gray-400); display: block; margin-bottom: 4px; }
         
         /* Dashboard */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 12px;
             margin-bottom: 16px;
         }
         .stat-card {
             background: white;
             padding: 14px 16px;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--neutral-200);
-            box-shadow: var(--shadow-sm);
-            transition: all var(--transition-fast);
+            border-radius: var(--radius);
+            border: 1px solid var(--gray-200);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            transition: all 0.15s;
+            cursor: default;
         }
-        .stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
-        .stat-card .stat-icon { font-size: 1.2rem; color: var(--brand-canopy); opacity: 0.6; }
-        .stat-card .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--neutral-800); line-height: 1.2; }
-        .stat-card .stat-label { font-size: 0.65rem; text-transform: uppercase; color: var(--neutral-500); letter-spacing: 0.5px; font-weight: 600; }
-        .stat-card .stat-change { font-size: 0.6rem; font-weight: 600; padding: 0px 6px; border-radius: 20px; }
-        .stat-card .stat-change.positive { background: rgba(26, 156, 110, 0.15); color: var(--success); }
-        .stat-card .stat-change.negative { background: rgba(192, 57, 43, 0.12); color: var(--danger); }
+        .stat-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+        .stat-card .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--gray-800); line-height: 1.2; }
+        .stat-card .stat-label { font-size: 0.65rem; text-transform: uppercase; color: var(--gray-500); letter-spacing: 0.5px; font-weight: 600; }
         
-        .chart-container {
-            background: white;
-            border: 1px solid var(--neutral-200);
-            border-radius: var(--radius-md);
-            padding: 14px;
-            margin-bottom: 14px;
-        }
-        .chart-container h4 {
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--neutral-600);
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        /* Inspection Cards */
         .inspection-card {
-            border: 1px solid var(--neutral-200);
-            border-radius: var(--radius-md);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius);
             padding: 14px;
             margin-bottom: 10px;
             background: white;
-            cursor: pointer;
-            transition: all var(--transition-fast);
+            transition: all 0.15s;
             position: relative;
             overflow: hidden;
         }
@@ -579,9 +384,9 @@
             bottom: 0;
             width: 4px;
         }
-        .inspection-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--brand-canopy); }
-        .inspection-card .card-title { font-weight: 700; font-size: 0.9rem; color: var(--neutral-800); }
-        .inspection-card .card-meta { font-size: 0.65rem; color: var(--neutral-500); margin-top: 2px; }
+        .inspection-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); border-color: var(--primary); }
+        .inspection-card .card-title { font-weight: 700; font-size: 0.9rem; color: var(--gray-800); }
+        .inspection-card .card-meta { font-size: 0.65rem; color: var(--gray-500); margin-top: 2px; }
         .inspection-card .card-actions { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
         .inspection-card .card-badge {
             position: absolute;
@@ -592,21 +397,16 @@
             padding: 1px 8px;
             border-radius: 20px;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
         }
         
         .health-meter {
-            background: var(--neutral-200);
+            background: var(--gray-200);
             border-radius: 20px;
             height: 4px;
             overflow: hidden;
             margin: 6px 0;
         }
-        .health-fill {
-            height: 100%;
-            border-radius: 20px;
-            transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-        }
+        .health-fill { height: 100%; border-radius: 20px; transition: width 0.6s; }
         
         .rating-badge {
             display: inline-block;
@@ -615,12 +415,11 @@
             font-size: 0.55rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
         }
-        .rating-badge.excellent { background: rgba(26, 156, 110, 0.15); color: var(--success); }
-        .rating-badge.good { background: rgba(52, 152, 219, 0.15); color: var(--info); }
-        .rating-badge.moderate { background: rgba(212, 168, 67, 0.15); color: var(--warning); }
-        .rating-badge.poor { background: rgba(192, 57, 43, 0.12); color: var(--danger); }
+        .rating-badge.excellent { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .rating-badge.good { background: rgba(59, 130, 246, 0.15); color: var(--info); }
+        .rating-badge.moderate { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+        .rating-badge.poor { background: rgba(220, 38, 38, 0.12); color: var(--danger); }
         
         /* Toast */
         .toast-container {
@@ -636,7 +435,7 @@
             pointer-events: none;
         }
         .toast {
-            background: var(--neutral-800);
+            background: var(--gray-800);
             color: white;
             padding: 10px 20px;
             border-radius: 30px;
@@ -644,26 +443,18 @@
             font-weight: 500;
             box-shadow: var(--shadow-lg);
             pointer-events: auto;
-            animation: toastIn 0.3s cubic-bezier(0.22, 1, 0.36, 1), toastOut 0.3s 2.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation: toastIn 0.3s, toastOut 0.3s 2.7s forwards;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        .toast.success { background: var(--brand-canopy); }
-        .toast.warning { background: var(--warning); color: var(--neutral-900); }
+        .toast.success { background: var(--primary); }
+        .toast.warning { background: var(--warning); color: var(--gray-900); }
         .toast.error { background: var(--danger); }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-16px); } }
         
-        @keyframes toastIn {
-            from { opacity: 0; transform: translateY(16px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        @keyframes toastOut {
-            from { opacity: 1; transform: translateY(0) scale(1); }
-            to { opacity: 0; transform: translateY(-16px) scale(0.95); }
-        }
-        
-        /* Storage Indicator */
-        .storage-indicator {
+        .storage-status {
             position: fixed;
             bottom: 12px;
             left: 12px;
@@ -675,19 +466,11 @@
             font-size: 0.55rem;
             font-family: monospace;
             z-index: 100;
-            display: flex;
-            align-items: center;
-            gap: 6px;
             pointer-events: none;
         }
-        .storage-indicator .dot { width: 6px; height: 6px; border-radius: 50%; }
-        .storage-indicator .dot.online { background: var(--success); }
-        .storage-indicator .dot.offline { background: var(--warning); }
         
-        /* Sidebar Toggle */
         .sidebar-toggle { display: none; }
         
-        /* Responsive */
         @media (max-width: 768px) {
             .sidebar {
                 position: fixed;
@@ -709,79 +492,59 @@
                 border: none;
                 padding: 6px 9px;
                 border-radius: var(--radius-sm);
-                box-shadow: var(--shadow-md);
+                box-shadow: var(--shadow);
                 cursor: pointer;
                 font-size: 1rem;
-                color: var(--neutral-700);
+                color: var(--gray-700);
             }
             .toolbar-left .btn span { display: none; }
-            .toolbar-left .btn { padding: 5px 8px; }
             .panel { width: 100vw; max-width: 100vw; }
             .dashboard-grid { grid-template-columns: 1fr 1fr; }
-            .map-status-bar { font-size: 0.5rem; padding: 3px 10px; gap: 6px; }
-            .layer-control { top: 60px; left: 6px; min-width: 80px; }
-            .layer-control .layer-item { font-size: 0.55rem; padding: 4px 8px; }
-            .map-tools { top: 60px; right: 6px; }
-            .map-tools .tool-btn { width: 30px; height: 30px; font-size: 0.7rem; padding: 5px; }
         }
         
-        @media (max-width: 480px) {
-            .dashboard-grid { grid-template-columns: 1fr; }
-            .panel-body { padding: 12px 14px 20px; }
-            .panel-header { padding: 10px 14px; }
-            .photo-grid { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); }
-        }
-        
-        /* Dark mode */
         @media (prefers-color-scheme: dark) {
             :root {
-                --neutral-50: #1a242b;
-                --neutral-100: #1f2a33;
-                --neutral-200: #2d3a42;
-                --neutral-300: #4a5a66;
-                --neutral-400: #6b7d8a;
-                --neutral-500: #8a9ba8;
-                --neutral-600: #b8c4cc;
-                --neutral-700: #dce3e8;
-                --neutral-800: #f0f3f5;
-                --neutral-900: #fafbfc;
+                --gray-50: #1a242b;
+                --gray-100: #1f2a33;
+                --gray-200: #2d3a42;
+                --gray-300: #4a5a66;
+                --gray-400: #6b7d8a;
+                --gray-500: #8a9ba8;
+                --gray-600: #b8c4cc;
+                --gray-700: #dce3e8;
+                --gray-800: #f0f3f5;
+                --gray-900: #fafbfc;
             }
-            body { background: var(--neutral-100); }
-            .panel, .panel-header, .form-section, .inspection-card, .stat-card, .chart-container {
-                background: var(--neutral-50);
-                border-color: var(--neutral-200);
+            body { background: var(--gray-100); }
+            .panel, .panel-header, .form-section, .inspection-card, .stat-card {
+                background: var(--gray-50);
+                border-color: var(--gray-200);
             }
-            .panel-header { border-color: var(--neutral-200); }
-            .section-header { background: var(--neutral-100); color: var(--brand-fern); }
-            .section-content { border-color: var(--neutral-200); }
-            input, select, textarea { background: var(--neutral-100); border-color: var(--neutral-200); color: var(--neutral-800); }
-            input:focus, select:focus, textarea:focus { border-color: var(--brand-fern); box-shadow: 0 0 0 3px rgba(45, 138, 110, 0.15); }
-            .btn-secondary { background: var(--neutral-100); border-color: var(--neutral-200); color: var(--neutral-700); }
-            .btn-secondary:hover { background: var(--neutral-200); }
-            .toolbar { background: rgba(26, 36, 43, 0.9); backdrop-filter: blur(12px); border-color: var(--neutral-200); }
-            .map-tools .tool-btn, .layer-control { background: var(--neutral-50); color: var(--neutral-600); }
-            .map-tools .tool-btn:hover { background: var(--brand-canopy); color: white; }
-            .photo-upload-area { background: var(--neutral-100); border-color: var(--neutral-200); }
-            .photo-upload-area:hover { border-color: var(--brand-fern); background: rgba(45, 138, 110, 0.08); }
-            .stat-card .stat-value { color: var(--neutral-800); }
-            .stat-card .stat-label { color: var(--neutral-500); }
-            .inspection-card .card-title { color: var(--neutral-800); }
-            .inspection-card .card-meta { color: var(--neutral-400); }
-            .panel-header h3 { color: var(--neutral-800); }
-            .form-group label { color: var(--neutral-400); }
-            .leaflet-control-zoom a { background: var(--neutral-50); color: var(--neutral-700); }
-            .leaflet-control-zoom a:hover { background: var(--neutral-100); }
-            .leaflet-draw-toolbar a { background: var(--neutral-50); }
-            .leaflet-draw-toolbar a:hover { background: var(--neutral-100); }
-            .leaflet-control-attribution { background: rgba(0,0,0,0.7) !important; color: white !important; }
-            .leaflet-control-attribution a { color: var(--brand-fern) !important; }
+            .panel-header { border-color: var(--gray-200); }
+            .section-header { background: var(--gray-100); color: var(--primary-light); }
+            .section-content { border-color: var(--gray-200); }
+            input, select, textarea { background: var(--gray-100); border-color: var(--gray-200); color: var(--gray-800); }
+            input:focus, select:focus, textarea:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(45, 138, 110, 0.15); }
+            .btn-secondary { background: var(--gray-100); border-color: var(--gray-200); color: var(--gray-700); }
+            .btn-secondary:hover { background: var(--gray-200); }
+            .toolbar { background: rgba(26, 36, 43, 0.9); backdrop-filter: blur(12px); border-color: var(--gray-200); }
+            .map-tools .tool-btn { background: var(--gray-50); color: var(--gray-600); }
+            .map-tools .tool-btn:hover { background: var(--primary); color: white; }
+            .photo-upload-area { background: var(--gray-100); border-color: var(--gray-200); }
+            .photo-upload-area:hover { border-color: var(--primary-light); background: rgba(45, 138, 110, 0.08); }
+            .stat-card .stat-value { color: var(--gray-800); }
+            .panel-header h3 { color: var(--gray-800); }
+            .form-group label { color: var(--gray-400); }
+            .leaflet-control-zoom a { background: var(--gray-50); color: var(--gray-700); }
+            .leaflet-control-zoom a:hover { background: var(--gray-100); }
+            .leaflet-draw-toolbar a { background: var(--gray-50); }
+            .leaflet-draw-toolbar a:hover { background: var(--gray-100); }
         }
         
         .text-center { text-align: center; }
-        .text-muted { color: var(--neutral-400); font-size: 0.7rem; }
+        .text-muted { color: var(--gray-400); font-size: 0.7rem; }
         .text-sm { font-size: 0.7rem; }
         .text-xs { font-size: 0.6rem; }
-        .font-mono { font-family: 'Courier New', monospace; }
         .mt-2 { margin-top: 6px; }
         .mt-3 { margin-top: 10px; }
         .mt-4 { margin-top: 14px; }
@@ -796,27 +559,25 @@
 </head>
 <body>
 
-<div class="app-container">
+<div class="app">
     <!-- Sidebar -->
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <h1><i class="fas fa-leaf"></i> EcoMaintain</h1>
-            <div class="subtitle">Professional Environmental Platform</div>
+            <div class="version">Professional v4.0</div>
         </div>
         <div class="sidebar-nav">
-            <div class="nav-label">Main</div>
             <button class="nav-item active" data-view="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
             <button class="nav-item" data-view="inspections"><i class="fas fa-clipboard-list"></i> Inspections <span class="badge" id="inspCount">0</span></button>
             <button class="nav-item" data-view="new"><i class="fas fa-plus-circle"></i> New Assessment</button>
             <button class="nav-item" data-view="mapview"><i class="fas fa-map"></i> Map View</button>
-            <div class="nav-label" style="margin-top:6px;">Workflow</div>
             <button class="nav-item" data-view="drafts"><i class="fas fa-save"></i> Drafts <span class="badge" id="draftCount">0</span></button>
             <button class="nav-item" data-view="data"><i class="fas fa-database"></i> Data Manager</button>
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="main-content">
+    <!-- Main -->
+    <div class="main">
         <header class="toolbar">
             <div class="toolbar-left">
                 <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
@@ -828,8 +589,8 @@
                 <button id="measureBtn" class="btn btn-secondary btn-sm"><i class="fas fa-ruler"></i><span> Measure</span></button>
             </div>
             <div class="toolbar-right">
-                <span id="storageStatus" class="text-xs text-muted" style="padding:3px 8px;background:var(--neutral-100);border-radius:20px;">
-                    <i class="fas fa-database"></i> Loading...
+                <span id="storageStatus" class="text-xs text-muted" style="padding:3px 8px;background:var(--gray-100);border-radius:20px;">
+                    <i class="fas fa-database"></i> Ready
                 </span>
                 <div class="toolbar-divider"></div>
                 <button id="listInspectionsBtn" class="btn btn-secondary btn-sm"><i class="fas fa-folder-open"></i><span> Saved</span></button>
@@ -837,48 +598,39 @@
             </div>
         </header>
 
-        <div class="map-wrapper" id="mapWrapper">
+        <div class="map-wrapper">
             <div id="map"></div>
-            <div class="map-status-bar">
-                <span><span class="dot green"></span> GPS: <span id="gpsStatus">Locating...</span></span>
+            <div class="map-status">
+                <span><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--success);margin-right:4px;"></span> GPS: <span id="gpsStatus">Active</span></span>
                 <span>|</span>
                 <span><i class="fas fa-draw-polygon"></i> <span id="polygonCount">0</span></span>
                 <span>|</span>
                 <span><i class="fas fa-map-marker-alt"></i> <span id="waypointCount">0</span></span>
             </div>
 
-            <div class="layer-control">
-                <button class="layer-item active" data-layer="streets"><span class="indicator"></span> Streets</button>
-                <button class="layer-item" data-layer="satellite"><span class="indicator"></span> Satellite</button>
-                <button class="layer-item" data-layer="topo"><span class="indicator"></span> Topo</button>
-            </div>
-
             <div class="map-tools">
                 <button class="tool-btn" id="locateBtn" title="My Location"><i class="fas fa-location-arrow"></i></button>
-                <button class="tool-btn" id="fullscreenBtn" title="Fullscreen"><i class="fas fa-expand"></i></button>
                 <button class="tool-btn" id="resetMapBtn" title="Reset View"><i class="fas fa-home"></i></button>
             </div>
         </div>
-    </main>
+    </div>
 
     <!-- Panel -->
     <aside class="panel" id="panel">
         <header class="panel-header">
             <h3 id="panelTitle"><i class="fas fa-clipboard"></i> Ecological Assessment</h3>
-            <div class="panel-actions">
-                <button id="closePanelBtn" class="btn btn-secondary btn-sm"><i class="fas fa-times"></i></button>
-            </div>
+            <button id="closePanelBtn" class="btn btn-secondary btn-sm"><i class="fas fa-times"></i></button>
         </header>
         <div class="panel-body" id="panelBody"></div>
     </aside>
 </div>
 
 <div class="toast-container" id="toastContainer"></div>
-<div class="storage-indicator"><span class="dot online"></span> <span id="storageDetail">Local</span></div>
+<div class="storage-status" id="storageStatusBar">● Local</div>
 
 <script>
 // ================================================================
-// UTILITY FUNCTIONS
+// UTILITY
 // ================================================================
 const Utils = {
     uuid() {
@@ -892,11 +644,6 @@ const Utils = {
         if (!str) return '';
         const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
         return str.replace(/[&<>"']/g, m => map[m]);
-    },
-    
-    sanitizeText(str) {
-        if (!str) return '';
-        return str.replace(/[^\w\s.,!?()'"]/g, '').trim();
     },
     
     formatDate(isoStr) {
@@ -917,19 +664,6 @@ const Utils = {
     
     clamp(val, min, max) { return Math.max(min, Math.min(max, val)); },
     round(val, d = 1) { return Number(val.toFixed(d)); },
-    
-    haversineDist(lat1, lng1, lat2, lng2) {
-        const R = 6371;
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lng2 - lng1) * Math.PI / 180;
-        const a = Math.sin(dLat/2)**2 + Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.sin(dLon/2)**2;
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    },
-    
-    formatDistance(km) {
-        if (km >= 1) return `${km.toFixed(2)} km`;
-        return `${(km * 1000).toFixed(0)} m`;
-    },
     
     compressImage(dataURL, maxWidth = 800, quality = 0.8) {
         return new Promise((resolve) => {
@@ -966,14 +700,12 @@ const Utils = {
         if (score < 3) { riskRating = 'Critical'; priority = 'Immediate Intervention'; colour = '#dc2626'; }
         else if (score < 5) { riskRating = 'High Risk'; priority = 'Urgent Management'; colour = '#f59e0b'; }
         else if (score < 7) { riskRating = 'Medium Risk'; priority = 'Short-term Plan'; colour = '#f59e0b'; }
-        else if (score < 8.5) { riskRating = 'Low Risk'; priority = 'Regular Monitoring'; colour = '#3498db'; }
+        else if (score < 8.5) { riskRating = 'Low Risk'; priority = 'Regular Monitoring'; colour = '#3b82f6'; }
         else { riskRating = 'Excellent'; priority = 'Maintenance Only'; colour = '#10b981'; }
         
         return {
             conditionScore: Utils.round(score, 1),
-            riskRating,
-            priority,
-            colour,
+            riskRating, priority, colour,
             significance: score > 7 ? 'High Conservation Value' : (score > 5 ? 'Moderate Conservation Value' : 'Low Conservation Value')
         };
     },
@@ -987,7 +719,7 @@ const Utils = {
 };
 
 // ================================================================
-// TOAST SYSTEM
+// TOAST
 // ================================================================
 const Toast = {
     show(msg, type = 'info', duration = 3000) {
@@ -1006,29 +738,22 @@ const Toast = {
 };
 
 // ================================================================
-// DATABASE LAYER
+// DATABASE - SIMPLIFIED, RELIABLE
 // ================================================================
 class Database {
     constructor() {
         this.db = null;
         this.ready = false;
-        this.useLocalStorage = false;
-        this.initPromise = null;
     }
     
     async init() {
-        if (this.initPromise) return this.initPromise;
-        
-        this.initPromise = new Promise((resolve) => {
+        return new Promise((resolve) => {
             try {
-                const req = indexedDB.open('EcoMaintenance_v4', 5);
+                const req = indexedDB.open('EcoMaintenanceDB', 1);
                 req.onupgradeneeded = (e) => {
                     const db = e.target.result;
                     if (!db.objectStoreNames.contains('inspections')) {
-                        const s = db.createObjectStore('inspections', { keyPath: 'id' });
-                        s.createIndex('dateTime', 'dateTime');
-                        s.createIndex('status', 'status');
-                        s.createIndex('siteName', 'siteName');
+                        db.createObjectStore('inspections', { keyPath: 'id' });
                     }
                     if (!db.objectStoreNames.contains('drafts')) {
                         db.createObjectStore('drafts', { keyPath: 'id' });
@@ -1040,144 +765,90 @@ class Database {
                     resolve();
                 };
                 req.onerror = () => {
-                    this.useLocalStorage = true;
+                    // Fallback to memory
                     this.ready = true;
                     resolve();
                 };
             } catch {
-                this.useLocalStorage = true;
                 this.ready = true;
                 resolve();
             }
         });
-        
-        return this.initPromise;
     }
     
-    _store(store, mode = 'readonly') {
-        if (this.useLocalStorage || !this.ready) return null;
-        return this.db.transaction([store], mode).objectStore(store);
-    }
-    
-    _key(id, draft = false) { return `${draft ? 'draft_' : 'insp_'}${id}`; }
-    
-    async save(data, draft = false) {
-        await this.init();
-        const store = draft ? 'drafts' : 'inspections';
-        
-        if (this.useLocalStorage) {
-            localStorage.setItem(this._key(data.id, draft), JSON.stringify(data));
+    async save(data, isDraft = false) {
+        const store = isDraft ? 'drafts' : 'inspections';
+        if (!this.ready || !this.db) {
+            // Memory fallback
+            if (!window._memoryDB) window._memoryDB = {};
+            const key = `${isDraft ? 'draft_' : 'insp_'}${data.id}`;
+            window._memoryDB[key] = data;
             return;
         }
-        
         return new Promise((resolve, reject) => {
             try {
-                const s = this._store(store, 'readwrite');
-                if (!s) { this.useLocalStorage = true; localStorage.setItem(this._key(data.id, draft), JSON.stringify(data)); resolve(); return; }
+                const tx = this.db.transaction([store], 'readwrite');
+                const s = tx.objectStore(store);
                 const req = s.put(data);
                 req.onsuccess = () => resolve();
                 req.onerror = () => reject(req.error);
-            } catch (e) {
-                this.useLocalStorage = true;
-                localStorage.setItem(this._key(data.id, draft), JSON.stringify(data));
-                resolve();
-            }
+            } catch (e) { reject(e); }
         });
     }
     
     async getAll(store = 'inspections') {
-        await this.init();
-        
-        if (this.useLocalStorage) {
+        if (!this.ready || !this.db) {
+            if (!window._memoryDB) window._memoryDB = {};
             const prefix = store === 'inspections' ? 'insp_' : 'draft_';
-            return Object.keys(localStorage)
+            return Object.keys(window._memoryDB)
                 .filter(k => k.startsWith(prefix))
-                .map(k => JSON.parse(localStorage.getItem(k)))
-                .filter(d => d !== null);
+                .map(k => window._memoryDB[k]);
         }
-        
         return new Promise((resolve, reject) => {
             try {
-                const s = this._store(store);
-                if (!s) { this.useLocalStorage = true; resolve(this.getAll(store)); return; }
+                const tx = this.db.transaction([store], 'readonly');
+                const s = tx.objectStore(store);
                 const req = s.getAll();
                 req.onsuccess = () => resolve(req.target.result || []);
                 req.onerror = () => reject(req.error);
-            } catch (e) {
-                this.useLocalStorage = true;
-                resolve(this.getAll(store));
-            }
+            } catch (e) { reject(e); }
         });
     }
     
-    async get(id, draft = false) {
-        await this.init();
-        const store = draft ? 'drafts' : 'inspections';
-        
-        if (this.useLocalStorage) {
-            const data = localStorage.getItem(this._key(id, draft));
-            return data ? JSON.parse(data) : null;
+    async get(id, isDraft = false) {
+        const store = isDraft ? 'drafts' : 'inspections';
+        if (!this.ready || !this.db) {
+            if (!window._memoryDB) window._memoryDB = {};
+            const key = `${isDraft ? 'draft_' : 'insp_'}${id}`;
+            return window._memoryDB[key] || null;
         }
-        
         return new Promise((resolve, reject) => {
             try {
-                const s = this._store(store);
-                if (!s) { this.useLocalStorage = true; resolve(this.get(id, draft)); return; }
+                const tx = this.db.transaction([store], 'readonly');
+                const s = tx.objectStore(store);
                 const req = s.get(id);
                 req.onsuccess = () => resolve(req.target.result);
                 req.onerror = () => reject(req.error);
-            } catch (e) {
-                this.useLocalStorage = true;
-                resolve(this.get(id, draft));
-            }
+            } catch (e) { reject(e); }
         });
     }
     
-    async delete(id, draft = false) {
-        await this.init();
-        const store = draft ? 'drafts' : 'inspections';
-        
-        if (this.useLocalStorage) {
-            localStorage.removeItem(this._key(id, draft));
+    async delete(id, isDraft = false) {
+        const store = isDraft ? 'drafts' : 'inspections';
+        if (!this.ready || !this.db) {
+            if (!window._memoryDB) window._memoryDB = {};
+            const key = `${isDraft ? 'draft_' : 'insp_'}${id}`;
+            delete window._memoryDB[key];
             return;
         }
-        
         return new Promise((resolve, reject) => {
             try {
-                const s = this._store(store, 'readwrite');
-                if (!s) { this.useLocalStorage = true; localStorage.removeItem(this._key(id, draft)); resolve(); return; }
+                const tx = this.db.transaction([store], 'readwrite');
+                const s = tx.objectStore(store);
                 const req = s.delete(id);
                 req.onsuccess = () => resolve();
                 req.onerror = () => reject(req.error);
-            } catch (e) {
-                this.useLocalStorage = true;
-                localStorage.removeItem(this._key(id, draft));
-                resolve();
-            }
-        });
-    }
-    
-    async clear(store = 'inspections') {
-        await this.init();
-        
-        if (this.useLocalStorage) {
-            const prefix = store === 'inspections' ? 'insp_' : 'draft_';
-            Object.keys(localStorage).filter(k => k.startsWith(prefix)).forEach(k => localStorage.removeItem(k));
-            return;
-        }
-        
-        return new Promise((resolve, reject) => {
-            try {
-                const s = this._store(store, 'readwrite');
-                if (!s) { this.useLocalStorage = true; this.clear(store); resolve(); return; }
-                const req = s.clear();
-                req.onsuccess = () => resolve();
-                req.onerror = () => reject(req.error);
-            } catch (e) {
-                this.useLocalStorage = true;
-                this.clear(store);
-                resolve();
-            }
+            } catch (e) { reject(e); }
         });
     }
     
@@ -1185,55 +856,68 @@ class Database {
         const items = await this.getAll(store);
         return items.length;
     }
+    
+    async clear(store = 'inspections') {
+        if (!this.ready || !this.db) {
+            if (!window._memoryDB) window._memoryDB = {};
+            const prefix = store === 'inspections' ? 'insp_' : 'draft_';
+            Object.keys(window._memoryDB)
+                .filter(k => k.startsWith(prefix))
+                .forEach(k => delete window._memoryDB[k]);
+            return;
+        }
+        return new Promise((resolve, reject) => {
+            try {
+                const tx = this.db.transaction([store], 'readwrite');
+                const s = tx.objectStore(store);
+                const req = s.clear();
+                req.onsuccess = () => resolve();
+                req.onerror = () => reject(req.error);
+            } catch (e) { reject(e); }
+        });
+    }
 }
 
 // ================================================================
-// MAIN APPLICATION
+// MAIN APP
 // ================================================================
 class App {
     constructor() {
         this.db = new Database();
         this.map = null;
         this.drawnItems = null;
-        this.layers = { base: null, satellite: null, topo: null };
-        this.activeLayer = 'streets';
         this.currentId = null;
         this.currentPhotos = [];
         this.isDraft = false;
-        this.gpsMarker = null;
-        this.gpsWatchId = null;
         this.currentLat = -42.8806;
         this.currentLng = 147.3250;
+        this.polygonCount = 0;
+        this.waypointCount = 0;
         this.measureMode = false;
         this.measurePoints = [];
         this.measureLine = null;
         this.measureMarkers = [];
-        this.polygonCount = 0;
-        this.waypointCount = 0;
         this.charts = {};
-        this.currentView = 'dashboard';
-        this.initialised = false;
+        this.gpsMarker = null;
+        this.initialized = false;
     }
     
     // ================================================================
     // INIT
     // ================================================================
     async init() {
-        if (this.initialised) return;
-        
-        // Show loading
-        document.getElementById('storageStatus').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initialising...';
+        if (this.initialized) return;
         
         await this.db.init();
         this.initMap();
         this.initGPS();
-        this.bindEvents();
         await this.updateStatus();
+        this.bindEvents();
         
         // Show dashboard
-        await this.showDashboard();
+        this.showDashboard();
         
-        this.initialised = true;
+        this.initialized = true;
         Toast.success('EcoMaintenance Professional Ready');
     }
     
@@ -1241,23 +925,13 @@ class App {
     // MAP
     // ================================================================
     initMap() {
-        this.map = L.map('map', { 
-            center: [-42.8806, 147.3250], 
-            zoom: 10, 
-            zoomControl: false 
-        });
+        this.map = L.map('map', { center: [-42.8806, 147.3250], zoom: 10, zoomControl: false });
         
-        this.layers.base = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap'
         }).addTo(this.map);
         
-        this.layers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: '&copy; Esri'
-        });
-        
-        this.layers.topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenTopoMap'
-        });
+        L.control.zoom({ position: 'bottomright' }).addTo(this.map);
         
         this.drawnItems = L.featureGroup().addTo(this.map);
         
@@ -1273,8 +947,6 @@ class App {
             edit: { featureGroup: this.drawnItems, remove: true }
         });
         this.map.addControl(drawControl);
-        
-        L.control.zoom({ position: 'bottomright' }).addTo(this.map);
         
         this.map.on(L.Draw.Event.CREATED, (e) => {
             const layer = e.layer;
@@ -1302,28 +974,12 @@ class App {
         document.getElementById('waypointCount').textContent = '0';
     }
     
-    switchLayer(name) {
-        Object.values(this.layers).forEach(l => { 
-            if (l && this.map.hasLayer(l)) this.map.removeLayer(l); 
-        });
-        this.activeLayer = name;
-        const layer = this.layers[name];
-        if (layer) {
-            layer.addTo(this.map);
-            document.querySelectorAll('.layer-item').forEach(el => {
-                el.classList.toggle('active', el.dataset.layer === name);
-            });
-        }
-    }
-    
     locateUser() {
         if (!navigator.geolocation) { Toast.warning('Geolocation not supported'); return; }
         navigator.geolocation.getCurrentPosition(
             pos => { 
                 this.map.setView([pos.coords.latitude, pos.coords.longitude], 16); 
                 Toast.success('Location found');
-                this.currentLat = pos.coords.latitude;
-                this.currentLng = pos.coords.longitude;
             },
             () => Toast.warning('Location unavailable'),
             { enableHighAccuracy: true, timeout: 10000 }
@@ -1335,19 +991,16 @@ class App {
             document.getElementById('gpsStatus').textContent = 'Unavailable'; 
             return; 
         }
-        
-        this.gpsWatchId = navigator.geolocation.watchPosition(
+        navigator.geolocation.watchPosition(
             pos => {
                 this.currentLat = pos.coords.latitude;
                 this.currentLng = pos.coords.longitude;
                 document.getElementById('gpsStatus').textContent = `±${Math.round(pos.coords.accuracy)}m`;
-                
                 if (!this.gpsMarker) {
                     this.gpsMarker = L.marker([this.currentLat, this.currentLng], {
                         icon: L.divIcon({
                             html: '<div style="background:#dc2626;width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 0 4px rgba(220,38,38,0.3);"></div>',
-                            iconSize: [12, 12],
-                            className: 'gps-pulse'
+                            iconSize: [12, 12]
                         }),
                         zIndexOffset: 1000
                     }).addTo(this.map);
@@ -1381,20 +1034,22 @@ class App {
             
             if (this.measurePoints.length === 2) {
                 const p1 = this.measurePoints[0], p2 = this.measurePoints[1];
-                const dist = Utils.haversineDist(p1.lat, p1.lng, p2.lat, p2.lng);
+                const R = 6371;
+                const dLat = (p2.lat - p1.lat) * Math.PI / 180;
+                const dLon = (p2.lng - p1.lng) * Math.PI / 180;
+                const a = Math.sin(dLat/2)**2 + Math.cos(p1.lat * Math.PI/180) * Math.cos(p2.lat * Math.PI/180) * Math.sin(dLon/2)**2;
+                const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                const distStr = dist >= 1 ? `${dist.toFixed(2)} km` : `${(dist * 1000).toFixed(0)} m`;
+                
                 if (this.measureLine) this.map.removeLayer(this.measureLine);
-                this.measureLine = L.polyline(this.measurePoints, { 
-                    color: '#f59e0b', 
-                    weight: 4, 
-                    dashArray: '8,6' 
-                }).addTo(this.map);
+                this.measureLine = L.polyline(this.measurePoints, { color: '#f59e0b', weight: 4, dashArray: '8,6' }).addTo(this.map);
                 const mid = L.latLng((p1.lat+p2.lat)/2, (p1.lng+p2.lng)/2);
                 const label = L.divIcon({
-                    html: `<div style="background:#1a5f4a;color:white;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:bold;">📏 ${Utils.formatDistance(dist)}</div>`,
+                    html: `<div style="background:#1a5f4a;color:white;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:bold;">📏 ${distStr}</div>`,
                     iconSize: [null, null]
                 });
                 this.measureMarkers.push(L.marker(mid, { icon: label, interactive: false }).addTo(this.map));
-                Toast.success(`Distance: ${Utils.formatDistance(dist)}`);
+                Toast.success(`Distance: ${distStr}`);
                 setTimeout(() => this.stopMeasure(), 2000);
             }
         };
@@ -1405,14 +1060,8 @@ class App {
     
     stopMeasure() {
         this.measureMode = false;
-        if (this._measureHandler) { 
-            this.map.off('click', this._measureHandler); 
-            this._measureHandler = null; 
-        }
-        if (this.measureLine) { 
-            this.map.removeLayer(this.measureLine); 
-            this.measureLine = null; 
-        }
+        if (this._measureHandler) { this.map.off('click', this._measureHandler); this._measureHandler = null; }
+        if (this.measureLine) { this.map.removeLayer(this.measureLine); this.measureLine = null; }
         this.measureMarkers.forEach(m => this.map.removeLayer(m));
         this.measureMarkers = [];
         this.measurePoints = [];
@@ -1428,31 +1077,18 @@ class App {
         Toast.info('Map cleared');
     }
     
-    resetView() { 
-        this.map.setView([-42.8806, 147.3250], 10); 
-    }
-    
-    toggleFullscreen() {
-        const el = document.getElementById('mapWrapper');
-        if (!document.fullscreenElement) { 
-            el.requestFullscreen?.(); 
-        } else { 
-            document.exitFullscreen?.(); 
-        }
-    }
+    resetView() { this.map.setView([-42.8806, 147.3250], 10); }
     
     getGeometry() {
         const features = [];
-        this.drawnItems.eachLayer(l => { 
-            try { features.push(l.toGeoJSON()); } catch(e) {} 
-        });
+        this.drawnItems.eachLayer(l => { try { features.push(l.toGeoJSON()); } catch(e) {} });
         return features;
     }
     
     getWaypoints() {
         const wps = [];
         this.drawnItems.eachLayer(l => {
-            if (l instanceof L.Marker && !l.options.icon?.className?.includes('gps')) {
+            if (l instanceof L.Marker && l !== this.gpsMarker) {
                 const ll = l.getLatLng();
                 wps.push({ id: Utils.uuid(), lat: ll.lat, lng: ll.lng, label: `WP${wps.length+1}` });
             }
@@ -1477,14 +1113,8 @@ class App {
     // ================================================================
     // PANEL
     // ================================================================
-    openPanel() {
-        document.getElementById('panel').classList.add('open');
-    }
-    
-    closePanel() {
-        document.getElementById('panel').classList.remove('open');
-    }
-    
+    openPanel() { document.getElementById('panel').classList.add('open'); }
+    closePanel() { document.getElementById('panel').classList.remove('open'); }
     setPanel(html, title) {
         document.getElementById('panelBody').innerHTML = html;
         document.getElementById('panelTitle').innerHTML = title;
@@ -1502,11 +1132,7 @@ class App {
                 `<i class="fas fa-database"></i> ${insp} Reports | ${drafts} Drafts`;
             document.getElementById('inspCount').textContent = insp;
             document.getElementById('draftCount').textContent = drafts;
-            document.getElementById('storageDetail').textContent = 
-                this.db.useLocalStorage ? 'LocalStorage' : 'IndexedDB';
-        } catch (e) {
-            console.error('Status update error:', e);
-        }
+        } catch (e) { console.error('Status update error:', e); }
     }
     
     // ================================================================
@@ -1567,53 +1193,23 @@ class App {
                     </button>
                     <div class="section-content">
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>ID</label>
-                                <input id="inspId" value="${d.id || ('ECO-'+Date.now())}" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label>Status</label>
-                                <input value="${this.isDraft ? 'DRAFT' : 'NEW'}" style="font-weight:700;color:${this.isDraft ? 'var(--warning)' : 'var(--brand-canopy)'};" readonly>
-                            </div>
+                            <div class="form-group"><label>ID</label><input id="inspId" value="${d.id || ('ECO-'+Date.now())}" readonly></div>
+                            <div class="form-group"><label>Status</label><input value="${this.isDraft ? 'DRAFT' : 'NEW'}" style="font-weight:700;color:${this.isDraft ? 'var(--warning)' : 'var(--primary)'};" readonly></div>
                         </div>
-                        <div class="form-group">
-                            <label>Site Name <span class="required">*</span></label>
-                            <input id="siteName" required value="${Utils.escapeHtml(d.siteName||'')}" placeholder="e.g., Huon Valley Conservation Area">
+                        <div class="form-group"><label>Site Name <span class="required">*</span></label><input id="siteName" required value="${Utils.escapeHtml(d.siteName||'')}" placeholder="e.g., Huon Valley"></div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Inspector</label><input id="inspector" value="${Utils.escapeHtml(d.inspector||'')}" placeholder="Full name"></div>
+                            <div class="form-group"><label>Organization</label><input id="organization" value="${Utils.escapeHtml(d.organization||'')}" placeholder="Company/Agency"></div>
                         </div>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>Inspector</label>
-                                <input id="inspector" value="${Utils.escapeHtml(d.inspector||'')}" placeholder="Full name">
-                            </div>
-                            <div class="form-group">
-                                <label>Organization</label>
-                                <input id="organization" value="${Utils.escapeHtml(d.organization||'')}" placeholder="Company/Agency">
-                            </div>
+                            <div class="form-group"><label>Date & Time</label><input type="datetime-local" id="dateTime" value="${d.dateTime || new Date().toISOString().slice(0,16)}"></div>
+                            <div class="form-group"><label>Vegetation Type</label><select id="vegetationType">${vegOpts}</select></div>
                         </div>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>Date & Time</label>
-                                <input type="datetime-local" id="dateTime" value="${d.dateTime || new Date().toISOString().slice(0,16)}">
-                            </div>
-                            <div class="form-group">
-                                <label>Vegetation Type</label>
-                                <select id="vegetationType">${vegOpts}</select>
-                            </div>
+                            <div class="form-group"><label>Tenure</label><input id="tenure" value="${Utils.escapeHtml(d.tenure||'')}" placeholder="Private/Parks"></div>
+                            <div class="form-group"><label>Weather</label><input id="weather" value="${Utils.escapeHtml(d.weather||'')}" placeholder="Temp, wind"></div>
                         </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Tenure</label>
-                                <input id="tenure" value="${Utils.escapeHtml(d.tenure||'')}" placeholder="Private/Parks">
-                            </div>
-                            <div class="form-group">
-                                <label>Weather</label>
-                                <input id="weather" value="${Utils.escapeHtml(d.weather||'')}" placeholder="Temp, wind">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Soil Condition</label>
-                            <textarea id="soilCondition" rows="2">${Utils.escapeHtml(d.soilCondition||'')}</textarea>
-                        </div>
+                        <div class="form-group"><label>Soil Condition</label><textarea id="soilCondition" rows="2">${Utils.escapeHtml(d.soilCondition||'')}</textarea></div>
                     </div>
                 </div>
                 
@@ -1635,7 +1231,7 @@ class App {
                             <span class="text-muted text-sm">${eco.significance}</span>
                             <span class="text-muted text-sm">Priority: ${eco.priority}</span>
                         </div>
-                        <hr style="margin:8px 0;border-color:var(--neutral-200);">
+                        <hr style="margin:8px 0;border-color:var(--gray-200);">
                         
                         <div class="form-group">
                             <label>Vegetation Health (0-10)</label>
@@ -1679,32 +1275,14 @@ class App {
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="section-content">
-                        <div class="form-group">
-                            <label>Declared Weeds</label>
-                            <input id="weedsList" value="${Utils.escapeHtml(d.weedsList||'')}" placeholder="e.g., Gorse, Blackberry">
-                        </div>
+                        <div class="form-group"><label>Declared Weeds</label><input id="weedsList" value="${Utils.escapeHtml(d.weedsList||'')}" placeholder="e.g., Gorse, Blackberry"></div>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>Feral Animals</label>
-                                <select id="feralAnimals">${feralOpts}</select>
-                            </div>
-                            <div class="form-group">
-                                <label>Threat Level</label>
-                                <select id="threatLevel">${threatOpts}</select>
-                            </div>
+                            <div class="form-group"><label>Feral Animals</label><select id="feralAnimals">${feralOpts}</select></div>
+                            <div class="form-group"><label>Threat Level</label><select id="threatLevel">${threatOpts}</select></div>
                         </div>
-                        <div class="form-group">
-                            <label>Fire History</label>
-                            <input id="fireHistory" value="${Utils.escapeHtml(d.fireHistory||'')}" placeholder="Years since fire">
-                        </div>
-                        <div class="form-group">
-                            <label>Observations</label>
-                            <textarea id="observations" rows="2">${Utils.escapeHtml(d.observations||'')}</textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Recommendations</label>
-                            <textarea id="recommendations" rows="2">${Utils.escapeHtml(d.recommendations||'')}</textarea>
-                        </div>
+                        <div class="form-group"><label>Fire History</label><input id="fireHistory" value="${Utils.escapeHtml(d.fireHistory||'')}" placeholder="Years since fire"></div>
+                        <div class="form-group"><label>Observations</label><textarea id="observations" rows="2">${Utils.escapeHtml(d.observations||'')}</textarea></div>
+                        <div class="form-group"><label>Recommendations</label><textarea id="recommendations" rows="2">${Utils.escapeHtml(d.recommendations||'')}</textarea></div>
                     </div>
                 </div>
                 
@@ -1718,24 +1296,16 @@ class App {
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p>Click or drag to add photos</p>
                         </div>
-                        <input type="file" id="photoInput" accept="image/*" capture="environment" multiple style="display:none;">
+                        <input type="file" id="photoInput" accept="image/*" multiple style="display:none;">
                         <div id="photoGallery" class="photo-grid"></div>
-                        <small class="text-muted text-xs" style="display:block;margin-top:4px;">
-                            <i class="fas fa-info-circle"></i> Click a photo to set as cover
-                        </small>
+                        <small class="text-muted text-xs" style="display:block;margin-top:4px;"><i class="fas fa-info-circle"></i> Click a photo to set as cover</small>
                     </div>
                 </div>
                 
                 <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
-                    <button type="button" id="saveDraftBtn" class="btn btn-secondary">
-                        <i class="fas fa-save"></i> Save Draft
-                    </button>
-                    <button type="button" id="finaliseBtn" class="btn btn-primary">
-                        <i class="fas fa-file-pdf"></i> Generate Report
-                    </button>
-                    <button type="button" id="cancelBtn" class="btn btn-secondary">
-                        Cancel
-                    </button>
+                    <button type="button" id="saveDraftBtn" class="btn btn-secondary"><i class="fas fa-save"></i> Save Draft</button>
+                    <button type="button" id="finaliseBtn" class="btn btn-primary"><i class="fas fa-file-pdf"></i> Generate Report</button>
+                    <button type="button" id="cancelBtn" class="btn btn-secondary">Cancel</button>
                 </div>
             </form>
         `;
@@ -1750,13 +1320,8 @@ class App {
         }
         if (drop) {
             drop.onclick = () => input?.click();
-            drop.ondragover = (e) => { 
-                e.preventDefault(); 
-                drop.style.borderColor = 'var(--brand-canopy)'; 
-            };
-            drop.ondragleave = () => { 
-                drop.style.borderColor = ''; 
-            };
+            drop.ondragover = (e) => { e.preventDefault(); drop.style.borderColor = 'var(--primary)'; };
+            drop.ondragleave = () => { drop.style.borderColor = ''; };
             drop.ondrop = (e) => {
                 e.preventDefault();
                 drop.style.borderColor = '';
@@ -1766,12 +1331,10 @@ class App {
         
         this.renderGallery();
         
-        // Form buttons
         document.getElementById('saveDraftBtn')?.addEventListener('click', () => this.saveDraft());
         document.getElementById('finaliseBtn')?.addEventListener('click', () => this.finalise());
         document.getElementById('cancelBtn')?.addEventListener('click', () => this.closePanel());
         
-        // Section toggles
         document.querySelectorAll('.section-header').forEach(h => {
             h.onclick = () => {
                 h.classList.toggle('collapsed');
@@ -1779,7 +1342,6 @@ class App {
             };
         });
         
-        // Live score update
         ['vegHealth','speciesRichness','regeneration','weedCover','habitatQuality','disturbance'].forEach(id => {
             const el = document.getElementById(id);
             if (el) {
@@ -1788,10 +1350,7 @@ class App {
                     const eco = Utils.calculateScore(data);
                     const fill = document.querySelector('.health-fill');
                     const display = document.getElementById('scoreDisplay');
-                    if (fill) { 
-                        fill.style.width = `${eco.conditionScore*10}%`; 
-                        fill.style.background = eco.colour; 
-                    }
+                    if (fill) { fill.style.width = `${eco.conditionScore*10}%`; fill.style.background = eco.colour; }
                     if (display) display.textContent = `${eco.conditionScore}/10`;
                 };
             }
@@ -1811,10 +1370,7 @@ class App {
         }
         
         for (const file of toProcess) {
-            if (file.size > 2 * 1024 * 1024) { 
-                Toast.warning(`${file.name} is too large`); 
-                continue; 
-            }
+            if (file.size > 2 * 1024 * 1024) { Toast.warning(`${file.name} is too large`); continue; }
             const reader = new FileReader();
             const data = await new Promise((resolve) => {
                 reader.onload = async (e) => {
@@ -1839,23 +1395,14 @@ class App {
     renderGallery() {
         const g = document.getElementById('photoGallery');
         if (!g) return;
-        
         if (this.currentPhotos.length === 0) {
-            g.innerHTML = `
-                <div style="padding:20px;text-align:center;color:var(--neutral-400);grid-column:1/-1;">
-                    <i class="fas fa-camera" style="font-size:20px;display:block;margin-bottom:4px;"></i>
-                    No photos
-                </div>
-            `;
+            g.innerHTML = `<div style="padding:20px;text-align:center;color:var(--gray-400);grid-column:1/-1;"><i class="fas fa-camera" style="font-size:20px;display:block;margin-bottom:4px;"></i>No photos</div>`;
             return;
         }
-        
         g.innerHTML = this.currentPhotos.map((p, i) => `
             <div class="photo-item" data-idx="${i}">
                 <img src="${p.dataURL}" alt="Photo ${i+1}" loading="lazy">
-                <div class="photo-overlay">
-                    <span>${new Date(p.timestamp).toLocaleTimeString()}</span>
-                </div>
+                <div class="photo-overlay"><span>${new Date(p.timestamp).toLocaleTimeString()}</span></div>
                 <button class="remove-photo" data-idx="${i}">×</button>
                 ${p.isHero ? '<div class="hero-badge">Cover</div>' : ''}
             </div>
@@ -1883,7 +1430,7 @@ class App {
     }
     
     // ================================================================
-    // CRUD OPERATIONS
+    // CRUD
     // ================================================================
     async newInspection() {
         this.currentId = Utils.uuid();
@@ -1897,53 +1444,36 @@ class App {
     async loadInspection(id, draft = false) {
         try {
             const data = await this.db.get(id, draft);
-            if (!data) { 
-                Toast.error('Not found'); 
-                return; 
-            }
+            if (!data) { Toast.error('Not found'); return; }
             this.currentId = data.id;
             this.currentPhotos = data.photos || [];
             this.isDraft = draft;
             this.clearMap();
             this.loadGeometry(data.geometry || []);
             (data.waypoints || []).forEach(w => {
-                this.drawnItems.addLayer(
-                    L.marker([w.lat, w.lng]).bindPopup(`<strong>${Utils.escapeHtml(w.label)}</strong>`)
-                );
+                this.drawnItems.addLayer(L.marker([w.lat, w.lng]).bindPopup(`<strong>${Utils.escapeHtml(w.label)}</strong>`));
             });
             this.setPanel(this.renderForm(data), draft ? 'Edit Draft' : 'View Inspection');
             this.bindForm();
-        } catch (e) {
-            console.error('Load error:', e);
-            Toast.error('Failed to load inspection');
-        }
+        } catch (e) { console.error('Load error:', e); Toast.error('Failed to load'); }
     }
     
     async saveDraft() {
         try {
             const data = this.collectForm();
-            if (!data.siteName) { 
-                Toast.warning('Site name required'); 
-                return; 
-            }
+            if (!data.siteName) { Toast.warning('Site name required'); return; }
             data.status = 'draft';
             await this.db.save(data, true);
             this.isDraft = true;
             Toast.success('Draft saved');
             await this.updateStatus();
-        } catch (e) {
-            console.error('Save draft error:', e);
-            Toast.error('Failed to save draft');
-        }
+        } catch (e) { console.error('Save draft error:', e); Toast.error('Failed to save draft'); }
     }
     
     async finalise() {
         try {
             const data = this.collectForm();
-            if (!data.siteName) { 
-                Toast.warning('Site name required'); 
-                return; 
-            }
+            if (!data.siteName) { Toast.warning('Site name required'); return; }
             data.status = 'finalised';
             data.ecologicalScore = Utils.calculateScore(data);
             await this.db.save(data, false);
@@ -1952,14 +1482,11 @@ class App {
             this.closePanel();
             await this.updateStatus();
             this.showInspections();
-        } catch (e) {
-            console.error('Finalise error:', e);
-            Toast.error('Failed to finalise');
-        }
+        } catch (e) { console.error('Finalise error:', e); Toast.error('Failed to finalise'); }
     }
     
     // ================================================================
-    // REPORT GENERATION
+    // REPORT
     // ================================================================
     async generateReport(inspection) {
         try {
@@ -1970,13 +1497,12 @@ class App {
             const eco = inspection.ecologicalScore || Utils.calculateScore(inspection);
             const colour = '#1a5f4a';
             
-            // Helper functions
-            const addText = (text, size = 10, color = '#333', align = 'left') => {
+            const addText = (text, size = 10, color = '#333') => {
                 if (!text) return;
                 doc.setFontSize(size);
                 doc.setTextColor(color);
                 const lines = doc.splitTextToSize(text || '', pageWidth - 2*margin);
-                doc.text(lines, margin, y, { align });
+                doc.text(lines, margin, y);
                 y += lines.length * (size * 0.45) + 1.5;
             };
             
@@ -1987,18 +1513,12 @@ class App {
                 y += size * 0.4 + 2;
             };
             
-            const drawLine = () => { 
-                doc.setDrawColor(colour); 
-                doc.setLineWidth(0.5); 
-                doc.line(margin, y, pageWidth - margin, y); 
-                y += 6; 
-            };
+            const drawLine = () => { doc.setDrawColor(colour); doc.setLineWidth(0.5); doc.line(margin, y, pageWidth - margin, y); y += 6; };
             
-            // --- COVER PAGE ---
+            // Cover
             doc.setFillColor(colour);
             doc.rect(0, 0, pageWidth, 5, 'F');
             y = 30;
-            
             doc.setFontSize(28);
             doc.setTextColor(colour);
             doc.text('ENVIRONMENTAL', margin, y);
@@ -2007,17 +1527,13 @@ class App {
             y += 12;
             drawLine();
             y += 4;
-            
             doc.setFontSize(18);
             doc.setTextColor('#222');
-            const siteName = Utils.escapeHtml(inspection.siteName || 'Site Assessment');
-            doc.text(siteName, margin, y);
+            doc.text(Utils.escapeHtml(inspection.siteName || 'Site Assessment'), margin, y);
             y += 10;
-            
             doc.setFontSize(11);
             doc.setTextColor('#666');
-            const org = Utils.escapeHtml(inspection.organization || 'Environmental Client');
-            doc.text(`Prepared for: ${org}`, margin, y);
+            doc.text(`Prepared for: ${Utils.escapeHtml(inspection.organization || 'Environmental Client')}`, margin, y);
             y += 6;
             doc.text(`Date: ${Utils.formatDate(inspection.dateTime)}`, margin, y);
             y += 8;
@@ -2043,11 +1559,9 @@ class App {
             doc.text(`Report ID: ${inspection.id}`, margin, y);
             doc.text('v4.0', pageWidth-margin, y, { align: 'right' });
             y += 6;
-            const inspector = Utils.escapeHtml(inspection.inspector || 'Consultant');
-            doc.text(`Author: ${inspector}`, margin, y);
+            doc.text(`Author: ${Utils.escapeHtml(inspection.inspector || 'Consultant')}`, margin, y);
             y += 8;
             
-            // Footer
             doc.setFillColor(colour);
             doc.rect(0, pageHeight-6, pageWidth, 3, 'F');
             doc.setFontSize(7);
@@ -2055,26 +1569,23 @@ class App {
             doc.text('© EcoMaintenance Professional', margin, pageHeight-3);
             doc.text(new Date().toLocaleDateString(), pageWidth-margin, pageHeight-3, { align: 'right' });
             
-            // --- SUMMARY PAGE ---
+            // Summary
             doc.addPage();
             y = margin + 8;
             addTitle('EXECUTIVE SUMMARY', 20);
             drawLine();
             y += 4;
-            
-            const summaryText = `This report presents findings of an ecological assessment at "${Utils.escapeHtml(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`;
-            addText(summaryText, 10);
+            addText(`This report presents findings of an ecological assessment at "${Utils.escapeHtml(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`, 10);
             y += 4;
             addText(`Condition Score: ${eco.conditionScore}/10 (${eco.riskRating})`, 10);
             addText(`Significance: ${eco.significance}`, 10);
             addText(`Management Priority: ${eco.priority}`, 10);
             y += 4;
             
-            // --- ASSESSMENT DETAILS ---
+            // Details
             addTitle('ASSESSMENT DETAILS', 16);
             drawLine();
             y += 4;
-            
             const details = [
                 ['Vegetation Health', `${inspection.vegHealth || 6}/10`],
                 ['Species Richness', `${inspection.speciesRichness || 5}/10`],
@@ -2083,7 +1594,6 @@ class App {
                 ['Habitat Quality', `${inspection.habitatQuality || 5}/10`],
                 ['Disturbance', `${inspection.disturbance || 3}/10`]
             ];
-            
             doc.autoTable({
                 startY: y,
                 head: [['Parameter', 'Value']],
@@ -2095,28 +1605,25 @@ class App {
             });
             y = doc.lastAutoTable.finalY + 8;
             
-            // --- RECOMMENDATIONS ---
+            // Recommendations
             addTitle('RECOMMENDATIONS', 14);
             drawLine();
             y += 4;
-            const recs = inspection.recommendations || 'No recommendations recorded.';
-            addText(recs, 9);
+            addText(inspection.recommendations || 'No recommendations recorded.', 9);
             y += 4;
             
-            // --- OBSERVATIONS ---
+            // Observations
             addTitle('OBSERVATIONS', 14);
             drawLine();
             y += 4;
-            const obs = inspection.observations || 'No observations recorded.';
-            addText(obs, 9);
+            addText(inspection.observations || 'No observations recorded.', 9);
             
-            // --- PHOTOS APPENDIX ---
+            // Photos
             doc.addPage();
             y = margin + 8;
             addTitle('PHOTO DOCUMENTATION', 18);
             drawLine();
             y += 4;
-            
             if (inspection.photos && inspection.photos.length > 0) {
                 const photos = inspection.photos.slice(0, 9);
                 let px = margin, py = y;
@@ -2136,7 +1643,7 @@ class App {
                 addText('No photos uploaded.', 10);
             }
             
-            // --- FOOTER ON ALL PAGES ---
+            // Footer all pages
             const total = doc.internal.getNumberOfPages();
             for (let i = 1; i <= total; i++) {
                 doc.setPage(i);
@@ -2151,10 +1658,7 @@ class App {
             
             doc.save(`EcoMaintenance_Report_${inspection.id}.pdf`);
             Toast.success('Report generated');
-        } catch (e) {
-            console.error('Report generation error:', e);
-            Toast.error('Failed to generate report');
-        }
+        } catch (e) { console.error('Report error:', e); Toast.error('Failed to generate report'); }
     }
     
     // ================================================================
@@ -2169,44 +1673,17 @@ class App {
             const high = insp.filter(i => (i.ecologicalScore?.conditionScore || 0) >= 7).length;
             const crit = insp.filter(i => (i.ecologicalScore?.conditionScore || 0) < 4).length;
             
-            const recent = insp.slice(-8).reverse();
-            const labels = recent.map(i => Utils.truncate(i.siteName || 'Site', 12));
-            const scores = recent.map(i => i.ecologicalScore?.conditionScore || 0);
-            
             const html = `
                 <div class="dashboard-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-clipboard-list"></i></div>
-                        <div class="stat-value">${total}</div>
-                        <div class="stat-label">Reports</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
-                        <div class="stat-value">${avg > 0 ? avg.toFixed(1) : '—'}</div>
-                        <div class="stat-label">Avg Score</div>
-                        <span class="stat-change ${avg >= 6 ? 'positive' : 'negative'}">${avg >= 6 ? 'Good' : 'Needs attention'}</span>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-star" style="color:var(--warning);"></i></div>
-                        <div class="stat-value">${high}</div>
-                        <div class="stat-label">High Value</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-exclamation-triangle" style="color:var(--danger);"></i></div>
-                        <div class="stat-value">${crit}</div>
-                        <div class="stat-label">Critical</div>
-                    </div>
+                    <div class="stat-card"><div class="stat-value">${total}</div><div class="stat-label">Reports</div></div>
+                    <div class="stat-card"><div class="stat-value">${avg > 0 ? avg.toFixed(1) : '—'}</div><div class="stat-label">Avg Score</div></div>
+                    <div class="stat-card"><div class="stat-value">${high}</div><div class="stat-label">High Value</div></div>
+                    <div class="stat-card"><div class="stat-value">${crit}</div><div class="stat-label">Critical</div></div>
                 </div>
-                
-                <div class="chart-container">
-                    <h4><i class="fas fa-chart-bar"></i> Recent Scores</h4>
-                    <canvas id="scoreChart" height="140"></canvas>
-                </div>
-                
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
                     <div class="stat-card" style="cursor:pointer;" onclick="app.showInspections()">
                         <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <span><i class="fas fa-folder-open" style="color:var(--brand-canopy);"></i> <strong>${total}</strong> Reports</span>
+                            <span><i class="fas fa-folder-open" style="color:var(--primary);"></i> <strong>${total}</strong> Reports</span>
                             <span class="text-muted text-xs">View →</span>
                         </div>
                     </div>
@@ -2217,70 +1694,26 @@ class App {
                         </div>
                     </div>
                 </div>
-                
-                <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;">
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
                     <button class="btn btn-primary" onclick="app.newInspection()"><i class="fas fa-plus"></i> New Assessment</button>
                     <button class="btn btn-secondary" onclick="app.showDataManager()"><i class="fas fa-database"></i> Data Manager</button>
                 </div>
-                
-                <div style="margin-top:12px;padding:10px 14px;background:var(--neutral-50);border-radius:var(--radius-md);border:1px solid var(--neutral-200);">
+                <div style="margin-top:12px;padding:8px 12px;background:var(--gray-50);border-radius:var(--radius-sm);border:1px solid var(--gray-200);">
                     <div class="flex-between text-xs text-muted">
                         <span>v4.0</span>
-                        <span><i class="fas fa-database"></i> ${this.db.useLocalStorage ? 'LocalStorage' : 'IndexedDB'}</span>
+                        <span><i class="fas fa-database"></i> ${this.db.db ? 'IndexedDB' : 'Memory'}</span>
                         <span><i class="fas fa-map-pin"></i> ${total} assessments</span>
                     </div>
                 </div>
             `;
             
             this.setPanel(html, 'Dashboard');
-            this.currentView = 'dashboard';
-            
-            // Render chart after DOM update
-            setTimeout(() => {
-                const canvas = document.getElementById('scoreChart');
-                if (canvas && labels.length) {
-                    if (this.charts.score) this.charts.score.destroy();
-                    const ctx = canvas.getContext('2d');
-                    const grad = ctx.createLinearGradient(0, 0, 0, 140);
-                    grad.addColorStop(0, 'rgba(26,95,74,0.2)');
-                    grad.addColorStop(1, 'rgba(26,95,74,0)');
-                    this.charts.score = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: labels.length ? labels : ['No Data'],
-                            datasets: [{
-                                label: 'Score',
-                                data: scores.length ? scores : [0],
-                                borderColor: '#1a5f4a',
-                                backgroundColor: grad,
-                                fill: true,
-                                tension: 0.3,
-                                pointBackgroundColor: scores.map(v => v >= 7 ? '#10b981' : v >= 4 ? '#f59e0b' : '#dc2626'),
-                                pointRadius: 4
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: { legend: { display: false } },
-                            scales: {
-                                y: { min: 0, max: 10, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { stepSize: 2 } },
-                                x: { grid: { display: false }, ticks: { font: { size: 9 } } }
-                            }
-                        }
-                    });
-                }
-            }, 150);
-        } catch (e) {
-            console.error('Dashboard error:', e);
-            Toast.error('Failed to load dashboard');
-        }
+        } catch (e) { console.error('Dashboard error:', e); Toast.error('Failed to load dashboard'); }
     }
     
     async showInspections() {
         try {
             const inspections = await this.db.getAll('inspections');
-            
             if (inspections.length === 0) {
                 this.setPanel(`
                     <div class="text-center" style="padding:40px 20px;">
@@ -2315,9 +1748,7 @@ class App {
                             <span class="rating-badge ${cls}">${eco.conditionScore}/10</span>
                             <span class="text-muted text-sm">${eco.riskRating}</span>
                         </div>
-                        <div class="health-meter">
-                            <div class="health-fill" style="width:${eco.conditionScore*10}%;background:${eco.colour};"></div>
-                        </div>
+                        <div class="health-meter"><div class="health-fill" style="width:${eco.conditionScore*10}%;background:${eco.colour};"></div></div>
                         <div class="card-actions">
                             <button class="btn btn-secondary btn-sm view-insp" data-id="${ins.id}"><i class="fas fa-eye"></i> View</button>
                             <button class="btn btn-primary btn-sm pdf-insp" data-id="${ins.id}"><i class="fas fa-file-pdf"></i> Report</button>
@@ -2329,9 +1760,7 @@ class App {
             });
             
             this.setPanel(html, 'Inspections');
-            this.currentView = 'inspections';
             
-            // Bind events
             document.querySelectorAll('.view-insp').forEach(el => {
                 el.onclick = () => this.loadInspection(el.dataset.id, false);
             });
@@ -2351,16 +1780,12 @@ class App {
                     }
                 };
             });
-        } catch (e) {
-            console.error('Inspections error:', e);
-            Toast.error('Failed to load inspections');
-        }
+        } catch (e) { console.error('Inspections error:', e); Toast.error('Failed to load'); }
     }
     
     async showDrafts() {
         try {
             const drafts = await this.db.getAll('drafts');
-            
             if (drafts.length === 0) {
                 this.setPanel(`
                     <div class="text-center" style="padding:40px 20px;">
@@ -2399,7 +1824,6 @@ class App {
             });
             
             this.setPanel(html, 'Drafts');
-            this.currentView = 'drafts';
             
             document.querySelectorAll('.resume-draft').forEach(el => {
                 el.onclick = () => this.loadInspection(el.dataset.id, true);
@@ -2414,10 +1838,7 @@ class App {
                     }
                 };
             });
-        } catch (e) {
-            console.error('Drafts error:', e);
-            Toast.error('Failed to load drafts');
-        }
+        } catch (e) { console.error('Drafts error:', e); Toast.error('Failed to load'); }
     }
     
     async showDataManager() {
@@ -2427,14 +1848,8 @@ class App {
             const html = `
                 <div style="max-width:440px;margin:0 auto;">
                     <div class="dashboard-grid" style="grid-template-columns:1fr 1fr;">
-                        <div class="stat-card text-center">
-                            <div class="stat-value">${insp}</div>
-                            <div class="stat-label">Reports</div>
-                        </div>
-                        <div class="stat-card text-center">
-                            <div class="stat-value">${drafts}</div>
-                            <div class="stat-label">Drafts</div>
-                        </div>
+                        <div class="stat-card text-center"><div class="stat-value">${insp}</div><div class="stat-label">Reports</div></div>
+                        <div class="stat-card text-center"><div class="stat-value">${drafts}</div><div class="stat-label">Drafts</div></div>
                     </div>
                     <h4 class="mb-2"><i class="fas fa-download"></i> Export</h4>
                     <button class="btn btn-primary w-full mb-2" onclick="app.exportCSV()"><i class="fas fa-file-excel"></i> Export Excel</button>
@@ -2443,22 +1858,18 @@ class App {
                     <h4 class="mb-2"><i class="fas fa-upload"></i> Import</h4>
                     <input type="file" id="importFile" accept=".json" style="margin-bottom:6px;">
                     <button class="btn btn-secondary w-full mb-4" onclick="app.importJSON()"><i class="fas fa-upload"></i> Import JSON</button>
-                    <hr style="margin:12px 0;border-color:var(--neutral-200);">
+                    <hr style="margin:12px 0;border-color:var(--gray-200);">
                     <button class="btn btn-danger w-full" onclick="app.clearAll()"><i class="fas fa-trash"></i> Clear All Data</button>
-                    <div style="margin-top:12px;padding:10px;background:var(--neutral-50);border-radius:var(--radius-sm);border:1px solid var(--neutral-200);">
+                    <div style="margin-top:12px;padding:10px;background:var(--gray-50);border-radius:var(--radius-sm);border:1px solid var(--gray-200);">
                         <div class="text-xs text-muted">
-                            <strong>Storage:</strong> ${this.db.useLocalStorage ? 'LocalStorage' : 'IndexedDB'}<br>
+                            <strong>Storage:</strong> ${this.db.db ? 'IndexedDB' : 'Memory'}<br>
                             <strong>Reports:</strong> ${insp} | <strong>Drafts:</strong> ${drafts}
                         </div>
                     </div>
                 </div>
             `;
             this.setPanel(html, 'Data Manager');
-            this.currentView = 'data';
-        } catch (e) {
-            console.error('Data manager error:', e);
-            Toast.error('Failed to load data manager');
-        }
+        } catch (e) { console.error('Data manager error:', e); Toast.error('Failed to load'); }
     }
     
     // ================================================================
@@ -2469,11 +1880,8 @@ class App {
             const insp = await this.db.getAll('inspections');
             if (!insp.length) { Toast.warning('No data'); return; }
             const data = insp.map(i => ({
-                'ID': i.id,
-                'Site': i.siteName,
-                'Inspector': i.inspector,
-                'Date': i.dateTime,
-                'Score': i.ecologicalScore?.conditionScore || '',
+                'ID': i.id, 'Site': i.siteName, 'Inspector': i.inspector,
+                'Date': i.dateTime, 'Score': i.ecologicalScore?.conditionScore || '',
                 'Risk': i.ecologicalScore?.riskRating || ''
             }));
             const ws = XLSX.utils.json_to_sheet(data);
@@ -2481,22 +1889,14 @@ class App {
             XLSX.utils.book_append_sheet(wb, ws, 'Inspections');
             XLSX.writeFile(wb, `EcoMaintenance_${new Date().toISOString().slice(0,10)}.xlsx`);
             Toast.success('Excel export complete');
-        } catch (e) {
-            console.error('CSV export error:', e);
-            Toast.error('Export failed');
-        }
+        } catch (e) { console.error('Export error:', e); Toast.error('Export failed'); }
     }
     
     async exportJSON() {
         try {
             const insp = await this.db.getAll('inspections');
             const drafts = await this.db.getAll('drafts');
-            const data = { 
-                exportDate: new Date().toISOString(), 
-                version: '4.0', 
-                inspections: insp, 
-                drafts: drafts 
-            };
+            const data = { exportDate: new Date().toISOString(), version: '4.0', inspections: insp, drafts: drafts };
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
@@ -2504,10 +1904,7 @@ class App {
             a.click();
             URL.revokeObjectURL(a.href);
             Toast.success('JSON export complete');
-        } catch (e) {
-            console.error('JSON export error:', e);
-            Toast.error('Export failed');
-        }
+        } catch (e) { console.error('Export error:', e); Toast.error('Export failed'); }
     }
     
     exportGeoJSON() {
@@ -2528,10 +1925,7 @@ class App {
             a.click();
             URL.revokeObjectURL(a.href);
             Toast.success('GeoJSON exported');
-        } catch (e) {
-            console.error('GeoJSON export error:', e);
-            Toast.error('Export failed');
-        }
+        } catch (e) { console.error('Export error:', e); Toast.error('Export failed'); }
     }
     
     async importJSON() {
@@ -2543,24 +1937,15 @@ class App {
                 const data = JSON.parse(e.target.result);
                 let count = 0;
                 if (data.inspections) {
-                    for (const insp of data.inspections) { 
-                        await this.db.save(insp, false); 
-                        count++; 
-                    }
+                    for (const insp of data.inspections) { await this.db.save(insp, false); count++; }
                 }
                 if (data.drafts) {
-                    for (const draft of data.drafts) { 
-                        await this.db.save(draft, true); 
-                        count++; 
-                    }
+                    for (const draft of data.drafts) { await this.db.save(draft, true); count++; }
                 }
                 Toast.success(`Imported ${count} records`);
                 await this.updateStatus();
                 this.showDataManager();
-            } catch (err) {
-                console.error('Import error:', err);
-                Toast.error('Invalid JSON file');
-            }
+            } catch (err) { Toast.error('Invalid JSON file'); }
         };
         reader.readAsText(file);
     }
@@ -2574,24 +1959,19 @@ class App {
             Toast.success('All data cleared');
             await this.updateStatus();
             this.showDashboard();
-        } catch (e) {
-            console.error('Clear error:', e);
-            Toast.error('Failed to clear data');
-        }
+        } catch (e) { Toast.error('Failed to clear data'); }
     }
     
     // ================================================================
     // EVENTS
     // ================================================================
     bindEvents() {
-        // Navigation - using event delegation
+        // Navigation
         document.querySelector('.sidebar-nav').addEventListener('click', (e) => {
             const item = e.target.closest('.nav-item');
             if (!item) return;
-            
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             item.classList.add('active');
-            
             const view = item.dataset.view;
             switch(view) {
                 case 'dashboard': this.showDashboard(); break;
@@ -2603,7 +1983,7 @@ class App {
             }
         });
         
-        // Toolbar buttons
+        // Toolbar
         document.getElementById('newInspectionBtn').addEventListener('click', () => this.newInspection());
         document.getElementById('listInspectionsBtn').addEventListener('click', () => this.showInspections());
         document.getElementById('closePanelBtn').addEventListener('click', () => this.closePanel());
@@ -2612,25 +1992,17 @@ class App {
         document.getElementById('exportCSVBtn').addEventListener('click', () => this.exportCSV());
         document.getElementById('measureBtn').addEventListener('click', () => this.startMeasure());
         document.getElementById('locateBtn').addEventListener('click', () => this.locateUser());
-        document.getElementById('fullscreenBtn').addEventListener('click', () => this.toggleFullscreen());
         document.getElementById('resetMapBtn').addEventListener('click', () => this.resetView());
         document.getElementById('sidebarToggle').addEventListener('click', () => {
             document.getElementById('sidebar').classList.toggle('open');
         });
         
-        // Layer control
-        document.querySelectorAll('.layer-item').forEach(el => {
-            el.addEventListener('click', () => this.switchLayer(el.dataset.layer));
-        });
-        
-        // Close sidebar on mobile when clicking content
         document.querySelector('.main-content').addEventListener('click', () => {
             if (window.innerWidth <= 768) {
                 document.getElementById('sidebar').classList.remove('open');
             }
         });
         
-        // ESC key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') this.closePanel();
             if (e.ctrlKey && e.key === 'n') { e.preventDefault(); this.newInspection(); }
@@ -2639,15 +2011,11 @@ class App {
 }
 
 // ================================================================
-// START APP
+// START
 // ================================================================
 const app = new App();
 window.app = app;
-
-// Auto-init when DOM ready
-document.addEventListener('DOMContentLoaded', () => {
-    app.init();
-});
+document.addEventListener('DOMContentLoaded', () => app.init());
 </script>
 </body>
 </html>
