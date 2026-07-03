@@ -90,7 +90,6 @@
         .nav-item.active { background: rgba(45, 138, 110, 0.25); color: #fff; border-left: 3px solid var(--primary-light); }
         .nav-item i { width: 18px; text-align: center; font-size: 0.85rem; }
         .nav-item .badge { margin-left: auto; background: rgba(255,255,255,0.12); padding: 0px 7px; border-radius: 20px; font-size: 0.5rem; font-weight: 600; }
-        .nav-item .badge.urgent { background: var(--danger); color: white; }
         
         /* Main */
         .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--gray-50); }
@@ -136,10 +135,7 @@
         .btn-success:hover { background: #059669; }
         .btn-danger { background: var(--danger); color: white; }
         .btn-danger:hover { background: #b91c1c; }
-        .btn-warning { background: var(--warning); color: var(--gray-900); }
-        .btn-warning:hover { background: #d97706; }
         .btn-sm { padding: 2px 7px; font-size: 0.55rem; }
-        .btn-lg { padding: 8px 16px; font-size: 0.75rem; }
         
         /* Map */
         .map-wrapper { flex: 1; position: relative; min-height: 0; overflow: hidden; }
@@ -168,9 +164,10 @@
         .map-status .dot.yellow { background: var(--warning); }
         .map-status .dot.red { background: var(--danger); }
         
+        /* Map Tools - positioned to the right */
         .map-tools {
             position: absolute;
-            top: 60px;
+            top: 70px;
             right: 10px;
             display: flex;
             flex-direction: column;
@@ -196,19 +193,20 @@
         .map-tools .tool-btn:hover { background: var(--primary); color: white; transform: scale(1.05); }
         .map-tools .tool-btn.active { background: var(--primary); color: white; }
         
-        /* Layer Control */
+        /* Layer Control - positioned to the left, above map tools */
         .layer-control {
             position: absolute;
-            top: 60px;
+            top: 70px;
             left: 10px;
             background: white;
             border-radius: var(--radius-sm);
             padding: 4px;
             box-shadow: var(--shadow);
-            z-index: 200;
+            z-index: 150;
+            min-width: 90px;
         }
         .layer-control .layer-item {
-            padding: 4px 10px;
+            padding: 5px 10px;
             font-size: 0.6rem;
             cursor: pointer;
             display: flex;
@@ -323,7 +321,6 @@
             letter-spacing: 0.3px;
         }
         .form-group label .required { color: var(--danger); }
-        .form-group .hint { font-size: 0.55rem; color: var(--gray-400); margin-top: 2px; }
         input, select, textarea {
             width: 100%;
             padding: 6px 9px;
@@ -342,7 +339,6 @@
         }
         textarea { resize: vertical; min-height: 40px; }
         input[type="range"] { padding: 0; border: none; }
-        input[type="file"] { padding: 4px; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
         
@@ -356,8 +352,6 @@
             overflow-y: auto;
             padding: 2px;
         }
-        .photo-grid::-webkit-scrollbar { width: 3px; }
-        .photo-grid::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 10px; }
         .photo-item {
             position: relative;
             aspect-ratio: 1;
@@ -370,19 +364,6 @@
         }
         .photo-item:hover { border-color: var(--primary); transform: scale(1.03); z-index: 1; }
         .photo-item img { width: 100%; height: 100%; object-fit: cover; }
-        .photo-item .photo-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 2px 5px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.6));
-            color: white;
-            font-size: 0.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
         .photo-item .remove-photo {
             position: absolute;
             top: 2px;
@@ -399,9 +380,8 @@
             font-size: 10px;
             font-weight: bold;
             border: none;
-            transition: all var(--transition);
         }
-        .photo-item .remove-photo:hover { background: var(--danger); transform: scale(1.1); }
+        .photo-item .remove-photo:hover { background: var(--danger); }
         .photo-item .hero-badge {
             position: absolute;
             top: 2px;
@@ -413,7 +393,6 @@
             font-size: 0.45rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
         }
         .photo-upload-area {
             border: 2px dashed var(--gray-300);
@@ -428,7 +407,6 @@
         .photo-upload-area.dragover { border-color: var(--primary); background: rgba(26, 95, 74, 0.08); }
         .photo-upload-area i { font-size: 1.4rem; color: var(--gray-400); display: block; margin-bottom: 2px; }
         .photo-upload-area p { font-size: 0.65rem; color: var(--gray-500); }
-        .photo-upload-area .photo-count { font-size: 0.55rem; color: var(--gray-400); margin-top: 2px; }
         
         /* Dashboard */
         .dashboard-grid {
@@ -444,10 +422,8 @@
             border: 1px solid var(--gray-200);
             box-shadow: 0 1px 3px rgba(0,0,0,0.06);
             transition: all var(--transition);
-            cursor: default;
         }
         .stat-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
-        .stat-card .stat-icon { font-size: 1rem; color: var(--primary); opacity: 0.6; margin-bottom: 2px; }
         .stat-card .stat-value { font-size: 1.4rem; font-weight: 700; color: var(--gray-800); line-height: 1.2; }
         .stat-card .stat-label { font-size: 0.6rem; text-transform: uppercase; color: var(--gray-500); letter-spacing: 0.4px; font-weight: 600; }
         .stat-card .stat-change {
@@ -484,7 +460,6 @@
         .inspection-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); border-color: var(--primary); }
         .inspection-card .card-title { font-weight: 700; font-size: 0.85rem; color: var(--gray-800); }
         .inspection-card .card-meta { font-size: 0.6rem; color: var(--gray-500); margin-top: 2px; display: flex; gap: 8px; flex-wrap: wrap; }
-        .inspection-card .card-meta i { margin-right: 2px; }
         .inspection-card .card-actions { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
         .inspection-card .card-badge {
             position: absolute;
@@ -495,7 +470,6 @@
             padding: 1px 7px;
             border-radius: 20px;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
         }
         
         .health-meter {
@@ -514,7 +488,6 @@
             font-size: 0.5rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
         }
         .rating-badge.excellent { background: rgba(16, 185, 129, 0.15); color: var(--success); }
         .rating-badge.good { background: rgba(59, 130, 246, 0.15); color: var(--info); }
@@ -548,7 +521,6 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            max-width: 100%;
         }
         .toast.success { background: var(--primary); }
         .toast.warning { background: var(--warning); color: var(--gray-900); }
@@ -576,7 +548,6 @@
         }
         .storage-status .dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
         .storage-status .dot.online { background: var(--success); }
-        .storage-status .dot.offline { background: var(--warning); }
         
         .sidebar-toggle { display: none; }
         
@@ -612,9 +583,9 @@
             .panel { width: 100vw; max-width: 100vw; }
             .dashboard-grid { grid-template-columns: 1fr 1fr; }
             .map-status { font-size: 0.5rem; padding: 2px 10px; gap: 6px; }
-            .map-tools { top: 50px; right: 6px; }
+            .map-tools { top: 55px; right: 6px; }
             .map-tools .tool-btn { width: 28px; height: 28px; font-size: 0.65rem; }
-            .layer-control { top: 50px; left: 6px; }
+            .layer-control { top: 55px; left: 6px; min-width: 70px; }
             .layer-control .layer-item { font-size: 0.55rem; padding: 3px 8px; }
         }
         
@@ -665,10 +636,6 @@
             .leaflet-draw-toolbar a:hover { background: var(--gray-100); }
             .leaflet-control-attribution { background: rgba(0,0,0,0.7) !important; color: white !important; }
             .leaflet-control-attribution a { color: var(--primary-light) !important; }
-            .toast { background: var(--gray-700); color: var(--gray-900); }
-            .toast.success { background: var(--primary); color: white; }
-            .toast.warning { background: var(--warning); color: var(--gray-900); }
-            .toast.error { background: var(--danger); color: white; }
         }
         
         .text-center { text-align: center; }
@@ -684,7 +651,6 @@
         .flex { display: flex; }
         .flex-between { display: flex; justify-content: space-between; align-items: center; }
         .gap-2 { gap: 4px; }
-        .gap-3 { gap: 8px; }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -738,14 +704,18 @@
                 <span><i class="fas fa-draw-polygon"></i> <span id="polygonCount">0</span></span>
                 <span>|</span>
                 <span><i class="fas fa-map-marker-alt"></i> <span id="waypointCount">0</span></span>
+                <span>|</span>
+                <span><i class="fas fa-layer-group"></i> <span id="currentLayer">Streets</span></span>
             </div>
 
-            <div class="layer-control">
+            <!-- Layer Control - Left side, above map tools -->
+            <div class="layer-control" id="layerControl">
                 <button class="layer-item active" data-layer="streets"><span class="indicator"></span> Streets</button>
                 <button class="layer-item" data-layer="satellite"><span class="indicator"></span> Satellite</button>
                 <button class="layer-item" data-layer="topo"><span class="indicator"></span> Topo</button>
             </div>
 
+            <!-- Map Tools - Right side -->
             <div class="map-tools">
                 <button class="tool-btn" id="locateBtn" title="My Location"><i class="fas fa-location-arrow"></i></button>
                 <button class="tool-btn" id="resetMapBtn" title="Reset View"><i class="fas fa-home"></i></button>
@@ -787,11 +757,6 @@ const Utils = {
         return str.replace(/[&<>"']/g, m => map[m]);
     },
     
-    sanitizeText(str) {
-        if (!str) return '';
-        return str.replace(/[^\w\s.,!?()'"]/g, '').trim();
-    },
-    
     formatDate(isoStr) {
         if (!isoStr) return '—';
         try {
@@ -811,18 +776,14 @@ const Utils = {
     clamp(val, min, max) { return Math.max(min, Math.min(max, val)); },
     round(val, d = 1) { return Number(val.toFixed(d)); },
     
-    // Improved image compression with EXIF orientation handling
     compressImage(dataURL, maxWidth = 800, maxHeight = 800, quality = 0.85) {
         return new Promise((resolve) => {
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
                 let w = img.width, h = img.height;
-                
-                // Maintain aspect ratio while fitting within max dimensions
                 if (w > maxWidth) { h = (h * maxWidth) / w; w = maxWidth; }
                 if (h > maxHeight) { w = (w * maxHeight) / h; h = maxHeight; }
-                
                 canvas.width = Math.round(w);
                 canvas.height = Math.round(h);
                 const ctx = canvas.getContext('2d');
@@ -836,7 +797,6 @@ const Utils = {
         });
     },
     
-    // Get file size in human-readable format
     formatFileSize(bytes) {
         if (bytes < 1024) return bytes + ' B';
         if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
@@ -973,17 +933,6 @@ class Database {
         this.data[store] = [];
         this._saveToStorage();
     }
-    
-    async search(query, store = 'inspections') {
-        const items = await this.getAll(store);
-        if (!query) return items;
-        const q = query.toLowerCase();
-        return items.filter(i => 
-            (i.siteName && i.siteName.toLowerCase().includes(q)) ||
-            (i.inspector && i.inspector.toLowerCase().includes(q)) ||
-            (i.vegetationType && i.vegetationType.toLowerCase().includes(q))
-        );
-    }
 }
 
 // ================================================================
@@ -1010,7 +959,6 @@ class App {
         this.layers = { base: null, satellite: null, topo: null };
         this.activeLayer = 'streets';
         this.charts = {};
-        this.reportTemplates = ['Standard', 'Executive', 'Technical'];
     }
     
     // ================================================================
@@ -1086,19 +1034,40 @@ class App {
         
         document.getElementById('polygonCount').textContent = '0';
         document.getElementById('waypointCount').textContent = '0';
+        document.getElementById('currentLayer').textContent = 'Streets';
     }
     
     switchLayer(name) {
+        // Remove all layers
         Object.values(this.layers).forEach(l => { 
             if (l && this.map.hasLayer(l)) this.map.removeLayer(l); 
         });
+        
         this.activeLayer = name;
         const layer = this.layers[name];
         if (layer) {
             layer.addTo(this.map);
+            
+            // Update layer control UI
             document.querySelectorAll('.layer-item').forEach(el => {
                 el.classList.toggle('active', el.dataset.layer === name);
             });
+            
+            // Update status bar
+            const layerNames = { streets: 'Streets', satellite: 'Satellite', topo: 'Topo' };
+            document.getElementById('currentLayer').textContent = layerNames[name] || name;
+            
+            // Update satellite button
+            const satBtn = document.getElementById('toggleSatBtn');
+            if (name === 'satellite') {
+                satBtn.innerHTML = '<i class="fas fa-map"></i><span> Streets</span>';
+                satBtn.classList.add('active');
+            } else {
+                satBtn.innerHTML = '<i class="fas fa-satellite"></i><span> Satellite</span>';
+                satBtn.classList.remove('active');
+            }
+            
+            Toast.info(`Switched to ${layerNames[name] || name} view`);
         }
     }
     
@@ -1135,7 +1104,6 @@ class App {
                         }),
                         zIndexOffset: 1000
                     }).addTo(this.map);
-                    // Add pulse animation
                     const style = document.createElement('style');
                     style.textContent = `
                         @keyframes pulse {
@@ -1572,7 +1540,6 @@ class App {
         
         this.renderGallery();
         
-        // Direct event binding
         const saveBtn = document.getElementById('saveDraftBtn');
         const finalBtn = document.getElementById('finaliseBtn');
         const cancelBtn = document.getElementById('cancelBtn');
@@ -1581,7 +1548,6 @@ class App {
         if (finalBtn) finalBtn.onclick = () => this.finalise();
         if (cancelBtn) cancelBtn.onclick = () => this.closePanel();
         
-        // Section toggles
         document.querySelectorAll('.section-header').forEach(h => {
             h.onclick = () => {
                 h.classList.toggle('collapsed');
@@ -1589,7 +1555,6 @@ class App {
             };
         });
         
-        // Live score update with icon
         ['vegHealth','speciesRichness','regeneration','weedCover','habitatQuality','disturbance'].forEach(id => {
             const el = document.getElementById(id);
             if (el) {
@@ -1602,7 +1567,6 @@ class App {
                     if (display) { 
                         display.innerHTML = `${eco.conditionScore}/10 <i class="fas ${eco.icon}" style="color:${eco.colour};font-size:0.9rem;"></i>`;
                     }
-                    // Update value display
                     const valSpan = document.getElementById(id + 'Val');
                     if (valSpan) valSpan.textContent = el.value;
                 };
@@ -1611,7 +1575,7 @@ class App {
     }
     
     // ================================================================
-    // PHOTOS - IMPROVED WITH COMPRESSION
+    // PHOTOS
     // ================================================================
     async handlePhotos(files) {
         const maxPhotos = 20;
@@ -1626,7 +1590,6 @@ class App {
         let errors = 0;
         
         for (const file of toProcess) {
-            // Check file size - warn but still try to process
             if (file.size > 5 * 1024 * 1024) {
                 Toast.warning(`${file.name} is large (${Utils.formatFileSize(file.size)}), compressing...`);
             }
@@ -1635,7 +1598,6 @@ class App {
                 const reader = new FileReader();
                 const data = await new Promise((resolve) => {
                     reader.onload = async (e) => {
-                        // Compress image - max 800x800, 85% quality
                         const compressed = await Utils.compressImage(e.target.result, 800, 800, 0.85);
                         resolve(compressed);
                     };
@@ -1652,8 +1614,7 @@ class App {
                     lat: this.currentLat,
                     lng: this.currentLng,
                     isHero: this.currentPhotos.length === 0,
-                    filename: file.name,
-                    size: file.size
+                    filename: file.name
                 });
                 added++;
             } catch (e) {
@@ -1664,7 +1625,6 @@ class App {
         
         this.renderGallery();
         
-        // Update photo count in upload area
         const countEl = document.querySelector('.photo-count');
         if (countEl) {
             countEl.textContent = `${this.currentPhotos.length} photos added`;
@@ -1693,7 +1653,6 @@ class App {
                 <img src="${p.dataURL}" alt="Photo ${i+1}" loading="lazy">
                 <div class="photo-overlay">
                     <span>${new Date(p.timestamp).toLocaleTimeString()}</span>
-                    ${p.filename ? `<span style="opacity:0.6;font-size:0.45rem;">${p.filename.split('.').pop()}</span>` : ''}
                 </div>
                 <button class="remove-photo" data-idx="${i}" title="Remove photo">×</button>
                 ${p.isHero ? '<div class="hero-badge">Cover</div>' : ''}
@@ -1709,7 +1668,6 @@ class App {
                     this.currentPhotos[0].isHero = true;
                 }
                 this.renderGallery();
-                // Update count
                 const countEl = document.querySelector('.photo-count');
                 if (countEl) countEl.textContent = `${this.currentPhotos.length} photos added`;
             };
@@ -1754,7 +1712,6 @@ class App {
             this.setPanel(this.renderForm(data), draft ? 'Edit Draft' : 'View Inspection');
             this.bindForm();
             
-            // Update photo count
             const countEl = document.querySelector('.photo-count');
             if (countEl) countEl.textContent = `${this.currentPhotos.length} photos added`;
         } catch (e) { console.error('Load error:', e); Toast.error('Failed to load'); }
@@ -1788,7 +1745,7 @@ class App {
     }
     
     // ================================================================
-    // PROFESSIONAL REPORT
+    // REPORT
     // ================================================================
     async generateReport(inspection) {
         try {
@@ -1799,7 +1756,6 @@ class App {
             const eco = inspection.ecologicalScore || Utils.calculateScore(inspection);
             const colour = '#1a5f4a';
             
-            // Helper functions
             const addText = (text, size = 10, color = '#333') => {
                 if (!text) return;
                 doc.setFontSize(size);
@@ -1823,12 +1779,11 @@ class App {
                 y += 6; 
             };
             
-            // --- COVER PAGE ---
+            // Cover
             doc.setFillColor(colour);
             doc.rect(0, 0, pageWidth, 6, 'F');
             y = 30;
             
-            // Title
             doc.setFontSize(32);
             doc.setTextColor(colour);
             doc.text('ENVIRONMENTAL', margin, y);
@@ -1838,13 +1793,11 @@ class App {
             drawLine();
             y += 6;
             
-            // Site name
             doc.setFontSize(20);
             doc.setTextColor('#222');
             doc.text(Utils.escapeHtml(inspection.siteName || 'Site Assessment'), margin, y);
             y += 12;
             
-            // Metadata
             doc.setFontSize(11);
             doc.setTextColor('#666');
             doc.text(`Prepared for: ${Utils.escapeHtml(inspection.organization || 'Environmental Client')}`, margin, y);
@@ -1860,7 +1813,6 @@ class App {
             if (inspection.photos && inspection.photos.length > 0) {
                 const hero = inspection.photos.find(p => p.isHero) || inspection.photos[0];
                 try {
-                    // Get image dimensions for proper aspect ratio
                     const img = new Image();
                     const imgData = await new Promise((resolve) => {
                         img.onload = () => resolve({ width: img.width, height: img.height });
@@ -1888,7 +1840,6 @@ class App {
                         doc.text(`Cover Photo: ${inspection.siteName}`, margin + 10, y);
                         y += 6;
                     } else {
-                        // Fallback if image loading fails
                         doc.setFillColor('#f5f5f5');
                         doc.roundedRect(margin+10, y, pageWidth-2*margin-20, 50, 4, 4, 'F');
                         doc.setFontSize(10);
@@ -1897,7 +1848,6 @@ class App {
                         y += 56;
                     }
                 } catch(e) {
-                    // Fallback
                     doc.setFillColor('#f5f5f5');
                     doc.roundedRect(margin+10, y, pageWidth-2*margin-20, 50, 4, 4, 'F');
                     doc.setFontSize(10);
@@ -1907,7 +1857,6 @@ class App {
                 }
             }
             
-            // Footer on cover
             doc.setFillColor(colour);
             doc.rect(0, pageHeight-6, pageWidth, 3, 'F');
             doc.setFontSize(7);
@@ -1915,20 +1864,18 @@ class App {
             doc.text('© EcoMaintenance Professional v4.0', margin, pageHeight-3);
             doc.text('Environmental Assessment Report', pageWidth/2, pageHeight-3, { align: 'center' });
             
-            // --- SUMMARY PAGE ---
+            // Summary
             doc.addPage();
             y = margin + 10;
             addTitle('EXECUTIVE SUMMARY', 22);
             drawLine();
             y += 6;
             
-            // Score highlight
             doc.setFontSize(14);
             doc.setTextColor(colour);
             doc.text(`Overall Condition Score: ${eco.conditionScore}/10`, margin, y);
             y += 8;
             
-            // Risk rating with color
             doc.setFontSize(11);
             doc.setTextColor(eco.colour);
             doc.text(`Risk Rating: ${eco.riskRating}`, margin, y);
@@ -1939,11 +1886,9 @@ class App {
             doc.text(`Conservation Significance: ${eco.significance}`, margin, y);
             y += 10;
             
-            // Summary text
             addText(`This report presents findings of an ecological assessment at "${Utils.escapeHtml(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`, 10);
             y += 6;
             
-            // Key findings
             doc.setFontSize(11);
             doc.setTextColor(colour);
             doc.text('Key Findings:', margin, y);
@@ -1960,10 +1905,17 @@ class App {
             findings.forEach(f => { doc.text(f, margin + 4, y); y += 5; });
             y += 6;
             
-            // --- ASSESSMENT DETAILS ---
+            // Details
             addTitle('ASSESSMENT DETAILS', 16);
             drawLine();
             y += 4;
+            
+            function getStatusBadge(value, max) {
+                const ratio = value / max;
+                if (ratio >= 0.8) return '✅ Good';
+                if (ratio >= 0.5) return '⚠️ Moderate';
+                return '❌ Poor';
+            }
             
             const details = [
                 ['Parameter', 'Value', 'Status'],
@@ -1974,13 +1926,6 @@ class App {
                 ['Habitat Quality', `${inspection.habitatQuality || 5}/10`, getStatusBadge(inspection.habitatQuality || 5, 10)],
                 ['Disturbance', `${inspection.disturbance || 3}/10`, getStatusBadge(10 - (inspection.disturbance || 3), 10)]
             ];
-            
-            function getStatusBadge(value, max) {
-                const ratio = value / max;
-                if (ratio >= 0.8) return '✅ Good';
-                if (ratio >= 0.5) return '⚠️ Moderate';
-                return '❌ Poor';
-            }
             
             doc.autoTable({
                 startY: y,
@@ -2002,22 +1947,20 @@ class App {
             });
             y = doc.lastAutoTable.finalY + 10;
             
-            // --- RECOMMENDATIONS ---
+            // Recommendations
             addTitle('RECOMMENDATIONS', 14);
             drawLine();
             y += 4;
-            const recs = inspection.recommendations || 'No specific recommendations recorded.';
-            addText(recs, 9);
+            addText(inspection.recommendations || 'No specific recommendations recorded.', 9);
             y += 8;
             
-            // --- OBSERVATIONS ---
+            // Observations
             addTitle('OBSERVATIONS', 14);
             drawLine();
             y += 4;
-            const obs = inspection.observations || 'No observations recorded.';
-            addText(obs, 9);
+            addText(inspection.observations || 'No observations recorded.', 9);
             
-            // --- PHOTOS ---
+            // Photos
             doc.addPage();
             y = margin + 10;
             addTitle('PHOTO DOCUMENTATION', 18);
@@ -2055,7 +1998,6 @@ class App {
                 addText('No photos were captured during this assessment.', 10);
             }
             
-            // Footer all pages
             const total = doc.internal.getNumberOfPages();
             for (let i = 1; i <= total; i++) {
                 doc.setPage(i);
@@ -2088,18 +2030,15 @@ class App {
             const avg = total > 0 ? insp.reduce((s, i) => s + (i.ecologicalScore?.conditionScore || 0), 0) / total : 0;
             const high = insp.filter(i => (i.ecologicalScore?.conditionScore || 0) >= 7).length;
             const crit = insp.filter(i => (i.ecologicalScore?.conditionScore || 0) < 4).length;
-            const good = insp.filter(i => (i.ecologicalScore?.conditionScore || 0) >= 5 && (i.ecologicalScore?.conditionScore || 0) < 7).length;
             
             const html = `
                 <div class="dashboard-grid">
                     <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-clipboard-list"></i></div>
                         <div class="stat-value">${total}</div>
                         <div class="stat-label">Total Reports</div>
                         <span class="stat-change neutral">${total > 0 ? 'Active' : 'No data'}</span>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
                         <div class="stat-value">${avg > 0 ? avg.toFixed(1) : '—'}</div>
                         <div class="stat-label">Average Score</div>
                         <span class="stat-change ${avg >= 6 ? 'positive' : avg > 0 ? 'negative' : 'neutral'}">
@@ -2107,16 +2046,14 @@ class App {
                         </span>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-star" style="color:var(--warning);"></i></div>
                         <div class="stat-value">${high}</div>
                         <div class="stat-label">High Value</div>
-                        <span class="stat-change positive">${high > 0 ? 'Conservation priority' : 'None'}</span>
+                        <span class="stat-change positive">${high > 0 ? 'Priority sites' : 'None'}</span>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-exclamation-triangle" style="color:var(--danger);"></i></div>
                         <div class="stat-value">${crit}</div>
                         <div class="stat-label">Critical Sites</div>
-                        <span class="stat-change ${crit > 0 ? 'negative' : 'positive'}">${crit > 0 ? 'Urgent action needed' : 'None'}</span>
+                        <span class="stat-change ${crit > 0 ? 'negative' : 'positive'}">${crit > 0 ? 'Urgent action' : 'None'}</span>
                     </div>
                 </div>
                 
@@ -2143,7 +2080,7 @@ class App {
                 <div style="margin-top:10px;padding:6px 10px;background:var(--gray-50);border-radius:var(--radius-sm);border:1px solid var(--gray-200);">
                     <div class="flex-between text-xs text-muted">
                         <span><i class="fas fa-code-branch"></i> v4.0</span>
-                        <span><i class="fas fa-database"></i> ${this.db.data ? 'LocalStorage' : 'Memory'}</span>
+                        <span><i class="fas fa-database"></i> LocalStorage</span>
                         <span><i class="fas fa-map-pin"></i> ${total} assessments</span>
                         <span><i class="fas fa-camera"></i> ${insp.reduce((s, i) => s + (i.photos?.length || 0), 0)} photos</span>
                     </div>
@@ -2213,7 +2150,6 @@ class App {
             
             this.setPanel(html, 'Inspections');
             
-            // Search functionality
             const searchInput = document.getElementById('searchInspections');
             if (searchInput) {
                 searchInput.oninput = () => {
@@ -2508,15 +2444,20 @@ class App {
             document.getElementById('sidebar').classList.toggle('open');
         });
         
-        // Layer control
+        // Layer control - direct click on layer items
         document.querySelectorAll('.layer-item').forEach(el => {
-            el.addEventListener('click', () => this.switchLayer(el.dataset.layer));
+            el.addEventListener('click', () => {
+                this.switchLayer(el.dataset.layer);
+            });
         });
         
-        // Toggle satellite shortcut
+        // Satellite toggle button - now toggles between satellite and streets
         document.getElementById('toggleSatBtn').addEventListener('click', () => {
-            const current = this.activeLayer;
-            this.switchLayer(current === 'satellite' ? 'streets' : 'satellite');
+            if (this.activeLayer === 'satellite') {
+                this.switchLayer('streets');
+            } else {
+                this.switchLayer('satellite');
+            }
         });
         
         // Close sidebar on mobile
