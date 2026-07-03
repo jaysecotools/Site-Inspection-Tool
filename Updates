@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#0f3b2e">
-    <meta name="description" content="EcoMaintenance Professional - Environmental Management Platform">
+    <meta name="description" content="EcoMaintenance Professional - Enterprise Environmental Management Platform">
     <title>EcoMaintenance Professional</title>
     
     <!-- Core Libraries -->
@@ -71,6 +71,7 @@
             height: 100vh;
             overflow: hidden;
             color: var(--neutral-800);
+            -webkit-font-smoothing: antialiased;
         }
         
         /* ============================================================
@@ -140,8 +141,12 @@
             transition: all var(--transition-fast);
             font-size: 0.82rem;
             color: rgba(255,255,255,0.65);
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
         }
-        
         .nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
         .nav-item.active {
             background: rgba(45, 138, 110, 0.25);
@@ -157,7 +162,6 @@
             font-size: 0.55rem;
             font-weight: 600;
         }
-        .nav-item .badge.active-badge { background: var(--brand-fern); color: white; }
         
         /* Main Content */
         .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--neutral-50); }
@@ -222,9 +226,6 @@
         .btn-danger { background: var(--danger); color: white; }
         .btn-danger:hover { background: #a93226; }
         
-        .btn-warning { background: var(--warning); color: var(--neutral-900); }
-        .btn-warning:hover { background: #c99d3e; }
-        
         .btn-sm { padding: 3px 8px; font-size: 0.6rem; }
         .btn-lg { padding: 8px 18px; font-size: 0.8rem; }
         .btn-icon { padding: 6px 7px; }
@@ -283,6 +284,11 @@
             transition: all var(--transition-fast);
             font-weight: 500;
             color: var(--neutral-600);
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
         }
         .layer-control .layer-item:hover { background: var(--neutral-100); }
         .layer-control .layer-item.active { background: var(--brand-canopy); color: white; }
@@ -387,6 +393,10 @@
             user-select: none;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            border: none;
+            width: 100%;
+            font-family: inherit;
+            text-align: left;
         }
         .section-header:hover { background: var(--neutral-100); }
         .section-header i:last-child { transition: transform var(--transition-fast); }
@@ -795,13 +805,13 @@
         </div>
         <div class="sidebar-nav">
             <div class="nav-label">Main</div>
-            <div class="nav-item active" data-view="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</div>
-            <div class="nav-item" data-view="inspections"><i class="fas fa-clipboard-list"></i> Inspections <span class="badge" id="inspCount">0</span></div>
-            <div class="nav-item" data-view="new"><i class="fas fa-plus-circle"></i> New Assessment</div>
-            <div class="nav-item" data-view="mapview"><i class="fas fa-map"></i> Map View</div>
+            <button class="nav-item active" data-view="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
+            <button class="nav-item" data-view="inspections"><i class="fas fa-clipboard-list"></i> Inspections <span class="badge" id="inspCount">0</span></button>
+            <button class="nav-item" data-view="new"><i class="fas fa-plus-circle"></i> New Assessment</button>
+            <button class="nav-item" data-view="mapview"><i class="fas fa-map"></i> Map View</button>
             <div class="nav-label" style="margin-top:6px;">Workflow</div>
-            <div class="nav-item" data-view="drafts"><i class="fas fa-save"></i> Drafts <span class="badge" id="draftCount">0</span></div>
-            <div class="nav-item" data-view="data"><i class="fas fa-database"></i> Data Manager</div>
+            <button class="nav-item" data-view="drafts"><i class="fas fa-save"></i> Drafts <span class="badge" id="draftCount">0</span></button>
+            <button class="nav-item" data-view="data"><i class="fas fa-database"></i> Data Manager</button>
         </div>
     </nav>
 
@@ -838,9 +848,9 @@
             </div>
 
             <div class="layer-control">
-                <div class="layer-item active" data-layer="streets"><span class="indicator"></span> Streets</div>
-                <div class="layer-item" data-layer="satellite"><span class="indicator"></span> Satellite</div>
-                <div class="layer-item" data-layer="topo"><span class="indicator"></span> Topo</div>
+                <button class="layer-item active" data-layer="streets"><span class="indicator"></span> Streets</button>
+                <button class="layer-item" data-layer="satellite"><span class="indicator"></span> Satellite</button>
+                <button class="layer-item" data-layer="topo"><span class="indicator"></span> Topo</button>
             </div>
 
             <div class="map-tools">
@@ -868,7 +878,7 @@
 
 <script>
 // ================================================================
-// UTILITIES
+// UTILITY FUNCTIONS
 // ================================================================
 const Utils = {
     uuid() {
@@ -893,7 +903,10 @@ const Utils = {
         if (!isoStr) return '—';
         try {
             const d = new Date(isoStr);
-            return d.toLocaleDateString('en-AU', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            return d.toLocaleDateString('en-AU', { 
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
         } catch { return isoStr; }
     },
     
@@ -958,7 +971,9 @@ const Utils = {
         
         return {
             conditionScore: Utils.round(score, 1),
-            riskRating, priority, colour,
+            riskRating,
+            priority,
+            colour,
             significance: score > 7 ? 'High Conservation Value' : (score > 5 ? 'Moderate Conservation Value' : 'Low Conservation Value')
         };
     },
@@ -972,7 +987,7 @@ const Utils = {
 };
 
 // ================================================================
-// TOAST
+// TOAST SYSTEM
 // ================================================================
 const Toast = {
     show(msg, type = 'info', duration = 3000) {
@@ -991,17 +1006,20 @@ const Toast = {
 };
 
 // ================================================================
-// DATABASE
+// DATABASE LAYER
 // ================================================================
 class Database {
     constructor() {
         this.db = null;
         this.ready = false;
         this.useLocalStorage = false;
+        this.initPromise = null;
     }
     
     async init() {
-        return new Promise((resolve) => {
+        if (this.initPromise) return this.initPromise;
+        
+        this.initPromise = new Promise((resolve) => {
             try {
                 const req = indexedDB.open('EcoMaintenance_v4', 5);
                 req.onupgradeneeded = (e) => {
@@ -1016,10 +1034,24 @@ class Database {
                         db.createObjectStore('drafts', { keyPath: 'id' });
                     }
                 };
-                req.onsuccess = (e) => { this.db = e.target.result; this.ready = true; resolve(); };
-                req.onerror = () => { this.useLocalStorage = true; this.ready = true; resolve(); };
-            } catch { this.useLocalStorage = true; this.ready = true; resolve(); }
+                req.onsuccess = (e) => {
+                    this.db = e.target.result;
+                    this.ready = true;
+                    resolve();
+                };
+                req.onerror = () => {
+                    this.useLocalStorage = true;
+                    this.ready = true;
+                    resolve();
+                };
+            } catch {
+                this.useLocalStorage = true;
+                this.ready = true;
+                resolve();
+            }
         });
+        
+        return this.initPromise;
     }
     
     _store(store, mode = 'readonly') {
@@ -1030,81 +1062,122 @@ class Database {
     _key(id, draft = false) { return `${draft ? 'draft_' : 'insp_'}${id}`; }
     
     async save(data, draft = false) {
+        await this.init();
         const store = draft ? 'drafts' : 'inspections';
+        
         if (this.useLocalStorage) {
             localStorage.setItem(this._key(data.id, draft), JSON.stringify(data));
             return;
         }
+        
         return new Promise((resolve, reject) => {
             try {
                 const s = this._store(store, 'readwrite');
+                if (!s) { this.useLocalStorage = true; localStorage.setItem(this._key(data.id, draft), JSON.stringify(data)); resolve(); return; }
                 const req = s.put(data);
                 req.onsuccess = () => resolve();
                 req.onerror = () => reject(req.error);
-            } catch (e) { reject(e); }
+            } catch (e) {
+                this.useLocalStorage = true;
+                localStorage.setItem(this._key(data.id, draft), JSON.stringify(data));
+                resolve();
+            }
         });
     }
     
     async getAll(store = 'inspections') {
+        await this.init();
+        
         if (this.useLocalStorage) {
             const prefix = store === 'inspections' ? 'insp_' : 'draft_';
-            return Object.keys(localStorage).filter(k => k.startsWith(prefix)).map(k => JSON.parse(localStorage.getItem(k)));
+            return Object.keys(localStorage)
+                .filter(k => k.startsWith(prefix))
+                .map(k => JSON.parse(localStorage.getItem(k)))
+                .filter(d => d !== null);
         }
+        
         return new Promise((resolve, reject) => {
             try {
                 const s = this._store(store);
+                if (!s) { this.useLocalStorage = true; resolve(this.getAll(store)); return; }
                 const req = s.getAll();
                 req.onsuccess = () => resolve(req.target.result || []);
                 req.onerror = () => reject(req.error);
-            } catch (e) { reject(e); }
+            } catch (e) {
+                this.useLocalStorage = true;
+                resolve(this.getAll(store));
+            }
         });
     }
     
     async get(id, draft = false) {
+        await this.init();
         const store = draft ? 'drafts' : 'inspections';
+        
         if (this.useLocalStorage) {
             const data = localStorage.getItem(this._key(id, draft));
             return data ? JSON.parse(data) : null;
         }
+        
         return new Promise((resolve, reject) => {
             try {
                 const s = this._store(store);
+                if (!s) { this.useLocalStorage = true; resolve(this.get(id, draft)); return; }
                 const req = s.get(id);
                 req.onsuccess = () => resolve(req.target.result);
                 req.onerror = () => reject(req.error);
-            } catch (e) { reject(e); }
+            } catch (e) {
+                this.useLocalStorage = true;
+                resolve(this.get(id, draft));
+            }
         });
     }
     
     async delete(id, draft = false) {
+        await this.init();
         const store = draft ? 'drafts' : 'inspections';
+        
         if (this.useLocalStorage) {
             localStorage.removeItem(this._key(id, draft));
             return;
         }
+        
         return new Promise((resolve, reject) => {
             try {
                 const s = this._store(store, 'readwrite');
+                if (!s) { this.useLocalStorage = true; localStorage.removeItem(this._key(id, draft)); resolve(); return; }
                 const req = s.delete(id);
                 req.onsuccess = () => resolve();
                 req.onerror = () => reject(req.error);
-            } catch (e) { reject(e); }
+            } catch (e) {
+                this.useLocalStorage = true;
+                localStorage.removeItem(this._key(id, draft));
+                resolve();
+            }
         });
     }
     
     async clear(store = 'inspections') {
+        await this.init();
+        
         if (this.useLocalStorage) {
             const prefix = store === 'inspections' ? 'insp_' : 'draft_';
             Object.keys(localStorage).filter(k => k.startsWith(prefix)).forEach(k => localStorage.removeItem(k));
             return;
         }
+        
         return new Promise((resolve, reject) => {
             try {
                 const s = this._store(store, 'readwrite');
+                if (!s) { this.useLocalStorage = true; this.clear(store); resolve(); return; }
                 const req = s.clear();
                 req.onsuccess = () => resolve();
                 req.onerror = () => reject(req.error);
-            } catch (e) { reject(e); }
+            } catch (e) {
+                this.useLocalStorage = true;
+                this.clear(store);
+                resolve();
+            }
         });
     }
     
@@ -1115,7 +1188,7 @@ class Database {
 }
 
 // ================================================================
-// APPLICATION
+// MAIN APPLICATION
 // ================================================================
 class App {
     constructor() {
@@ -1138,19 +1211,29 @@ class App {
         this.polygonCount = 0;
         this.waypointCount = 0;
         this.charts = {};
-        this.panelOpen = false;
+        this.currentView = 'dashboard';
+        this.initialised = false;
     }
     
     // ================================================================
     // INIT
     // ================================================================
     async init() {
+        if (this.initialised) return;
+        
+        // Show loading
+        document.getElementById('storageStatus').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initialising...';
+        
         await this.db.init();
         this.initMap();
         this.initGPS();
         this.bindEvents();
-        this.updateStatus();
-        this.showDashboard();
+        await this.updateStatus();
+        
+        // Show dashboard
+        await this.showDashboard();
+        
+        this.initialised = true;
         Toast.success('EcoMaintenance Professional Ready');
     }
     
@@ -1158,7 +1241,11 @@ class App {
     // MAP
     // ================================================================
     initMap() {
-        this.map = L.map('map', { center: [-42.8806, 147.3250], zoom: 10, zoomControl: false });
+        this.map = L.map('map', { 
+            center: [-42.8806, 147.3250], 
+            zoom: 10, 
+            zoomControl: false 
+        });
         
         this.layers.base = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap'
@@ -1194,8 +1281,10 @@ class App {
             if (e.layerType === 'polygon' || e.layerType === 'rectangle') {
                 this.polygonCount++;
                 document.getElementById('polygonCount').textContent = this.polygonCount;
-                const area = turf.area(layer.toGeoJSON()) / 10000;
-                Toast.success(`Polygon: ${area.toFixed(2)} ha`);
+                try {
+                    const area = turf.area(layer.toGeoJSON()) / 10000;
+                    Toast.success(`Polygon: ${area.toFixed(2)} ha`);
+                } catch {}
             } else if (e.layerType === 'marker') {
                 this.waypointCount++;
                 document.getElementById('waypointCount').textContent = this.waypointCount;
@@ -1214,7 +1303,9 @@ class App {
     }
     
     switchLayer(name) {
-        Object.values(this.layers).forEach(l => { if (l && this.map.hasLayer(l)) this.map.removeLayer(l); });
+        Object.values(this.layers).forEach(l => { 
+            if (l && this.map.hasLayer(l)) this.map.removeLayer(l); 
+        });
         this.activeLayer = name;
         const layer = this.layers[name];
         if (layer) {
@@ -1228,19 +1319,29 @@ class App {
     locateUser() {
         if (!navigator.geolocation) { Toast.warning('Geolocation not supported'); return; }
         navigator.geolocation.getCurrentPosition(
-            pos => { this.map.setView([pos.coords.latitude, pos.coords.longitude], 16); Toast.success('Location found'); },
+            pos => { 
+                this.map.setView([pos.coords.latitude, pos.coords.longitude], 16); 
+                Toast.success('Location found');
+                this.currentLat = pos.coords.latitude;
+                this.currentLng = pos.coords.longitude;
+            },
             () => Toast.warning('Location unavailable'),
             { enableHighAccuracy: true, timeout: 10000 }
         );
     }
     
     initGPS() {
-        if (!navigator.geolocation) { document.getElementById('gpsStatus').textContent = 'Unavailable'; return; }
+        if (!navigator.geolocation) { 
+            document.getElementById('gpsStatus').textContent = 'Unavailable'; 
+            return; 
+        }
+        
         this.gpsWatchId = navigator.geolocation.watchPosition(
             pos => {
                 this.currentLat = pos.coords.latitude;
                 this.currentLng = pos.coords.longitude;
                 document.getElementById('gpsStatus').textContent = `±${Math.round(pos.coords.accuracy)}m`;
+                
                 if (!this.gpsMarker) {
                     this.gpsMarker = L.marker([this.currentLat, this.currentLng], {
                         icon: L.divIcon({
@@ -1282,7 +1383,11 @@ class App {
                 const p1 = this.measurePoints[0], p2 = this.measurePoints[1];
                 const dist = Utils.haversineDist(p1.lat, p1.lng, p2.lat, p2.lng);
                 if (this.measureLine) this.map.removeLayer(this.measureLine);
-                this.measureLine = L.polyline(this.measurePoints, { color: '#f59e0b', weight: 4, dashArray: '8,6' }).addTo(this.map);
+                this.measureLine = L.polyline(this.measurePoints, { 
+                    color: '#f59e0b', 
+                    weight: 4, 
+                    dashArray: '8,6' 
+                }).addTo(this.map);
                 const mid = L.latLng((p1.lat+p2.lat)/2, (p1.lng+p2.lng)/2);
                 const label = L.divIcon({
                     html: `<div style="background:#1a5f4a;color:white;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:bold;">📏 ${Utils.formatDistance(dist)}</div>`,
@@ -1300,8 +1405,14 @@ class App {
     
     stopMeasure() {
         this.measureMode = false;
-        if (this._measureHandler) { this.map.off('click', this._measureHandler); this._measureHandler = null; }
-        if (this.measureLine) { this.map.removeLayer(this.measureLine); this.measureLine = null; }
+        if (this._measureHandler) { 
+            this.map.off('click', this._measureHandler); 
+            this._measureHandler = null; 
+        }
+        if (this.measureLine) { 
+            this.map.removeLayer(this.measureLine); 
+            this.measureLine = null; 
+        }
         this.measureMarkers.forEach(m => this.map.removeLayer(m));
         this.measureMarkers = [];
         this.measurePoints = [];
@@ -1317,17 +1428,24 @@ class App {
         Toast.info('Map cleared');
     }
     
-    resetView() { this.map.setView([-42.8806, 147.3250], 10); }
+    resetView() { 
+        this.map.setView([-42.8806, 147.3250], 10); 
+    }
     
     toggleFullscreen() {
         const el = document.getElementById('mapWrapper');
-        if (!document.fullscreenElement) { el.requestFullscreen?.(); } 
-        else { document.exitFullscreen?.(); }
+        if (!document.fullscreenElement) { 
+            el.requestFullscreen?.(); 
+        } else { 
+            document.exitFullscreen?.(); 
+        }
     }
     
     getGeometry() {
         const features = [];
-        this.drawnItems.eachLayer(l => { try { features.push(l.toGeoJSON()); } catch(e) {} });
+        this.drawnItems.eachLayer(l => { 
+            try { features.push(l.toGeoJSON()); } catch(e) {} 
+        });
         return features;
     }
     
@@ -1361,12 +1479,10 @@ class App {
     // ================================================================
     openPanel() {
         document.getElementById('panel').classList.add('open');
-        this.panelOpen = true;
     }
     
     closePanel() {
         document.getElementById('panel').classList.remove('open');
-        this.panelOpen = false;
     }
     
     setPanel(html, title) {
@@ -1379,11 +1495,18 @@ class App {
     // STATUS
     // ================================================================
     async updateStatus() {
-        const insp = await this.db.count('inspections');
-        const drafts = await this.db.count('drafts');
-        document.getElementById('storageStatus').innerHTML = `<i class="fas fa-database"></i> ${insp} Reports | ${drafts} Drafts`;
-        document.getElementById('inspCount').textContent = insp;
-        document.getElementById('draftCount').textContent = drafts;
+        try {
+            const insp = await this.db.count('inspections');
+            const drafts = await this.db.count('drafts');
+            document.getElementById('storageStatus').innerHTML = 
+                `<i class="fas fa-database"></i> ${insp} Reports | ${drafts} Drafts`;
+            document.getElementById('inspCount').textContent = insp;
+            document.getElementById('draftCount').textContent = drafts;
+            document.getElementById('storageDetail').textContent = 
+                this.db.useLocalStorage ? 'LocalStorage' : 'IndexedDB';
+        } catch (e) {
+            console.error('Status update error:', e);
+        }
     }
     
     // ================================================================
@@ -1392,8 +1515,9 @@ class App {
     collectForm() {
         const get = (id) => document.getElementById(id)?.value || '';
         const getNum = (id) => parseFloat(document.getElementById(id)?.value) || 0;
+        
         return {
-            id: this.currentId,
+            id: this.currentId || Utils.uuid(),
             status: this.isDraft ? 'draft' : 'finalised',
             siteName: get('siteName'),
             inspector: get('inspector'),
@@ -1437,37 +1561,75 @@ class App {
         return `
             <form id="inspectionForm">
                 <div class="form-section">
-                    <div class="section-header"><span><i class="fas fa-info-circle"></i> Site Information</span><i class="fas fa-chevron-down"></i></div>
+                    <button type="button" class="section-header">
+                        <span><i class="fas fa-info-circle"></i> Site Information</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
                     <div class="section-content">
                         <div class="form-row">
-                            <div class="form-group"><label>ID</label><input id="inspId" value="${d.id || ('ECO-'+Date.now())}" readonly></div>
-                            <div class="form-group"><label>Status</label><input value="${this.isDraft ? 'DRAFT' : 'NEW'}" style="font-weight:700;color:${this.isDraft ? 'var(--warning)' : 'var(--brand-canopy)'};" readonly></div>
+                            <div class="form-group">
+                                <label>ID</label>
+                                <input id="inspId" value="${d.id || ('ECO-'+Date.now())}" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Status</label>
+                                <input value="${this.isDraft ? 'DRAFT' : 'NEW'}" style="font-weight:700;color:${this.isDraft ? 'var(--warning)' : 'var(--brand-canopy)'};" readonly>
+                            </div>
                         </div>
-                        <div class="form-group"><label>Site Name <span class="required">*</span></label><input id="siteName" required value="${Utils.escapeHtml(d.siteName||'')}" placeholder="e.g., Huon Valley"></div>
+                        <div class="form-group">
+                            <label>Site Name <span class="required">*</span></label>
+                            <input id="siteName" required value="${Utils.escapeHtml(d.siteName||'')}" placeholder="e.g., Huon Valley Conservation Area">
+                        </div>
                         <div class="form-row">
-                            <div class="form-group"><label>Inspector</label><input id="inspector" value="${Utils.escapeHtml(d.inspector||'')}" placeholder="Full name"></div>
-                            <div class="form-group"><label>Organization</label><input id="organization" value="${Utils.escapeHtml(d.organization||'')}" placeholder="Company/Agency"></div>
+                            <div class="form-group">
+                                <label>Inspector</label>
+                                <input id="inspector" value="${Utils.escapeHtml(d.inspector||'')}" placeholder="Full name">
+                            </div>
+                            <div class="form-group">
+                                <label>Organization</label>
+                                <input id="organization" value="${Utils.escapeHtml(d.organization||'')}" placeholder="Company/Agency">
+                            </div>
                         </div>
                         <div class="form-row">
-                            <div class="form-group"><label>Date & Time</label><input type="datetime-local" id="dateTime" value="${d.dateTime || new Date().toISOString().slice(0,16)}"></div>
-                            <div class="form-group"><label>Vegetation Type</label><select id="vegetationType">${vegOpts}</select></div>
+                            <div class="form-group">
+                                <label>Date & Time</label>
+                                <input type="datetime-local" id="dateTime" value="${d.dateTime || new Date().toISOString().slice(0,16)}">
+                            </div>
+                            <div class="form-group">
+                                <label>Vegetation Type</label>
+                                <select id="vegetationType">${vegOpts}</select>
+                            </div>
                         </div>
                         <div class="form-row">
-                            <div class="form-group"><label>Tenure</label><input id="tenure" value="${Utils.escapeHtml(d.tenure||'')}" placeholder="Private/Parks"></div>
-                            <div class="form-group"><label>Weather</label><input id="weather" value="${Utils.escapeHtml(d.weather||'')}" placeholder="Temp, wind"></div>
+                            <div class="form-group">
+                                <label>Tenure</label>
+                                <input id="tenure" value="${Utils.escapeHtml(d.tenure||'')}" placeholder="Private/Parks">
+                            </div>
+                            <div class="form-group">
+                                <label>Weather</label>
+                                <input id="weather" value="${Utils.escapeHtml(d.weather||'')}" placeholder="Temp, wind">
+                            </div>
                         </div>
-                        <div class="form-group"><label>Soil Condition</label><textarea id="soilCondition" rows="2">${Utils.escapeHtml(d.soilCondition||'')}</textarea></div>
+                        <div class="form-group">
+                            <label>Soil Condition</label>
+                            <textarea id="soilCondition" rows="2">${Utils.escapeHtml(d.soilCondition||'')}</textarea>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="form-section">
-                    <div class="section-header"><span><i class="fas fa-chart-line"></i> Ecological Health</span><i class="fas fa-chevron-down"></i></div>
+                    <button type="button" class="section-header">
+                        <span><i class="fas fa-chart-line"></i> Ecological Health</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
                     <div class="section-content">
                         <div style="display:flex;justify-content:space-between;align-items:center;">
                             <span style="font-weight:700;">Condition Score</span>
                             <span style="font-weight:700;font-size:1.2rem;" id="scoreDisplay">${eco.conditionScore}/10</span>
                         </div>
-                        <div class="health-meter"><div class="health-fill" style="width:${eco.conditionScore*10}%;background:${eco.colour};"></div></div>
+                        <div class="health-meter">
+                            <div class="health-fill" style="width:${eco.conditionScore*10}%;background:${eco.colour};"></div>
+                        </div>
                         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
                             <span class="rating-badge ${Utils.getRatingClass(eco.conditionScore)}">${eco.riskRating}</span>
                             <span class="text-muted text-sm">${eco.significance}</span>
@@ -1475,28 +1637,36 @@ class App {
                         </div>
                         <hr style="margin:8px 0;border-color:var(--neutral-200);">
                         
-                        <div class="form-group"><label>Vegetation Health (0-10)</label>
+                        <div class="form-group">
+                            <label>Vegetation Health (0-10)</label>
                             <input type="range" id="vegHealth" min="0" max="10" step="0.5" value="${d.vegHealth||6}" oninput="document.getElementById('vhVal').textContent=this.value">
                             <span id="vhVal" class="text-muted text-sm">${d.vegHealth||6}</span>
                         </div>
                         <div class="form-row">
-                            <div class="form-group"><label>Species Richness (0-10)</label>
+                            <div class="form-group">
+                                <label>Species Richness (0-10)</label>
                                 <input type="range" id="speciesRichness" min="0" max="10" step="0.5" value="${d.speciesRichness||5}" oninput="document.getElementById('srVal').textContent=this.value">
                                 <span id="srVal" class="text-muted text-sm">${d.speciesRichness||5}</span>
                             </div>
-                            <div class="form-group"><label>Regeneration (0-10)</label>
+                            <div class="form-group">
+                                <label>Regeneration (0-10)</label>
                                 <input type="range" id="regeneration" min="0" max="10" step="0.5" value="${d.regeneration||5}" oninput="document.getElementById('reVal').textContent=this.value">
                                 <span id="reVal" class="text-muted text-sm">${d.regeneration||5}</span>
                             </div>
                         </div>
                         <div class="form-row">
-                            <div class="form-group"><label>Weed Cover (%)</label><input type="number" id="weedCover" value="${d.weedCover||30}" min="0" max="100"></div>
-                            <div class="form-group"><label>Habitat Quality (0-10)</label>
+                            <div class="form-group">
+                                <label>Weed Cover (%)</label>
+                                <input type="number" id="weedCover" value="${d.weedCover||30}" min="0" max="100">
+                            </div>
+                            <div class="form-group">
+                                <label>Habitat Quality (0-10)</label>
                                 <input type="range" id="habitatQuality" min="0" max="10" step="0.5" value="${d.habitatQuality||5}" oninput="document.getElementById('hqVal').textContent=this.value">
                                 <span id="hqVal" class="text-muted text-sm">${d.habitatQuality||5}</span>
                             </div>
                         </div>
-                        <div class="form-group"><label>Disturbance (0-10)</label>
+                        <div class="form-group">
+                            <label>Disturbance (0-10)</label>
                             <input type="range" id="disturbance" min="0" max="10" step="0.5" value="${d.disturbance||3}" oninput="document.getElementById('distVal').textContent=this.value">
                             <span id="distVal" class="text-muted text-sm">${d.disturbance||3}</span>
                         </div>
@@ -1504,21 +1674,45 @@ class App {
                 </div>
                 
                 <div class="form-section">
-                    <div class="section-header"><span><i class="fas fa-paw"></i> Species & Threats</span><i class="fas fa-chevron-down"></i></div>
+                    <button type="button" class="section-header">
+                        <span><i class="fas fa-paw"></i> Species & Threats</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
                     <div class="section-content">
-                        <div class="form-group"><label>Declared Weeds</label><input id="weedsList" value="${Utils.escapeHtml(d.weedsList||'')}" placeholder="e.g., Gorse, Blackberry"></div>
-                        <div class="form-row">
-                            <div class="form-group"><label>Feral Animals</label><select id="feralAnimals">${feralOpts}</select></div>
-                            <div class="form-group"><label>Threat Level</label><select id="threatLevel">${threatOpts}</select></div>
+                        <div class="form-group">
+                            <label>Declared Weeds</label>
+                            <input id="weedsList" value="${Utils.escapeHtml(d.weedsList||'')}" placeholder="e.g., Gorse, Blackberry">
                         </div>
-                        <div class="form-group"><label>Fire History</label><input id="fireHistory" value="${Utils.escapeHtml(d.fireHistory||'')}" placeholder="Years since fire"></div>
-                        <div class="form-group"><label>Observations</label><textarea id="observations" rows="2">${Utils.escapeHtml(d.observations||'')}</textarea></div>
-                        <div class="form-group"><label>Recommendations</label><textarea id="recommendations" rows="2">${Utils.escapeHtml(d.recommendations||'')}</textarea></div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Feral Animals</label>
+                                <select id="feralAnimals">${feralOpts}</select>
+                            </div>
+                            <div class="form-group">
+                                <label>Threat Level</label>
+                                <select id="threatLevel">${threatOpts}</select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Fire History</label>
+                            <input id="fireHistory" value="${Utils.escapeHtml(d.fireHistory||'')}" placeholder="Years since fire">
+                        </div>
+                        <div class="form-group">
+                            <label>Observations</label>
+                            <textarea id="observations" rows="2">${Utils.escapeHtml(d.observations||'')}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Recommendations</label>
+                            <textarea id="recommendations" rows="2">${Utils.escapeHtml(d.recommendations||'')}</textarea>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="form-section">
-                    <div class="section-header"><span><i class="fas fa-camera"></i> Photos (${this.currentPhotos.length})</span><i class="fas fa-chevron-down"></i></div>
+                    <button type="button" class="section-header">
+                        <span><i class="fas fa-camera"></i> Photos (${this.currentPhotos.length})</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
                     <div class="section-content">
                         <div class="photo-upload-area" id="photoDropZone">
                             <i class="fas fa-cloud-upload-alt"></i>
@@ -1526,14 +1720,22 @@ class App {
                         </div>
                         <input type="file" id="photoInput" accept="image/*" capture="environment" multiple style="display:none;">
                         <div id="photoGallery" class="photo-grid"></div>
-                        <small class="text-muted text-xs" style="display:block;margin-top:4px;"><i class="fas fa-info-circle"></i> Click a photo to set as cover</small>
+                        <small class="text-muted text-xs" style="display:block;margin-top:4px;">
+                            <i class="fas fa-info-circle"></i> Click a photo to set as cover
+                        </small>
                     </div>
                 </div>
                 
                 <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
-                    <button type="button" id="saveDraftBtn" class="btn btn-secondary"><i class="fas fa-save"></i> Save Draft</button>
-                    <button type="button" id="finaliseBtn" class="btn btn-primary"><i class="fas fa-file-pdf"></i> Generate Report</button>
-                    <button type="button" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+                    <button type="button" id="saveDraftBtn" class="btn btn-secondary">
+                        <i class="fas fa-save"></i> Save Draft
+                    </button>
+                    <button type="button" id="finaliseBtn" class="btn btn-primary">
+                        <i class="fas fa-file-pdf"></i> Generate Report
+                    </button>
+                    <button type="button" id="cancelBtn" class="btn btn-secondary">
+                        Cancel
+                    </button>
                 </div>
             </form>
         `;
@@ -1542,13 +1744,19 @@ class App {
     bindForm() {
         const input = document.getElementById('photoInput');
         const drop = document.getElementById('photoDropZone');
+        
         if (input) {
             input.onchange = (e) => this.handlePhotos(e.target.files);
         }
         if (drop) {
             drop.onclick = () => input?.click();
-            drop.ondragover = (e) => { e.preventDefault(); drop.style.borderColor = 'var(--brand-canopy)'; };
-            drop.ondragleave = () => { drop.style.borderColor = ''; };
+            drop.ondragover = (e) => { 
+                e.preventDefault(); 
+                drop.style.borderColor = 'var(--brand-canopy)'; 
+            };
+            drop.ondragleave = () => { 
+                drop.style.borderColor = ''; 
+            };
             drop.ondrop = (e) => {
                 e.preventDefault();
                 drop.style.borderColor = '';
@@ -1558,10 +1766,12 @@ class App {
         
         this.renderGallery();
         
+        // Form buttons
         document.getElementById('saveDraftBtn')?.addEventListener('click', () => this.saveDraft());
         document.getElementById('finaliseBtn')?.addEventListener('click', () => this.finalise());
         document.getElementById('cancelBtn')?.addEventListener('click', () => this.closePanel());
         
+        // Section toggles
         document.querySelectorAll('.section-header').forEach(h => {
             h.onclick = () => {
                 h.classList.toggle('collapsed');
@@ -1569,6 +1779,7 @@ class App {
             };
         });
         
+        // Live score update
         ['vegHealth','speciesRichness','regeneration','weedCover','habitatQuality','disturbance'].forEach(id => {
             const el = document.getElementById(id);
             if (el) {
@@ -1577,7 +1788,10 @@ class App {
                     const eco = Utils.calculateScore(data);
                     const fill = document.querySelector('.health-fill');
                     const display = document.getElementById('scoreDisplay');
-                    if (fill) { fill.style.width = `${eco.conditionScore*10}%`; fill.style.background = eco.colour; }
+                    if (fill) { 
+                        fill.style.width = `${eco.conditionScore*10}%`; 
+                        fill.style.background = eco.colour; 
+                    }
                     if (display) display.textContent = `${eco.conditionScore}/10`;
                 };
             }
@@ -1592,10 +1806,15 @@ class App {
         const remaining = maxPhotos - this.currentPhotos.length;
         const toProcess = Array.from(files).slice(0, remaining);
         
-        if (Array.from(files).length > remaining) Toast.warning(`Only ${remaining} photos can be added`);
+        if (Array.from(files).length > remaining) {
+            Toast.warning(`Only ${remaining} photos can be added`);
+        }
         
         for (const file of toProcess) {
-            if (file.size > 2 * 1024 * 1024) { Toast.warning(`${file.name} is too large`); continue; }
+            if (file.size > 2 * 1024 * 1024) { 
+                Toast.warning(`${file.name} is too large`); 
+                continue; 
+            }
             const reader = new FileReader();
             const data = await new Promise((resolve) => {
                 reader.onload = async (e) => {
@@ -1620,14 +1839,23 @@ class App {
     renderGallery() {
         const g = document.getElementById('photoGallery');
         if (!g) return;
+        
         if (this.currentPhotos.length === 0) {
-            g.innerHTML = `<div style="padding:20px;text-align:center;color:var(--neutral-400);grid-column:1/-1;"><i class="fas fa-camera" style="font-size:20px;display:block;margin-bottom:4px;"></i>No photos</div>`;
+            g.innerHTML = `
+                <div style="padding:20px;text-align:center;color:var(--neutral-400);grid-column:1/-1;">
+                    <i class="fas fa-camera" style="font-size:20px;display:block;margin-bottom:4px;"></i>
+                    No photos
+                </div>
+            `;
             return;
         }
+        
         g.innerHTML = this.currentPhotos.map((p, i) => `
             <div class="photo-item" data-idx="${i}">
                 <img src="${p.dataURL}" alt="Photo ${i+1}" loading="lazy">
-                <div class="photo-overlay"><span>${new Date(p.timestamp).toLocaleTimeString()}</span></div>
+                <div class="photo-overlay">
+                    <span>${new Date(p.timestamp).toLocaleTimeString()}</span>
+                </div>
                 <button class="remove-photo" data-idx="${i}">×</button>
                 ${p.isHero ? '<div class="hero-badge">Cover</div>' : ''}
             </div>
@@ -1667,513 +1895,643 @@ class App {
     }
     
     async loadInspection(id, draft = false) {
-        const data = await this.db.get(id, draft);
-        if (!data) { Toast.error('Not found'); return; }
-        this.currentId = data.id;
-        this.currentPhotos = data.photos || [];
-        this.isDraft = draft;
-        this.clearMap();
-        this.loadGeometry(data.geometry || []);
-        (data.waypoints || []).forEach(w => {
-            this.drawnItems.addLayer(L.marker([w.lat, w.lng]).bindPopup(`<strong>${Utils.escapeHtml(w.label)}</strong>`));
-        });
-        this.setPanel(this.renderForm(data), draft ? 'Edit Draft' : 'View Inspection');
-        this.bindForm();
+        try {
+            const data = await this.db.get(id, draft);
+            if (!data) { 
+                Toast.error('Not found'); 
+                return; 
+            }
+            this.currentId = data.id;
+            this.currentPhotos = data.photos || [];
+            this.isDraft = draft;
+            this.clearMap();
+            this.loadGeometry(data.geometry || []);
+            (data.waypoints || []).forEach(w => {
+                this.drawnItems.addLayer(
+                    L.marker([w.lat, w.lng]).bindPopup(`<strong>${Utils.escapeHtml(w.label)}</strong>`)
+                );
+            });
+            this.setPanel(this.renderForm(data), draft ? 'Edit Draft' : 'View Inspection');
+            this.bindForm();
+        } catch (e) {
+            console.error('Load error:', e);
+            Toast.error('Failed to load inspection');
+        }
     }
     
     async saveDraft() {
-        const data = this.collectForm();
-        if (!data.siteName) { Toast.warning('Site name required'); return; }
-        data.status = 'draft';
-        await this.db.save(data, true);
-        this.isDraft = true;
-        Toast.success('Draft saved');
-        this.updateStatus();
+        try {
+            const data = this.collectForm();
+            if (!data.siteName) { 
+                Toast.warning('Site name required'); 
+                return; 
+            }
+            data.status = 'draft';
+            await this.db.save(data, true);
+            this.isDraft = true;
+            Toast.success('Draft saved');
+            await this.updateStatus();
+        } catch (e) {
+            console.error('Save draft error:', e);
+            Toast.error('Failed to save draft');
+        }
     }
     
     async finalise() {
-        const data = this.collectForm();
-        if (!data.siteName) { Toast.warning('Site name required'); return; }
-        data.status = 'finalised';
-        data.ecologicalScore = Utils.calculateScore(data);
-        await this.db.save(data, false);
-        await this.db.delete(data.id, true);
-        await this.generateReport(data);
-        this.closePanel();
-        this.updateStatus();
-        this.showInspections();
+        try {
+            const data = this.collectForm();
+            if (!data.siteName) { 
+                Toast.warning('Site name required'); 
+                return; 
+            }
+            data.status = 'finalised';
+            data.ecologicalScore = Utils.calculateScore(data);
+            await this.db.save(data, false);
+            await this.db.delete(data.id, true);
+            await this.generateReport(data);
+            this.closePanel();
+            await this.updateStatus();
+            this.showInspections();
+        } catch (e) {
+            console.error('Finalise error:', e);
+            Toast.error('Failed to finalise');
+        }
     }
     
     // ================================================================
     // REPORT GENERATION
     // ================================================================
     async generateReport(inspection) {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
-        const pageWidth = 210, pageHeight = 297, margin = 18;
-        let y = margin;
-        const eco = inspection.ecologicalScore || Utils.calculateScore(inspection);
-        const colour = '#1a5f4a';
-        
-        // Helper
-        const addText = (text, size = 10, color = '#333', align = 'left') => {
-            doc.setFontSize(size);
-            doc.setTextColor(color);
-            const lines = doc.splitTextToSize(text || '', pageWidth - 2*margin);
-            doc.text(lines, margin, y, { align });
-            y += lines.length * (size * 0.45) + 1.5;
-        };
-        
-        const addTitle = (text, size = 18, color = colour) => {
-            doc.setFontSize(size);
-            doc.setTextColor(color);
-            doc.text(text, margin, y);
-            y += size * 0.4 + 2;
-        };
-        
-        const line = () => { doc.setDrawColor(colour); doc.setLineWidth(0.5); doc.line(margin, y, pageWidth - margin, y); y += 6; };
-        
-        // Cover
-        doc.setFillColor(colour);
-        doc.rect(0, 0, pageWidth, 5, 'F');
-        y = 30;
-        doc.setFontSize(28);
-        doc.setTextColor(colour);
-        doc.text('ENVIRONMENTAL', margin, y);
-        y += 14;
-        doc.text('ASSESSMENT REPORT', margin, y);
-        y += 12;
-        line();
-        y += 4;
-        doc.setFontSize(18);
-        doc.setTextColor('#222');
-        doc.text(Utils.escapeHtml(inspection.siteName || 'Site Assessment'), margin, y);
-        y += 10;
-        doc.setFontSize(11);
-        doc.setTextColor('#666');
-        doc.text(`Prepared for: ${Utils.escapeHtml(inspection.organization || 'Environmental Client')}`, margin, y);
-        y += 6;
-        doc.text(`Date: ${Utils.formatDate(inspection.dateTime)}`, margin, y);
-        y += 8;
-        
-        // Hero image
-        if (inspection.photos && inspection.photos.length > 0) {
-            const hero = inspection.photos.find(p => p.isHero) || inspection.photos[0];
-            try {
-                doc.addImage(hero.dataURL, 'JPEG', margin+5, y, pageWidth-2*margin-10, 60);
-                y += 66;
-            } catch(e) {
-                doc.setFillColor('#f5f5f5');
-                doc.roundedRect(margin+5, y, pageWidth-2*margin-10, 40, 3, 3, 'F');
-                doc.setFontSize(10);
-                doc.setTextColor('#999');
-                doc.text('Cover Photo', pageWidth/2, y+22, { align: 'center' });
-                y += 46;
-            }
-        }
-        
-        doc.setFontSize(8);
-        doc.setTextColor('#888');
-        doc.text(`Report ID: ${inspection.id}`, margin, y);
-        doc.text(`v${'4.0'}`, pageWidth-margin, y, { align: 'right' });
-        y += 6;
-        doc.text(`Author: ${Utils.escapeHtml(inspection.inspector || 'Consultant')}`, margin, y);
-        y += 8;
-        
-        // Footer
-        doc.setFillColor(colour);
-        doc.rect(0, pageHeight-6, pageWidth, 3, 'F');
-        doc.setFontSize(7);
-        doc.setTextColor('#999');
-        doc.text('© EcoMaintenance Professional', margin, pageHeight-3);
-        doc.text(new Date().toLocaleDateString(), pageWidth-margin, pageHeight-3, { align: 'right' });
-        
-        doc.addPage();
-        
-        // Summary
-        y = margin + 8;
-        addTitle('EXECUTIVE SUMMARY', 20);
-        line();
-        y += 4;
-        addText(`This report presents findings of an ecological assessment at "${Utils.escapeHtml(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`, 10);
-        y += 4;
-        addText(`Condition Score: ${eco.conditionScore}/10 (${eco.riskRating})`, 10);
-        addText(`Significance: ${eco.significance}`, 10);
-        addText(`Management Priority: ${eco.priority}`, 10);
-        y += 4;
-        
-        // Assessment details
-        addTitle('ASSESSMENT DETAILS', 16);
-        line();
-        y += 4;
-        const details = [
-            ['Vegetation Health', `${inspection.vegHealth || 6}/10`],
-            ['Species Richness', `${inspection.speciesRichness || 5}/10`],
-            ['Regeneration', `${inspection.regeneration || 5}/10`],
-            ['Weed Cover', `${inspection.weedCover || 30}%`],
-            ['Habitat Quality', `${inspection.habitatQuality || 5}/10`],
-            ['Disturbance', `${inspection.disturbance || 3}/10`]
-        ];
-        doc.autoTable({
-            startY: y,
-            head: [['Parameter', 'Value']],
-            body: details,
-            theme: 'striped',
-            headStyles: { fillColor: colour, textColor: '#fff', fontSize: 9 },
-            bodyStyles: { fontSize: 8 },
-            columnStyles: { 0: { cellWidth: 70 }, 1: { cellWidth: 100 } }
-        });
-        y = doc.lastAutoTable.finalY + 8;
-        
-        // Recommendations
-        addTitle('RECOMMENDATIONS', 14);
-        line();
-        y += 4;
-        const recs = inspection.recommendations || 'No recommendations recorded.';
-        addText(recs, 9);
-        y += 4;
-        
-        // Observations
-        addTitle('OBSERVATIONS', 14);
-        line();
-        y += 4;
-        const obs = inspection.observations || 'No observations recorded.';
-        addText(obs, 9);
-        
-        // Photos appendix
-        doc.addPage();
-        y = margin + 8;
-        addTitle('PHOTO DOCUMENTATION', 18);
-        line();
-        y += 4;
-        if (inspection.photos && inspection.photos.length > 0) {
-            const photos = inspection.photos.slice(0, 9);
-            let px = margin, py = y;
-            const size = 55;
-            photos.forEach((p, i) => {
-                if (i > 0 && i % 3 === 0) { px = margin; py += size + 6; }
-                try {
-                    doc.addImage(p.dataURL, 'JPEG', px, py, size, size * 0.75);
-                    px += size + 4;
-                } catch(e) {}
-            });
-            y = py + size + 10;
-            doc.setFontSize(8);
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const pageWidth = 210, pageHeight = 297, margin = 18;
+            let y = margin;
+            const eco = inspection.ecologicalScore || Utils.calculateScore(inspection);
+            const colour = '#1a5f4a';
+            
+            // Helper functions
+            const addText = (text, size = 10, color = '#333', align = 'left') => {
+                if (!text) return;
+                doc.setFontSize(size);
+                doc.setTextColor(color);
+                const lines = doc.splitTextToSize(text || '', pageWidth - 2*margin);
+                doc.text(lines, margin, y, { align });
+                y += lines.length * (size * 0.45) + 1.5;
+            };
+            
+            const addTitle = (text, size = 18, color = colour) => {
+                doc.setFontSize(size);
+                doc.setTextColor(color);
+                doc.text(text, margin, y);
+                y += size * 0.4 + 2;
+            };
+            
+            const drawLine = () => { 
+                doc.setDrawColor(colour); 
+                doc.setLineWidth(0.5); 
+                doc.line(margin, y, pageWidth - margin, y); 
+                y += 6; 
+            };
+            
+            // --- COVER PAGE ---
+            doc.setFillColor(colour);
+            doc.rect(0, 0, pageWidth, 5, 'F');
+            y = 30;
+            
+            doc.setFontSize(28);
+            doc.setTextColor(colour);
+            doc.text('ENVIRONMENTAL', margin, y);
+            y += 14;
+            doc.text('ASSESSMENT REPORT', margin, y);
+            y += 12;
+            drawLine();
+            y += 4;
+            
+            doc.setFontSize(18);
+            doc.setTextColor('#222');
+            const siteName = Utils.escapeHtml(inspection.siteName || 'Site Assessment');
+            doc.text(siteName, margin, y);
+            y += 10;
+            
+            doc.setFontSize(11);
             doc.setTextColor('#666');
-            doc.text(`Total ${inspection.photos.length} images`, margin, y);
-        } else {
-            addText('No photos uploaded.', 10);
-        }
-        
-        // Footer on all pages
-        const total = doc.internal.getNumberOfPages();
-        for (let i = 1; i <= total; i++) {
-            doc.setPage(i);
-            doc.setDrawColor(colour);
-            doc.setLineWidth(0.3);
-            doc.line(margin, pageHeight-10, pageWidth-margin, pageHeight-10);
+            const org = Utils.escapeHtml(inspection.organization || 'Environmental Client');
+            doc.text(`Prepared for: ${org}`, margin, y);
+            y += 6;
+            doc.text(`Date: ${Utils.formatDate(inspection.dateTime)}`, margin, y);
+            y += 8;
+            
+            // Hero image
+            if (inspection.photos && inspection.photos.length > 0) {
+                const hero = inspection.photos.find(p => p.isHero) || inspection.photos[0];
+                try {
+                    doc.addImage(hero.dataURL, 'JPEG', margin+5, y, pageWidth-2*margin-10, 60);
+                    y += 66;
+                } catch(e) {
+                    doc.setFillColor('#f5f5f5');
+                    doc.roundedRect(margin+5, y, pageWidth-2*margin-10, 40, 3, 3, 'F');
+                    doc.setFontSize(10);
+                    doc.setTextColor('#999');
+                    doc.text('Cover Photo', pageWidth/2, y+22, { align: 'center' });
+                    y += 46;
+                }
+            }
+            
+            doc.setFontSize(8);
+            doc.setTextColor('#888');
+            doc.text(`Report ID: ${inspection.id}`, margin, y);
+            doc.text('v4.0', pageWidth-margin, y, { align: 'right' });
+            y += 6;
+            const inspector = Utils.escapeHtml(inspection.inspector || 'Consultant');
+            doc.text(`Author: ${inspector}`, margin, y);
+            y += 8;
+            
+            // Footer
+            doc.setFillColor(colour);
+            doc.rect(0, pageHeight-6, pageWidth, 3, 'F');
             doc.setFontSize(7);
-            doc.setTextColor('#aaa');
-            doc.text(`Page ${i} of ${total}`, pageWidth/2, pageHeight-5, { align: 'center' });
-            doc.text(inspection.id, margin, pageHeight-5);
+            doc.setTextColor('#999');
+            doc.text('© EcoMaintenance Professional', margin, pageHeight-3);
+            doc.text(new Date().toLocaleDateString(), pageWidth-margin, pageHeight-3, { align: 'right' });
+            
+            // --- SUMMARY PAGE ---
+            doc.addPage();
+            y = margin + 8;
+            addTitle('EXECUTIVE SUMMARY', 20);
+            drawLine();
+            y += 4;
+            
+            const summaryText = `This report presents findings of an ecological assessment at "${Utils.escapeHtml(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`;
+            addText(summaryText, 10);
+            y += 4;
+            addText(`Condition Score: ${eco.conditionScore}/10 (${eco.riskRating})`, 10);
+            addText(`Significance: ${eco.significance}`, 10);
+            addText(`Management Priority: ${eco.priority}`, 10);
+            y += 4;
+            
+            // --- ASSESSMENT DETAILS ---
+            addTitle('ASSESSMENT DETAILS', 16);
+            drawLine();
+            y += 4;
+            
+            const details = [
+                ['Vegetation Health', `${inspection.vegHealth || 6}/10`],
+                ['Species Richness', `${inspection.speciesRichness || 5}/10`],
+                ['Regeneration', `${inspection.regeneration || 5}/10`],
+                ['Weed Cover', `${inspection.weedCover || 30}%`],
+                ['Habitat Quality', `${inspection.habitatQuality || 5}/10`],
+                ['Disturbance', `${inspection.disturbance || 3}/10`]
+            ];
+            
+            doc.autoTable({
+                startY: y,
+                head: [['Parameter', 'Value']],
+                body: details,
+                theme: 'striped',
+                headStyles: { fillColor: colour, textColor: '#fff', fontSize: 9 },
+                bodyStyles: { fontSize: 8 },
+                columnStyles: { 0: { cellWidth: 70 }, 1: { cellWidth: 100 } }
+            });
+            y = doc.lastAutoTable.finalY + 8;
+            
+            // --- RECOMMENDATIONS ---
+            addTitle('RECOMMENDATIONS', 14);
+            drawLine();
+            y += 4;
+            const recs = inspection.recommendations || 'No recommendations recorded.';
+            addText(recs, 9);
+            y += 4;
+            
+            // --- OBSERVATIONS ---
+            addTitle('OBSERVATIONS', 14);
+            drawLine();
+            y += 4;
+            const obs = inspection.observations || 'No observations recorded.';
+            addText(obs, 9);
+            
+            // --- PHOTOS APPENDIX ---
+            doc.addPage();
+            y = margin + 8;
+            addTitle('PHOTO DOCUMENTATION', 18);
+            drawLine();
+            y += 4;
+            
+            if (inspection.photos && inspection.photos.length > 0) {
+                const photos = inspection.photos.slice(0, 9);
+                let px = margin, py = y;
+                const size = 55;
+                photos.forEach((p, i) => {
+                    if (i > 0 && i % 3 === 0) { px = margin; py += size + 6; }
+                    try {
+                        doc.addImage(p.dataURL, 'JPEG', px, py, size, size * 0.75);
+                        px += size + 4;
+                    } catch(e) {}
+                });
+                y = py + size + 10;
+                doc.setFontSize(8);
+                doc.setTextColor('#666');
+                doc.text(`Total ${inspection.photos.length} images`, margin, y);
+            } else {
+                addText('No photos uploaded.', 10);
+            }
+            
+            // --- FOOTER ON ALL PAGES ---
+            const total = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= total; i++) {
+                doc.setPage(i);
+                doc.setDrawColor(colour);
+                doc.setLineWidth(0.3);
+                doc.line(margin, pageHeight-10, pageWidth-margin, pageHeight-10);
+                doc.setFontSize(7);
+                doc.setTextColor('#aaa');
+                doc.text(`Page ${i} of ${total}`, pageWidth/2, pageHeight-5, { align: 'center' });
+                doc.text(inspection.id, margin, pageHeight-5);
+            }
+            
+            doc.save(`EcoMaintenance_Report_${inspection.id}.pdf`);
+            Toast.success('Report generated');
+        } catch (e) {
+            console.error('Report generation error:', e);
+            Toast.error('Failed to generate report');
         }
-        
-        doc.save(`EcoMaintenance_Report_${inspection.id}.pdf`);
-        Toast.success('Report generated');
     }
     
     // ================================================================
     // VIEWS
     // ================================================================
     async showDashboard() {
-        const insp = await this.db.getAll('inspections');
-        const drafts = await this.db.getAll('drafts');
-        const total = insp.length;
-        const avg = total > 0 ? insp.reduce((s, i) => s + (i.ecologicalScore?.conditionScore || 0), 0) / total : 0;
-        const high = insp.filter(i => (i.ecologicalScore?.conditionScore || 0) >= 7).length;
-        const crit = insp.filter(i => (i.ecologicalScore?.conditionScore || 0) < 4).length;
-        
-        const recent = insp.slice(-8).reverse();
-        const labels = recent.map(i => Utils.truncate(i.siteName || 'Site', 12));
-        const scores = recent.map(i => i.ecologicalScore?.conditionScore || 0);
-        
-        const html = `
-            <div class="dashboard-grid">
-                <div class="stat-card"><div class="stat-icon"><i class="fas fa-clipboard-list"></i></div>
-                    <div class="stat-value">${total}</div><div class="stat-label">Reports</div></div>
-                <div class="stat-card"><div class="stat-icon"><i class="fas fa-chart-line"></i></div>
-                    <div class="stat-value">${avg > 0 ? avg.toFixed(1) : '—'}</div><div class="stat-label">Avg Score</div>
-                    <span class="stat-change ${avg >= 6 ? 'positive' : 'negative'}">${avg >= 6 ? 'Good' : 'Needs attention'}</span></div>
-                <div class="stat-card"><div class="stat-icon"><i class="fas fa-star" style="color:var(--warning);"></i></div>
-                    <div class="stat-value">${high}</div><div class="stat-label">High Value</div></div>
-                <div class="stat-card"><div class="stat-icon"><i class="fas fa-exclamation-triangle" style="color:var(--danger);"></i></div>
-                    <div class="stat-value">${crit}</div><div class="stat-label">Critical</div></div>
-            </div>
+        try {
+            const insp = await this.db.getAll('inspections');
+            const drafts = await this.db.getAll('drafts');
+            const total = insp.length;
+            const avg = total > 0 ? insp.reduce((s, i) => s + (i.ecologicalScore?.conditionScore || 0), 0) / total : 0;
+            const high = insp.filter(i => (i.ecologicalScore?.conditionScore || 0) >= 7).length;
+            const crit = insp.filter(i => (i.ecologicalScore?.conditionScore || 0) < 4).length;
             
-            <div class="chart-container">
-                <h4><i class="fas fa-chart-bar"></i> Recent Scores</h4>
-                <canvas id="scoreChart" height="140"></canvas>
-            </div>
+            const recent = insp.slice(-8).reverse();
+            const labels = recent.map(i => Utils.truncate(i.siteName || 'Site', 12));
+            const scores = recent.map(i => i.ecologicalScore?.conditionScore || 0);
             
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                <div class="stat-card" style="cursor:pointer;" onclick="app.showInspections()">
-                    <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <span><i class="fas fa-folder-open" style="color:var(--brand-canopy);"></i> <strong>${total}</strong> Reports</span>
-                        <span class="text-muted text-xs">View →</span>
+            const html = `
+                <div class="dashboard-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-clipboard-list"></i></div>
+                        <div class="stat-value">${total}</div>
+                        <div class="stat-label">Reports</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                        <div class="stat-value">${avg > 0 ? avg.toFixed(1) : '—'}</div>
+                        <div class="stat-label">Avg Score</div>
+                        <span class="stat-change ${avg >= 6 ? 'positive' : 'negative'}">${avg >= 6 ? 'Good' : 'Needs attention'}</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-star" style="color:var(--warning);"></i></div>
+                        <div class="stat-value">${high}</div>
+                        <div class="stat-label">High Value</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-exclamation-triangle" style="color:var(--danger);"></i></div>
+                        <div class="stat-value">${crit}</div>
+                        <div class="stat-label">Critical</div>
                     </div>
                 </div>
-                <div class="stat-card" style="cursor:pointer;" onclick="app.showDrafts()">
-                    <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <span><i class="fas fa-save" style="color:var(--warning);"></i> <strong>${drafts.length}</strong> Drafts</span>
-                        <span class="text-muted text-xs">View →</span>
+                
+                <div class="chart-container">
+                    <h4><i class="fas fa-chart-bar"></i> Recent Scores</h4>
+                    <canvas id="scoreChart" height="140"></canvas>
+                </div>
+                
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <div class="stat-card" style="cursor:pointer;" onclick="app.showInspections()">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span><i class="fas fa-folder-open" style="color:var(--brand-canopy);"></i> <strong>${total}</strong> Reports</span>
+                            <span class="text-muted text-xs">View →</span>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="cursor:pointer;" onclick="app.showDrafts()">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span><i class="fas fa-save" style="color:var(--warning);"></i> <strong>${drafts.length}</strong> Drafts</span>
+                            <span class="text-muted text-xs">View →</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;">
-                <button class="btn btn-primary" onclick="app.newInspection()"><i class="fas fa-plus"></i> New Assessment</button>
-                <button class="btn btn-secondary" onclick="app.showDataManager()"><i class="fas fa-database"></i> Data Manager</button>
-            </div>
-            
-            <div style="margin-top:12px;padding:10px 14px;background:var(--neutral-50);border-radius:var(--radius-md);border:1px solid var(--neutral-200);">
-                <div class="flex-between text-xs text-muted">
-                    <span>v${'4.0'}</span>
-                    <span><i class="fas fa-database"></i> ${this.db.useLocalStorage ? 'LocalStorage' : 'IndexedDB'}</span>
-                    <span><i class="fas fa-map-pin"></i> ${total} assessments</span>
+                
+                <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;">
+                    <button class="btn btn-primary" onclick="app.newInspection()"><i class="fas fa-plus"></i> New Assessment</button>
+                    <button class="btn btn-secondary" onclick="app.showDataManager()"><i class="fas fa-database"></i> Data Manager</button>
                 </div>
-            </div>
-        `;
-        
-        this.setPanel(html, 'Dashboard');
-        
-        setTimeout(() => {
-            const canvas = document.getElementById('scoreChart');
-            if (canvas && labels.length) {
-                if (this.charts.score) this.charts.score.destroy();
-                const ctx = canvas.getContext('2d');
-                const grad = ctx.createLinearGradient(0, 0, 0, 140);
-                grad.addColorStop(0, 'rgba(26,95,74,0.2)');
-                grad.addColorStop(1, 'rgba(26,95,74,0)');
-                this.charts.score = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels.length ? labels : ['No Data'],
-                        datasets: [{
-                            label: 'Score',
-                            data: scores.length ? scores : [0],
-                            borderColor: '#1a5f4a',
-                            backgroundColor: grad,
-                            fill: true,
-                            tension: 0.3,
-                            pointBackgroundColor: scores.map(v => v >= 7 ? '#10b981' : v >= 4 ? '#f59e0b' : '#dc2626'),
-                            pointRadius: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            y: { min: 0, max: 10, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { stepSize: 2 } },
-                            x: { grid: { display: false }, ticks: { font: { size: 9 } } }
+                
+                <div style="margin-top:12px;padding:10px 14px;background:var(--neutral-50);border-radius:var(--radius-md);border:1px solid var(--neutral-200);">
+                    <div class="flex-between text-xs text-muted">
+                        <span>v4.0</span>
+                        <span><i class="fas fa-database"></i> ${this.db.useLocalStorage ? 'LocalStorage' : 'IndexedDB'}</span>
+                        <span><i class="fas fa-map-pin"></i> ${total} assessments</span>
+                    </div>
+                </div>
+            `;
+            
+            this.setPanel(html, 'Dashboard');
+            this.currentView = 'dashboard';
+            
+            // Render chart after DOM update
+            setTimeout(() => {
+                const canvas = document.getElementById('scoreChart');
+                if (canvas && labels.length) {
+                    if (this.charts.score) this.charts.score.destroy();
+                    const ctx = canvas.getContext('2d');
+                    const grad = ctx.createLinearGradient(0, 0, 0, 140);
+                    grad.addColorStop(0, 'rgba(26,95,74,0.2)');
+                    grad.addColorStop(1, 'rgba(26,95,74,0)');
+                    this.charts.score = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels.length ? labels : ['No Data'],
+                            datasets: [{
+                                label: 'Score',
+                                data: scores.length ? scores : [0],
+                                borderColor: '#1a5f4a',
+                                backgroundColor: grad,
+                                fill: true,
+                                tension: 0.3,
+                                pointBackgroundColor: scores.map(v => v >= 7 ? '#10b981' : v >= 4 ? '#f59e0b' : '#dc2626'),
+                                pointRadius: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: { min: 0, max: 10, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { stepSize: 2 } },
+                                x: { grid: { display: false }, ticks: { font: { size: 9 } } }
+                            }
                         }
-                    }
-                });
-            }
-        }, 150);
+                    });
+                }
+            }, 150);
+        } catch (e) {
+            console.error('Dashboard error:', e);
+            Toast.error('Failed to load dashboard');
+        }
     }
     
     async showInspections() {
-        const inspections = await this.db.getAll('inspections');
-        if (inspections.length === 0) {
-            this.setPanel(`
-                <div class="text-center" style="padding:40px 20px;">
-                    <i class="fas fa-folder-open" style="font-size:40px;opacity:0.3;display:block;margin-bottom:12px;"></i>
-                    <h3>No Finalised Inspections</h3>
-                    <p class="text-muted">Complete an assessment to generate a report.</p>
-                    <button class="btn btn-primary mt-3" onclick="app.newInspection()"><i class="fas fa-plus"></i> Start New</button>
-                </div>
-            `, 'Inspections');
-            return;
-        }
-        
-        inspections.sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime));
-        let html = `<div class="flex-between mb-2"><span><strong>${inspections.length}</strong> reports</span>
-            <div class="flex gap-2"><button class="btn btn-secondary btn-sm" onclick="app.showDrafts()"><i class="fas fa-save"></i> Drafts</button>
-            <button class="btn btn-primary btn-sm" onclick="app.newInspection()"><i class="fas fa-plus"></i> New</button></div></div>`;
-        
-        inspections.forEach(ins => {
-            const eco = ins.ecologicalScore || Utils.calculateScore(ins);
-            const cls = Utils.getRatingClass(eco.conditionScore);
-            html += `
-                <div class="inspection-card" style="border-left-color:${eco.colour};">
-                    <div class="card-title">${Utils.escapeHtml(ins.siteName || 'Unnamed')}</div>
-                    <div class="card-meta">${Utils.formatDate(ins.dateTime)} · ${ins.inspector || 'Unknown'}</div>
-                    <div class="flex gap-2" style="margin:4px 0;">
-                        <span class="rating-badge ${cls}">${eco.conditionScore}/10</span>
-                        <span class="text-muted text-sm">${eco.riskRating}</span>
+        try {
+            const inspections = await this.db.getAll('inspections');
+            
+            if (inspections.length === 0) {
+                this.setPanel(`
+                    <div class="text-center" style="padding:40px 20px;">
+                        <i class="fas fa-folder-open" style="font-size:40px;opacity:0.3;display:block;margin-bottom:12px;"></i>
+                        <h3>No Finalised Inspections</h3>
+                        <p class="text-muted">Complete an assessment to generate a report.</p>
+                        <button class="btn btn-primary mt-3" onclick="app.newInspection()"><i class="fas fa-plus"></i> Start New</button>
                     </div>
-                    <div class="health-meter"><div class="health-fill" style="width:${eco.conditionScore*10}%;background:${eco.colour};"></div></div>
-                    <div class="card-actions">
-                        <button class="btn btn-secondary btn-sm view-insp" data-id="${ins.id}"><i class="fas fa-eye"></i> View</button>
-                        <button class="btn btn-primary btn-sm pdf-insp" data-id="${ins.id}"><i class="fas fa-file-pdf"></i> Report</button>
-                        <button class="btn btn-danger btn-sm del-insp" data-id="${ins.id}"><i class="fas fa-trash"></i></button>
+                `, 'Inspections');
+                return;
+            }
+            
+            inspections.sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime));
+            let html = `
+                <div class="flex-between mb-2">
+                    <span><strong>${inspections.length}</strong> reports</span>
+                    <div class="flex gap-2">
+                        <button class="btn btn-secondary btn-sm" onclick="app.showDrafts()"><i class="fas fa-save"></i> Drafts</button>
+                        <button class="btn btn-primary btn-sm" onclick="app.newInspection()"><i class="fas fa-plus"></i> New</button>
                     </div>
-                    <div class="card-badge" style="background:${eco.colour}20;color:${eco.colour};">${eco.riskRating}</div>
                 </div>
             `;
-        });
-        
-        this.setPanel(html, 'Inspections');
-        
-        document.querySelectorAll('.view-insp').forEach(el => {
-            el.onclick = () => this.loadInspection(el.dataset.id, false);
-        });
-        document.querySelectorAll('.pdf-insp').forEach(el => {
-            el.onclick = async () => {
-                const ins = await this.db.get(el.dataset.id, false);
-                if (ins) this.generateReport(ins);
-            };
-        });
-        document.querySelectorAll('.del-insp').forEach(el => {
-            el.onclick = async () => {
-                if (confirm('Delete this report?')) {
-                    await this.db.delete(el.dataset.id, false);
-                    Toast.success('Deleted');
-                    this.updateStatus();
-                    this.showInspections();
-                }
-            };
-        });
+            
+            inspections.forEach(ins => {
+                const eco = ins.ecologicalScore || Utils.calculateScore(ins);
+                const cls = Utils.getRatingClass(eco.conditionScore);
+                html += `
+                    <div class="inspection-card" style="border-left-color:${eco.colour};">
+                        <div class="card-title">${Utils.escapeHtml(ins.siteName || 'Unnamed')}</div>
+                        <div class="card-meta">${Utils.formatDate(ins.dateTime)} · ${ins.inspector || 'Unknown'}</div>
+                        <div class="flex gap-2" style="margin:4px 0;">
+                            <span class="rating-badge ${cls}">${eco.conditionScore}/10</span>
+                            <span class="text-muted text-sm">${eco.riskRating}</span>
+                        </div>
+                        <div class="health-meter">
+                            <div class="health-fill" style="width:${eco.conditionScore*10}%;background:${eco.colour};"></div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-secondary btn-sm view-insp" data-id="${ins.id}"><i class="fas fa-eye"></i> View</button>
+                            <button class="btn btn-primary btn-sm pdf-insp" data-id="${ins.id}"><i class="fas fa-file-pdf"></i> Report</button>
+                            <button class="btn btn-danger btn-sm del-insp" data-id="${ins.id}"><i class="fas fa-trash"></i></button>
+                        </div>
+                        <div class="card-badge" style="background:${eco.colour}20;color:${eco.colour};">${eco.riskRating}</div>
+                    </div>
+                `;
+            });
+            
+            this.setPanel(html, 'Inspections');
+            this.currentView = 'inspections';
+            
+            // Bind events
+            document.querySelectorAll('.view-insp').forEach(el => {
+                el.onclick = () => this.loadInspection(el.dataset.id, false);
+            });
+            document.querySelectorAll('.pdf-insp').forEach(el => {
+                el.onclick = async () => {
+                    const ins = await this.db.get(el.dataset.id, false);
+                    if (ins) this.generateReport(ins);
+                };
+            });
+            document.querySelectorAll('.del-insp').forEach(el => {
+                el.onclick = async () => {
+                    if (confirm('Delete this report?')) {
+                        await this.db.delete(el.dataset.id, false);
+                        Toast.success('Deleted');
+                        await this.updateStatus();
+                        this.showInspections();
+                    }
+                };
+            });
+        } catch (e) {
+            console.error('Inspections error:', e);
+            Toast.error('Failed to load inspections');
+        }
     }
     
     async showDrafts() {
-        const drafts = await this.db.getAll('drafts');
-        if (drafts.length === 0) {
-            this.setPanel(`
-                <div class="text-center" style="padding:40px 20px;">
-                    <i class="fas fa-save" style="font-size:40px;opacity:0.3;display:block;margin-bottom:12px;"></i>
-                    <h3>No Drafts</h3>
-                    <p class="text-muted">Start a new assessment to create a draft.</p>
-                    <button class="btn btn-primary mt-3" onclick="app.newInspection()"><i class="fas fa-plus"></i> Start New</button>
-                </div>
-            `, 'Drafts');
-            return;
-        }
-        
-        drafts.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-        let html = `<div class="flex-between mb-2"><span><strong>${drafts.length}</strong> drafts</span>
-            <div class="flex gap-2"><button class="btn btn-secondary btn-sm" onclick="app.showInspections()"><i class="fas fa-folder-open"></i> Reports</button>
-            <button class="btn btn-primary btn-sm" onclick="app.newInspection()"><i class="fas fa-plus"></i> New</button></div></div>`;
-        
-        drafts.forEach(d => {
-            html += `
-                <div class="inspection-card" style="border-left-color:var(--warning);">
-                    <div class="card-title">${Utils.escapeHtml(d.siteName || 'Unnamed Draft')}</div>
-                    <div class="card-meta">Edited: ${Utils.formatDate(d.updatedAt)} · ${d.inspector || 'No inspector'}</div>
-                    <div class="card-actions">
-                        <button class="btn btn-secondary btn-sm resume-draft" data-id="${d.id}"><i class="fas fa-pen"></i> Resume</button>
-                        <button class="btn btn-danger btn-sm del-draft" data-id="${d.id}"><i class="fas fa-trash"></i></button>
+        try {
+            const drafts = await this.db.getAll('drafts');
+            
+            if (drafts.length === 0) {
+                this.setPanel(`
+                    <div class="text-center" style="padding:40px 20px;">
+                        <i class="fas fa-save" style="font-size:40px;opacity:0.3;display:block;margin-bottom:12px;"></i>
+                        <h3>No Drafts</h3>
+                        <p class="text-muted">Start a new assessment to create a draft.</p>
+                        <button class="btn btn-primary mt-3" onclick="app.newInspection()"><i class="fas fa-plus"></i> Start New</button>
                     </div>
-                    <div class="card-badge" style="background:rgba(212,168,67,0.15);color:var(--warning);">Draft</div>
+                `, 'Drafts');
+                return;
+            }
+            
+            drafts.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+            let html = `
+                <div class="flex-between mb-2">
+                    <span><strong>${drafts.length}</strong> drafts</span>
+                    <div class="flex gap-2">
+                        <button class="btn btn-secondary btn-sm" onclick="app.showInspections()"><i class="fas fa-folder-open"></i> Reports</button>
+                        <button class="btn btn-primary btn-sm" onclick="app.newInspection()"><i class="fas fa-plus"></i> New</button>
+                    </div>
                 </div>
             `;
-        });
-        
-        this.setPanel(html, 'Drafts');
-        
-        document.querySelectorAll('.resume-draft').forEach(el => {
-            el.onclick = () => this.loadInspection(el.dataset.id, true);
-        });
-        document.querySelectorAll('.del-draft').forEach(el => {
-            el.onclick = async () => {
-                if (confirm('Delete this draft?')) {
-                    await this.db.delete(el.dataset.id, true);
-                    Toast.success('Deleted');
-                    this.updateStatus();
-                    this.showDrafts();
-                }
-            };
-        });
+            
+            drafts.forEach(d => {
+                html += `
+                    <div class="inspection-card" style="border-left-color:var(--warning);">
+                        <div class="card-title">${Utils.escapeHtml(d.siteName || 'Unnamed Draft')}</div>
+                        <div class="card-meta">Edited: ${Utils.formatDate(d.updatedAt)} · ${d.inspector || 'No inspector'}</div>
+                        <div class="card-actions">
+                            <button class="btn btn-secondary btn-sm resume-draft" data-id="${d.id}"><i class="fas fa-pen"></i> Resume</button>
+                            <button class="btn btn-danger btn-sm del-draft" data-id="${d.id}"><i class="fas fa-trash"></i></button>
+                        </div>
+                        <div class="card-badge" style="background:rgba(212,168,67,0.15);color:var(--warning);">Draft</div>
+                    </div>
+                `;
+            });
+            
+            this.setPanel(html, 'Drafts');
+            this.currentView = 'drafts';
+            
+            document.querySelectorAll('.resume-draft').forEach(el => {
+                el.onclick = () => this.loadInspection(el.dataset.id, true);
+            });
+            document.querySelectorAll('.del-draft').forEach(el => {
+                el.onclick = async () => {
+                    if (confirm('Delete this draft?')) {
+                        await this.db.delete(el.dataset.id, true);
+                        Toast.success('Deleted');
+                        await this.updateStatus();
+                        this.showDrafts();
+                    }
+                };
+            });
+        } catch (e) {
+            console.error('Drafts error:', e);
+            Toast.error('Failed to load drafts');
+        }
     }
     
     async showDataManager() {
-        const insp = await this.db.count('inspections');
-        const drafts = await this.db.count('drafts');
-        const html = `
-            <div style="max-width:440px;margin:0 auto;">
-                <div class="dashboard-grid" style="grid-template-columns:1fr 1fr;">
-                    <div class="stat-card text-center"><div class="stat-value">${insp}</div><div class="stat-label">Reports</div></div>
-                    <div class="stat-card text-center"><div class="stat-value">${drafts}</div><div class="stat-label">Drafts</div></div>
-                </div>
-                <h4 class="mb-2"><i class="fas fa-download"></i> Export</h4>
-                <button class="btn btn-primary w-full mb-2" onclick="app.exportCSV()"><i class="fas fa-file-excel"></i> Export Excel</button>
-                <button class="btn btn-secondary w-full mb-2" onclick="app.exportJSON()"><i class="fas fa-code"></i> Export JSON</button>
-                <button class="btn btn-secondary w-full mb-4" onclick="app.exportGeoJSON()"><i class="fas fa-map"></i> Export GeoJSON</button>
-                <h4 class="mb-2"><i class="fas fa-upload"></i> Import</h4>
-                <input type="file" id="importFile" accept=".json" style="margin-bottom:6px;">
-                <button class="btn btn-secondary w-full mb-4" onclick="app.importJSON()"><i class="fas fa-upload"></i> Import JSON</button>
-                <hr style="margin:12px 0;border-color:var(--neutral-200);">
-                <button class="btn btn-danger w-full" onclick="app.clearAll()"><i class="fas fa-trash"></i> Clear All Data</button>
-                <div style="margin-top:12px;padding:10px;background:var(--neutral-50);border-radius:var(--radius-sm);border:1px solid var(--neutral-200);">
-                    <div class="text-xs text-muted">
-                        <strong>Storage:</strong> ${this.db.useLocalStorage ? 'LocalStorage' : 'IndexedDB'}<br>
-                        <strong>Reports:</strong> ${insp} | <strong>Drafts:</strong> ${drafts}
+        try {
+            const insp = await this.db.count('inspections');
+            const drafts = await this.db.count('drafts');
+            const html = `
+                <div style="max-width:440px;margin:0 auto;">
+                    <div class="dashboard-grid" style="grid-template-columns:1fr 1fr;">
+                        <div class="stat-card text-center">
+                            <div class="stat-value">${insp}</div>
+                            <div class="stat-label">Reports</div>
+                        </div>
+                        <div class="stat-card text-center">
+                            <div class="stat-value">${drafts}</div>
+                            <div class="stat-label">Drafts</div>
+                        </div>
+                    </div>
+                    <h4 class="mb-2"><i class="fas fa-download"></i> Export</h4>
+                    <button class="btn btn-primary w-full mb-2" onclick="app.exportCSV()"><i class="fas fa-file-excel"></i> Export Excel</button>
+                    <button class="btn btn-secondary w-full mb-2" onclick="app.exportJSON()"><i class="fas fa-code"></i> Export JSON</button>
+                    <button class="btn btn-secondary w-full mb-4" onclick="app.exportGeoJSON()"><i class="fas fa-map"></i> Export GeoJSON</button>
+                    <h4 class="mb-2"><i class="fas fa-upload"></i> Import</h4>
+                    <input type="file" id="importFile" accept=".json" style="margin-bottom:6px;">
+                    <button class="btn btn-secondary w-full mb-4" onclick="app.importJSON()"><i class="fas fa-upload"></i> Import JSON</button>
+                    <hr style="margin:12px 0;border-color:var(--neutral-200);">
+                    <button class="btn btn-danger w-full" onclick="app.clearAll()"><i class="fas fa-trash"></i> Clear All Data</button>
+                    <div style="margin-top:12px;padding:10px;background:var(--neutral-50);border-radius:var(--radius-sm);border:1px solid var(--neutral-200);">
+                        <div class="text-xs text-muted">
+                            <strong>Storage:</strong> ${this.db.useLocalStorage ? 'LocalStorage' : 'IndexedDB'}<br>
+                            <strong>Reports:</strong> ${insp} | <strong>Drafts:</strong> ${drafts}
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
-        this.setPanel(html, 'Data Manager');
+            `;
+            this.setPanel(html, 'Data Manager');
+            this.currentView = 'data';
+        } catch (e) {
+            console.error('Data manager error:', e);
+            Toast.error('Failed to load data manager');
+        }
     }
     
     // ================================================================
     // EXPORT/IMPORT
     // ================================================================
     async exportCSV() {
-        const insp = await this.db.getAll('inspections');
-        if (!insp.length) { Toast.warning('No data'); return; }
-        const data = insp.map(i => ({
-            'ID': i.id, 'Site': i.siteName, 'Inspector': i.inspector,
-            'Date': i.dateTime, 'Score': i.ecologicalScore?.conditionScore || '',
-            'Risk': i.ecologicalScore?.riskRating || ''
-        }));
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Inspections');
-        XLSX.writeFile(wb, `EcoMaintenance_${new Date().toISOString().slice(0,10)}.xlsx`);
-        Toast.success('Excel export complete');
+        try {
+            const insp = await this.db.getAll('inspections');
+            if (!insp.length) { Toast.warning('No data'); return; }
+            const data = insp.map(i => ({
+                'ID': i.id,
+                'Site': i.siteName,
+                'Inspector': i.inspector,
+                'Date': i.dateTime,
+                'Score': i.ecologicalScore?.conditionScore || '',
+                'Risk': i.ecologicalScore?.riskRating || ''
+            }));
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Inspections');
+            XLSX.writeFile(wb, `EcoMaintenance_${new Date().toISOString().slice(0,10)}.xlsx`);
+            Toast.success('Excel export complete');
+        } catch (e) {
+            console.error('CSV export error:', e);
+            Toast.error('Export failed');
+        }
     }
     
     async exportJSON() {
-        const insp = await this.db.getAll('inspections');
-        const drafts = await this.db.getAll('drafts');
-        const data = { exportDate: new Date().toISOString(), version: '4.0', inspections: insp, drafts: drafts };
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `EcoMaintenance_Data_${new Date().toISOString().slice(0,10)}.json`;
-        a.click();
-        URL.revokeObjectURL(a.href);
-        Toast.success('JSON export complete');
+        try {
+            const insp = await this.db.getAll('inspections');
+            const drafts = await this.db.getAll('drafts');
+            const data = { 
+                exportDate: new Date().toISOString(), 
+                version: '4.0', 
+                inspections: insp, 
+                drafts: drafts 
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `EcoMaintenance_Data_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(a.href);
+            Toast.success('JSON export complete');
+        } catch (e) {
+            console.error('JSON export error:', e);
+            Toast.error('Export failed');
+        }
     }
     
     exportGeoJSON() {
-        const features = [
-            ...this.getGeometry(),
-            ...this.getWaypoints().map(w => ({
-                type: 'Feature',
-                geometry: { type: 'Point', coordinates: [w.lng, w.lat] },
-                properties: { label: w.label }
-            }))
-        ];
-        const fc = { type: 'FeatureCollection', features };
-        const blob = new Blob([JSON.stringify(fc, null, 2)], { type: 'application/json' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `EcoMaintenance_Map_${Date.now()}.geojson`;
-        a.click();
-        URL.revokeObjectURL(a.href);
-        Toast.success('GeoJSON exported');
+        try {
+            const features = [
+                ...this.getGeometry(),
+                ...this.getWaypoints().map(w => ({
+                    type: 'Feature',
+                    geometry: { type: 'Point', coordinates: [w.lng, w.lat] },
+                    properties: { label: w.label }
+                }))
+            ];
+            const fc = { type: 'FeatureCollection', features };
+            const blob = new Blob([JSON.stringify(fc, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `EcoMaintenance_Map_${Date.now()}.geojson`;
+            a.click();
+            URL.revokeObjectURL(a.href);
+            Toast.success('GeoJSON exported');
+        } catch (e) {
+            console.error('GeoJSON export error:', e);
+            Toast.error('Export failed');
+        }
     }
     
     async importJSON() {
@@ -2185,15 +2543,24 @@ class App {
                 const data = JSON.parse(e.target.result);
                 let count = 0;
                 if (data.inspections) {
-                    for (const insp of data.inspections) { await this.db.save(insp, false); count++; }
+                    for (const insp of data.inspections) { 
+                        await this.db.save(insp, false); 
+                        count++; 
+                    }
                 }
                 if (data.drafts) {
-                    for (const draft of data.drafts) { await this.db.save(draft, true); count++; }
+                    for (const draft of data.drafts) { 
+                        await this.db.save(draft, true); 
+                        count++; 
+                    }
                 }
                 Toast.success(`Imported ${count} records`);
-                this.updateStatus();
+                await this.updateStatus();
                 this.showDataManager();
-            } catch { Toast.error('Invalid JSON file'); }
+            } catch (err) {
+                console.error('Import error:', err);
+                Toast.error('Invalid JSON file');
+            }
         };
         reader.readAsText(file);
     }
@@ -2201,73 +2568,86 @@ class App {
     async clearAll() {
         if (!confirm('Delete ALL data? This cannot be undone.')) return;
         if (!confirm('Are you absolutely sure?')) return;
-        await this.db.clear('inspections');
-        await this.db.clear('drafts');
-        Toast.success('All data cleared');
-        this.updateStatus();
-        this.showDashboard();
+        try {
+            await this.db.clear('inspections');
+            await this.db.clear('drafts');
+            Toast.success('All data cleared');
+            await this.updateStatus();
+            this.showDashboard();
+        } catch (e) {
+            console.error('Clear error:', e);
+            Toast.error('Failed to clear data');
+        }
     }
     
     // ================================================================
     // EVENTS
     // ================================================================
     bindEvents() {
-        // Navigation
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.onclick = () => {
-                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-                item.classList.add('active');
-                const view = item.dataset.view;
-                switch(view) {
-                    case 'dashboard': this.showDashboard(); break;
-                    case 'inspections': this.showInspections(); break;
-                    case 'new': this.newInspection(); break;
-                    case 'mapview': this.closePanel(); break;
-                    case 'drafts': this.showDrafts(); break;
-                    case 'data': this.showDataManager(); break;
-                }
-            };
+        // Navigation - using event delegation
+        document.querySelector('.sidebar-nav').addEventListener('click', (e) => {
+            const item = e.target.closest('.nav-item');
+            if (!item) return;
+            
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            item.classList.add('active');
+            
+            const view = item.dataset.view;
+            switch(view) {
+                case 'dashboard': this.showDashboard(); break;
+                case 'inspections': this.showInspections(); break;
+                case 'new': this.newInspection(); break;
+                case 'mapview': this.closePanel(); break;
+                case 'drafts': this.showDrafts(); break;
+                case 'data': this.showDataManager(); break;
+            }
         });
         
-        document.getElementById('newInspectionBtn').onclick = () => this.newInspection();
-        document.getElementById('listInspectionsBtn').onclick = () => this.showInspections();
-        document.getElementById('closePanelBtn').onclick = () => this.closePanel();
-        document.getElementById('clearMapBtn').onclick = () => this.clearMap();
-        document.getElementById('exportGeoJsonBtn').onclick = () => this.exportGeoJSON();
-        document.getElementById('exportCSVBtn').onclick = () => this.exportCSV();
-        document.getElementById('measureBtn').onclick = () => this.startMeasure();
-        document.getElementById('locateBtn').onclick = () => this.locateUser();
-        document.getElementById('fullscreenBtn').onclick = () => this.toggleFullscreen();
-        document.getElementById('resetMapBtn').onclick = () => this.resetView();
-        document.getElementById('sidebarToggle').onclick = () => {
+        // Toolbar buttons
+        document.getElementById('newInspectionBtn').addEventListener('click', () => this.newInspection());
+        document.getElementById('listInspectionsBtn').addEventListener('click', () => this.showInspections());
+        document.getElementById('closePanelBtn').addEventListener('click', () => this.closePanel());
+        document.getElementById('clearMapBtn').addEventListener('click', () => this.clearMap());
+        document.getElementById('exportGeoJsonBtn').addEventListener('click', () => this.exportGeoJSON());
+        document.getElementById('exportCSVBtn').addEventListener('click', () => this.exportCSV());
+        document.getElementById('measureBtn').addEventListener('click', () => this.startMeasure());
+        document.getElementById('locateBtn').addEventListener('click', () => this.locateUser());
+        document.getElementById('fullscreenBtn').addEventListener('click', () => this.toggleFullscreen());
+        document.getElementById('resetMapBtn').addEventListener('click', () => this.resetView());
+        document.getElementById('sidebarToggle').addEventListener('click', () => {
             document.getElementById('sidebar').classList.toggle('open');
-        };
+        });
         
+        // Layer control
         document.querySelectorAll('.layer-item').forEach(el => {
-            el.onclick = () => this.switchLayer(el.dataset.layer);
+            el.addEventListener('click', () => this.switchLayer(el.dataset.layer));
         });
         
         // Close sidebar on mobile when clicking content
-        document.querySelector('.main-content').onclick = () => {
+        document.querySelector('.main-content').addEventListener('click', () => {
             if (window.innerWidth <= 768) {
                 document.getElementById('sidebar').classList.remove('open');
             }
-        };
+        });
         
-        // ESC to close panel
-        document.onkeydown = (e) => {
+        // ESC key
+        document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') this.closePanel();
             if (e.ctrlKey && e.key === 'n') { e.preventDefault(); this.newInspection(); }
-        };
+        });
     }
 }
 
 // ================================================================
-// START
+// START APP
 // ================================================================
 const app = new App();
 window.app = app;
-app.init();
+
+// Auto-init when DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+    app.init();
+});
 </script>
 </body>
 </html>
