@@ -4,21 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#0f3b2e">
-    <meta name="description" content="EcoMaintenance Professional - Enterprise Environmental Management Platform">
-    <title>EcoMaintenance Professional | Environmental Management</title>
+    <meta name="description" content="EcoMaintenance Professional - Environmental Management Platform">
+    <title>EcoMaintenance Professional</title>
     
-    <!-- ============================================================
-    CORE LIBRARIES (CDN with SRI for security)
-    ============================================================ -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
-          crossorigin="anonymous"/>
+    <!-- Core Libraries -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
-            crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
     <script src="https://unpkg.com/turf@6.5.0/turf.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
@@ -27,13 +21,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     
-    <!-- ============================================================
-    PROFESSIONAL STYLES
-    ============================================================ -->
     <style>
-        /* ----- DESIGN SYSTEM ----- */
+        /* ============================================================
+        DESIGN SYSTEM
+        ============================================================ */
         :root {
-            /* Primary palette - Tasmanian wilderness inspired */
             --brand-forest: #0f3b2e;
             --brand-canopy: #1a5f4a;
             --brand-fern: #2d8a6e;
@@ -68,35 +60,27 @@
             
             --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
             --transition-med: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 500ms cubic-bezier(0.22, 1, 0.36, 1);
         }
         
-        /* ----- RESET ----- */
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: var(--neutral-100);
             height: 100vh;
             overflow: hidden;
             color: var(--neutral-800);
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
         
         /* ============================================================
         APP LAYOUT
         ============================================================ */
-        .app-container {
-            display: flex;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-        }
+        .app-container { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
         
-        /* ----- SIDEBAR (Professional) ----- */
+        /* Sidebar */
         .sidebar {
-            width: 260px;
+            width: 250px;
             background: linear-gradient(180deg, var(--brand-forest) 0%, #0a241f 100%);
             color: var(--brand-mist);
             display: flex;
@@ -108,302 +92,189 @@
         }
         
         .sidebar-brand {
-            padding: 20px 20px 16px;
+            padding: 18px 20px 14px;
             border-bottom: 1px solid rgba(255,255,255,0.06);
             flex-shrink: 0;
         }
         
         .sidebar-brand h1 {
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             font-weight: 700;
-            letter-spacing: -0.3px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        
-        .sidebar-brand h1 i {
-            color: var(--brand-fern);
-            font-size: 1.4rem;
-        }
-        
+        .sidebar-brand h1 i { color: var(--brand-fern); font-size: 1.3rem; }
         .sidebar-brand .subtitle {
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             text-transform: uppercase;
             letter-spacing: 1.5px;
             opacity: 0.4;
-            margin-top: 4px;
+            margin-top: 2px;
             font-weight: 500;
         }
         
         .sidebar-nav {
             flex: 1;
-            padding: 12px 10px;
+            padding: 10px 10px;
             overflow-y: auto;
         }
         
         .sidebar-nav .nav-label {
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             text-transform: uppercase;
             letter-spacing: 1.2px;
             opacity: 0.35;
-            padding: 12px 12px 6px;
+            padding: 10px 12px 4px;
             font-weight: 600;
         }
         
         .nav-item {
-            padding: 10px 14px;
+            padding: 9px 14px;
             display: flex;
             align-items: center;
             gap: 12px;
             cursor: pointer;
             border-radius: var(--radius-md);
-            margin: 2px 0;
+            margin: 1px 0;
             transition: all var(--transition-fast);
-            font-size: 0.85rem;
-            color: rgba(255,255,255,0.7);
-            position: relative;
-            text-decoration: none;
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.65);
         }
         
-        .nav-item:hover {
-            background: rgba(255,255,255,0.06);
-            color: #fff;
-        }
-        
+        .nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
         .nav-item.active {
             background: rgba(45, 138, 110, 0.25);
             color: #fff;
             box-shadow: inset 3px 0 0 var(--brand-fern);
         }
-        
-        .nav-item i {
-            width: 20px;
-            font-size: 0.95rem;
-            text-align: center;
-            flex-shrink: 0;
-        }
-        
+        .nav-item i { width: 20px; font-size: 0.9rem; text-align: center; flex-shrink: 0; }
         .nav-item .badge {
             margin-left: auto;
             background: rgba(255,255,255,0.12);
-            padding: 1px 8px;
+            padding: 0px 8px;
             border-radius: 20px;
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             font-weight: 600;
         }
-        
-        .nav-item .badge.urgent { background: var(--danger); color: white; }
         .nav-item .badge.active-badge { background: var(--brand-fern); color: white; }
         
-        /* ----- MAIN CONTENT ----- */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            background: var(--neutral-50);
-        }
+        /* Main Content */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--neutral-50); }
         
-        /* ----- TOOLBAR (Professional) ----- */
+        /* Toolbar */
         .toolbar {
-            background: rgba(255,255,255,0.85);
+            background: rgba(255,255,255,0.9);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 8px 20px;
+            padding: 6px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 6px;
             border-bottom: 1px solid var(--neutral-200);
             z-index: 150;
             flex-shrink: 0;
-            min-height: 56px;
+            min-height: 50px;
         }
         
         .toolbar-left, .toolbar-right {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             flex-wrap: wrap;
         }
         
         .toolbar-divider {
             width: 1px;
-            height: 28px;
+            height: 24px;
             background: var(--neutral-200);
             margin: 0 4px;
         }
         
-        /* ----- BUTTON SYSTEM ----- */
+        /* Buttons */
         .btn {
-            padding: 7px 14px;
+            padding: 6px 12px;
             border-radius: var(--radius-sm);
             border: none;
             font-weight: 600;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             transition: all var(--transition-fast);
             font-family: inherit;
-            text-decoration: none;
             white-space: nowrap;
             line-height: 1.4;
-            position: relative;
         }
-        
         .btn:active { transform: scale(0.97); }
         
-        .btn-primary {
-            background: var(--brand-canopy);
-            color: white;
-            box-shadow: var(--shadow-sm);
-        }
+        .btn-primary { background: var(--brand-canopy); color: white; box-shadow: var(--shadow-sm); }
         .btn-primary:hover { background: var(--brand-forest); box-shadow: var(--shadow-md); }
         
-        .btn-secondary {
-            background: var(--neutral-100);
-            color: var(--neutral-700);
-            border: 1px solid var(--neutral-200);
-        }
+        .btn-secondary { background: var(--neutral-100); color: var(--neutral-700); border: 1px solid var(--neutral-200); }
         .btn-secondary:hover { background: var(--neutral-200); }
         
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
+        .btn-success { background: var(--success); color: white; }
         .btn-success:hover { background: #158b5f; }
         
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
+        .btn-danger { background: var(--danger); color: white; }
         .btn-danger:hover { background: #a93226; }
         
-        .btn-warning {
-            background: var(--warning);
-            color: var(--neutral-900);
-        }
+        .btn-warning { background: var(--warning); color: var(--neutral-900); }
         .btn-warning:hover { background: #c99d3e; }
         
-        .btn-outline {
-            background: transparent;
-            color: var(--brand-canopy);
-            border: 1.5px solid var(--brand-canopy);
-        }
-        .btn-outline:hover { background: var(--brand-canopy); color: white; }
+        .btn-sm { padding: 3px 8px; font-size: 0.6rem; }
+        .btn-lg { padding: 8px 18px; font-size: 0.8rem; }
+        .btn-icon { padding: 6px 7px; }
         
-        .btn-sm { padding: 4px 10px; font-size: 0.65rem; }
-        .btn-lg { padding: 10px 22px; font-size: 0.85rem; }
-        .btn-icon { padding: 7px 8px; }
+        .btn i { font-size: 0.8rem; }
         
-        .btn i { font-size: 0.85rem; }
+        /* Map */
+        .map-wrapper { flex: 1; position: relative; min-height: 0; overflow: hidden; }
+        #map { height: 100%; width: 100%; position: absolute; top: 0; left: 0; }
         
-        /* ----- MAP CONTAINER ----- */
-        .map-wrapper {
-            flex: 1;
-            position: relative;
-            min-height: 0;
-            overflow: hidden;
-        }
-        
-        #map {
-            height: 100%;
-            width: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-        
-        /* ----- MAP OVERLAYS ----- */
+        /* Map Status Bar */
         .map-status-bar {
             position: absolute;
-            bottom: 16px;
+            bottom: 12px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(0,0,0,0.75);
             backdrop-filter: blur(8px);
             color: white;
-            padding: 6px 18px;
+            padding: 4px 14px;
             border-radius: 30px;
-            font-size: 0.7rem;
+            font-size: 0.6rem;
             z-index: 100;
             display: flex;
-            gap: 16px;
+            gap: 12px;
             align-items: center;
             pointer-events: none;
             font-weight: 500;
             letter-spacing: 0.2px;
         }
-        
-        .map-status-bar .dot {
-            display: inline-block;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            margin-right: 4px;
-        }
+        .map-status-bar .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 4px; }
         .map-status-bar .dot.green { background: var(--success); }
         .map-status-bar .dot.yellow { background: var(--warning); }
         .map-status-bar .dot.red { background: var(--danger); }
         
-        .map-tools {
-            position: absolute;
-            top: 80px;
-            right: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            z-index: 200;
-        }
-        
-        .map-tools .tool-btn {
-            background: white;
-            border: none;
-            border-radius: var(--radius-sm);
-            padding: 8px 10px;
-            box-shadow: var(--shadow-md);
-            cursor: pointer;
-            transition: all var(--transition-fast);
-            color: var(--neutral-600);
-            font-size: 0.85rem;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .map-tools .tool-btn:hover {
-            background: var(--brand-canopy);
-            color: white;
-            transform: scale(1.05);
-        }
-        
-        .map-tools .tool-btn.active {
-            background: var(--brand-canopy);
-            color: white;
-        }
-        
-        /* ----- LAYER TOGGLE ----- */
+        /* Layer Control */
         .layer-control {
             position: absolute;
-            top: 80px;
-            left: 12px;
+            top: 70px;
+            left: 10px;
             background: white;
             border-radius: var(--radius-md);
             padding: 4px;
             box-shadow: var(--shadow-md);
             z-index: 200;
-            min-width: 120px;
+            min-width: 100px;
         }
-        
         .layer-control .layer-item {
-            padding: 6px 12px;
-            font-size: 0.7rem;
+            padding: 5px 10px;
+            font-size: 0.65rem;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -413,10 +284,8 @@
             font-weight: 500;
             color: var(--neutral-600);
         }
-        
         .layer-control .layer-item:hover { background: var(--neutral-100); }
         .layer-control .layer-item.active { background: var(--brand-canopy); color: white; }
-        
         .layer-control .layer-item .indicator {
             width: 10px;
             height: 10px;
@@ -426,14 +295,41 @@
         }
         .layer-control .layer-item.active .indicator { border-color: white; background: var(--brand-fern); }
         
-        /* ============================================================
-        PANEL (Professional Slide-out)
-        ============================================================ */
+        /* Map Tools */
+        .map-tools {
+            position: absolute;
+            top: 70px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            z-index: 200;
+        }
+        .map-tools .tool-btn {
+            background: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 7px 9px;
+            box-shadow: var(--shadow-md);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            color: var(--neutral-600);
+            font-size: 0.8rem;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .map-tools .tool-btn:hover { background: var(--brand-canopy); color: white; transform: scale(1.05); }
+        .map-tools .tool-btn.active { background: var(--brand-canopy); color: white; }
+        
+        /* Panel */
         .panel {
             position: fixed;
             top: 0;
             right: 0;
-            width: 720px;
+            width: 680px;
             max-width: 94vw;
             height: 100vh;
             background: white;
@@ -445,167 +341,105 @@
             flex-direction: column;
             overflow: hidden;
         }
-        
         .panel.open { transform: translateX(0); }
         
         .panel-header {
-            padding: 16px 24px;
+            padding: 14px 20px;
             border-bottom: 1px solid var(--neutral-200);
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: white;
             flex-shrink: 0;
-            min-height: 64px;
+            min-height: 56px;
         }
-        
-        .panel-header h3 {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--neutral-800);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
+        .panel-header h3 { font-size: 0.95rem; font-weight: 700; color: var(--neutral-800); display: flex; align-items: center; gap: 8px; }
         .panel-header h3 i { color: var(--brand-canopy); }
-        
-        .panel-header .panel-actions {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-        }
+        .panel-header .panel-actions { display: flex; gap: 4px; align-items: center; }
         
         .panel-body {
             flex: 1;
             overflow-y: auto;
-            padding: 20px 24px 32px;
+            padding: 16px 20px 24px;
         }
-        
-        .panel-body::-webkit-scrollbar {
-            width: 6px;
-        }
+        .panel-body::-webkit-scrollbar { width: 5px; }
         .panel-body::-webkit-scrollbar-track { background: transparent; }
         .panel-body::-webkit-scrollbar-thumb { background: var(--neutral-300); border-radius: 10px; }
         
-        /* ----- FORM ELEMENTS (Professional) ----- */
+        /* Forms */
         .form-section {
-            margin-bottom: 20px;
+            margin-bottom: 14px;
             border: 1px solid var(--neutral-200);
             border-radius: var(--radius-md);
             overflow: hidden;
             background: white;
-            transition: border-color var(--transition-fast);
         }
-        
-        .form-section:hover { border-color: var(--neutral-300); }
-        
         .section-header {
             background: var(--neutral-50);
-            padding: 12px 16px;
+            padding: 10px 14px;
             font-weight: 700;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--brand-canopy);
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
             user-select: none;
-            transition: background var(--transition-fast);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        
         .section-header:hover { background: var(--neutral-100); }
         .section-header i:last-child { transition: transform var(--transition-fast); }
         .section-header.collapsed i:last-child { transform: rotate(-90deg); }
-        
-        .section-content {
-            padding: 16px;
-            border-top: 1px solid var(--neutral-200);
-            animation: slideDown var(--transition-med);
-        }
-        
+        .section-content { padding: 14px; border-top: 1px solid var(--neutral-200); }
         .section-content.collapsed { display: none; }
         
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .form-group {
-            margin-bottom: 14px;
-            position: relative;
-        }
-        
+        .form-group { margin-bottom: 12px; }
         .form-group:last-child { margin-bottom: 0; }
-        
         .form-group label {
             display: block;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-weight: 700;
             text-transform: uppercase;
             color: var(--neutral-600);
-            margin-bottom: 4px;
-            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+            letter-spacing: 0.4px;
         }
-        
-        .form-group label .required {
-            color: var(--danger);
-            margin-left: 2px;
-        }
-        
-        .form-group .hint {
-            font-size: 0.65rem;
-            color: var(--neutral-400);
-            margin-top: 3px;
-        }
+        .form-group label .required { color: var(--danger); margin-left: 2px; }
+        .form-group .hint { font-size: 0.6rem; color: var(--neutral-400); margin-top: 2px; }
         
         input, select, textarea {
             width: 100%;
-            padding: 9px 12px;
+            padding: 7px 10px;
             border: 1.5px solid var(--neutral-200);
             border-radius: var(--radius-sm);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-family: inherit;
             transition: all var(--transition-fast);
             background: white;
             color: var(--neutral-800);
         }
-        
         input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: var(--brand-canopy);
-            box-shadow: 0 0 0 3px rgba(26, 95, 74, 0.12);
+            box-shadow: 0 0 0 3px rgba(26, 95, 74, 0.1);
         }
-        
-        input::placeholder, textarea::placeholder {
-            color: var(--neutral-400);
-        }
-        
-        textarea { resize: vertical; min-height: 60px; }
-        select { appearance: auto; }
+        textarea { resize: vertical; min-height: 50px; }
         input[type="range"] { padding: 0; border: none; }
         
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-        }
-        
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
         
-        /* ----- PHOTO GALLERY (Professional) ----- */
+        /* Photo Gallery */
         .photo-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 10px;
-            margin-top: 10px;
-            max-height: 280px;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 8px;
+            margin-top: 8px;
+            max-height: 240px;
             overflow-y: auto;
             padding: 2px;
         }
-        
         .photo-item {
             position: relative;
             aspect-ratio: 1;
@@ -616,137 +450,86 @@
             background: var(--neutral-100);
             transition: all var(--transition-fast);
         }
-        
         .photo-item:hover { border-color: var(--brand-canopy); transform: scale(1.02); }
         .photo-item img { width: 100%; height: 100%; object-fit: cover; }
-        
         .photo-item .photo-overlay {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 4px 6px;
+            padding: 3px 5px;
             background: linear-gradient(transparent, rgba(0,0,0,0.6));
             color: white;
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        
         .photo-item .remove-photo {
             position: absolute;
-            top: 4px;
-            right: 4px;
+            top: 3px;
+            right: 3px;
             background: rgba(192, 57, 43, 0.9);
             color: white;
             border-radius: 50%;
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
-            transition: all var(--transition-fast);
             border: none;
         }
-        
         .photo-item .remove-photo:hover { transform: scale(1.1); background: var(--danger); }
-        
         .photo-item .hero-badge {
             position: absolute;
-            top: 4px;
-            left: 4px;
+            top: 3px;
+            left: 3px;
             background: var(--warning);
             color: var(--neutral-900);
-            padding: 1px 8px;
+            padding: 0px 6px;
             border-radius: 20px;
-            font-size: 0.55rem;
+            font-size: 0.5rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
         
         .photo-upload-area {
             border: 2px dashed var(--neutral-300);
             border-radius: var(--radius-md);
-            padding: 24px;
+            padding: 20px;
             text-align: center;
             cursor: pointer;
             transition: all var(--transition-fast);
             background: var(--neutral-50);
         }
+        .photo-upload-area:hover { border-color: var(--brand-canopy); background: rgba(26, 95, 74, 0.04); }
+        .photo-upload-area i { font-size: 1.6rem; color: var(--neutral-400); display: block; margin-bottom: 4px; }
+        .photo-upload-area p { font-size: 0.7rem; color: var(--neutral-500); }
         
-        .photo-upload-area:hover {
-            border-color: var(--brand-canopy);
-            background: rgba(26, 95, 74, 0.04);
-        }
-        
-        .photo-upload-area i {
-            font-size: 2rem;
-            color: var(--neutral-400);
-            display: block;
-            margin-bottom: 8px;
-        }
-        
-        .photo-upload-area p {
-            font-size: 0.75rem;
-            color: var(--neutral-500);
-        }
-        
-        /* ============================================================
-        DASHBOARD CARDS
-        ============================================================ */
+        /* Dashboard */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
         }
-        
         .stat-card {
             background: white;
-            padding: 18px 20px;
+            padding: 14px 16px;
             border-radius: var(--radius-md);
             border: 1px solid var(--neutral-200);
             box-shadow: var(--shadow-sm);
             transition: all var(--transition-fast);
         }
-        
-        .stat-card:hover {
-            box-shadow: var(--shadow-md);
-            transform: translateY(-2px);
-        }
-        
-        .stat-card .stat-icon {
-            font-size: 1.4rem;
-            color: var(--brand-canopy);
-            opacity: 0.6;
-        }
-        
-        .stat-card .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--neutral-800);
-            line-height: 1.2;
-        }
-        
-        .stat-card .stat-label {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            color: var(--neutral-500);
-            letter-spacing: 0.5px;
-            font-weight: 600;
-        }
-        
-        .stat-card .stat-change {
-            font-size: 0.65rem;
-            font-weight: 600;
-            padding: 1px 8px;
-            border-radius: 20px;
-        }
+        .stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+        .stat-card .stat-icon { font-size: 1.2rem; color: var(--brand-canopy); opacity: 0.6; }
+        .stat-card .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--neutral-800); line-height: 1.2; }
+        .stat-card .stat-label { font-size: 0.65rem; text-transform: uppercase; color: var(--neutral-500); letter-spacing: 0.5px; font-weight: 600; }
+        .stat-card .stat-change { font-size: 0.6rem; font-weight: 600; padding: 0px 6px; border-radius: 20px; }
         .stat-card .stat-change.positive { background: rgba(26, 156, 110, 0.15); color: var(--success); }
         .stat-card .stat-change.negative { background: rgba(192, 57, 43, 0.12); color: var(--danger); }
         
@@ -754,34 +537,30 @@
             background: white;
             border: 1px solid var(--neutral-200);
             border-radius: var(--radius-md);
-            padding: 16px;
-            margin-bottom: 16px;
+            padding: 14px;
+            margin-bottom: 14px;
         }
-        
         .chart-container h4 {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 700;
             color: var(--neutral-600);
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         
-        /* ============================================================
-        INSPECTION CARDS
-        ============================================================ */
+        /* Inspection Cards */
         .inspection-card {
             border: 1px solid var(--neutral-200);
             border-radius: var(--radius-md);
-            padding: 16px;
-            margin-bottom: 12px;
+            padding: 14px;
+            margin-bottom: 10px;
             background: white;
             cursor: pointer;
             transition: all var(--transition-fast);
             position: relative;
             overflow: hidden;
         }
-        
         .inspection-card::before {
             content: '';
             position: absolute;
@@ -790,42 +569,20 @@
             bottom: 0;
             width: 4px;
         }
-        
-        .inspection-card:hover {
-            box-shadow: var(--shadow-md);
-            transform: translateY(-2px);
-            border-color: var(--brand-canopy);
-        }
-        
-        .inspection-card .card-title {
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: var(--neutral-800);
-        }
-        
-        .inspection-card .card-meta {
-            font-size: 0.7rem;
-            color: var(--neutral-500);
-            margin-top: 2px;
-        }
-        
-        .inspection-card .card-actions {
-            display: flex;
-            gap: 6px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-        
+        .inspection-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--brand-canopy); }
+        .inspection-card .card-title { font-weight: 700; font-size: 0.9rem; color: var(--neutral-800); }
+        .inspection-card .card-meta { font-size: 0.65rem; color: var(--neutral-500); margin-top: 2px; }
+        .inspection-card .card-actions { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
         .inspection-card .card-badge {
             position: absolute;
-            top: 12px;
-            right: 12px;
-            font-size: 0.6rem;
+            top: 10px;
+            right: 10px;
+            font-size: 0.55rem;
             font-weight: 700;
-            padding: 2px 10px;
+            padding: 1px 8px;
             border-radius: 20px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
         
         .health-meter {
@@ -833,23 +590,19 @@
             border-radius: 20px;
             height: 4px;
             overflow: hidden;
-            margin: 8px 0;
-            position: relative;
+            margin: 6px 0;
         }
-        
         .health-fill {
             height: 100%;
             border-radius: 20px;
             transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-            background: linear-gradient(90deg, var(--danger), var(--warning), var(--success));
         }
         
-        /* ----- SCORE RATING BADGES ----- */
         .rating-badge {
             display: inline-block;
-            padding: 2px 10px;
+            padding: 1px 8px;
             border-radius: 20px;
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.3px;
@@ -859,9 +612,7 @@
         .rating-badge.moderate { background: rgba(212, 168, 67, 0.15); color: var(--warning); }
         .rating-badge.poor { background: rgba(192, 57, 43, 0.12); color: var(--danger); }
         
-        /* ============================================================
-        NOTIFICATIONS
-        ============================================================ */
+        /* Toast */
         .toast-container {
             position: fixed;
             bottom: 24px;
@@ -871,25 +622,23 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             pointer-events: none;
         }
-        
         .toast {
             background: var(--neutral-800);
             color: white;
-            padding: 12px 24px;
+            padding: 10px 20px;
             border-radius: 30px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 500;
             box-shadow: var(--shadow-lg);
             pointer-events: auto;
-            animation: toastIn 0.4s cubic-bezier(0.22, 1, 0.36, 1), toastOut 0.4s 2.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation: toastIn 0.3s cubic-bezier(0.22, 1, 0.36, 1), toastOut 0.3s 2.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
-        
         .toast.success { background: var(--brand-canopy); }
         .toast.warning { background: var(--warning); color: var(--neutral-900); }
         .toast.error { background: var(--danger); }
@@ -898,44 +647,37 @@
             from { opacity: 0; transform: translateY(16px) scale(0.95); }
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
-        
         @keyframes toastOut {
             from { opacity: 1; transform: translateY(0) scale(1); }
             to { opacity: 0; transform: translateY(-16px) scale(0.95); }
         }
         
-        /* ============================================================
-        STORAGE INDICATOR
-        ============================================================ */
+        /* Storage Indicator */
         .storage-indicator {
             position: fixed;
-            bottom: 16px;
-            left: 16px;
+            bottom: 12px;
+            left: 12px;
             background: rgba(0,0,0,0.6);
             backdrop-filter: blur(8px);
             color: white;
-            padding: 4px 14px;
+            padding: 3px 12px;
             border-radius: 20px;
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             font-family: monospace;
             z-index: 100;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             pointer-events: none;
         }
-        
         .storage-indicator .dot { width: 6px; height: 6px; border-radius: 50%; }
         .storage-indicator .dot.online { background: var(--success); }
         .storage-indicator .dot.offline { background: var(--warning); }
         
-        /* ============================================================
-        RESPONSIVE DESIGN
-        ============================================================ */
-        @media (max-width: 1024px) {
-            .sidebar { width: 220px; }
-        }
+        /* Sidebar Toggle */
+        .sidebar-toggle { display: none; }
         
+        /* Responsive */
         @media (max-width: 768px) {
             .sidebar {
                 position: fixed;
@@ -946,59 +688,41 @@
                 transform: translateX(-100%);
                 z-index: 300;
             }
-            
             .sidebar.open { transform: translateX(0); }
-            
             .sidebar-toggle {
                 display: flex !important;
                 position: fixed;
-                top: 12px;
-                left: 12px;
+                top: 10px;
+                left: 10px;
                 z-index: 250;
                 background: white;
                 border: none;
-                padding: 8px 10px;
+                padding: 6px 9px;
                 border-radius: var(--radius-sm);
                 box-shadow: var(--shadow-md);
                 cursor: pointer;
-                font-size: 1.1rem;
+                font-size: 1rem;
                 color: var(--neutral-700);
             }
-            
             .toolbar-left .btn span { display: none; }
-            .toolbar-left .btn { padding: 7px 10px; }
-            
+            .toolbar-left .btn { padding: 5px 8px; }
             .panel { width: 100vw; max-width: 100vw; }
-            
             .dashboard-grid { grid-template-columns: 1fr 1fr; }
-            .form-row { grid-template-columns: 1fr; }
-            
-            .map-status-bar {
-                font-size: 0.55rem;
-                padding: 4px 12px;
-                gap: 8px;
-                bottom: 10px;
-            }
-            
-            .layer-control { top: 70px; left: 8px; min-width: 90px; }
-            .layer-control .layer-item { font-size: 0.6rem; padding: 4px 10px; }
-            
-            .map-tools { top: 70px; right: 8px; }
-            .map-tools .tool-btn { width: 34px; height: 34px; font-size: 0.7rem; }
-            
-            .storage-indicator { display: none; }
+            .map-status-bar { font-size: 0.5rem; padding: 3px 10px; gap: 6px; }
+            .layer-control { top: 60px; left: 6px; min-width: 80px; }
+            .layer-control .layer-item { font-size: 0.55rem; padding: 4px 8px; }
+            .map-tools { top: 60px; right: 6px; }
+            .map-tools .tool-btn { width: 30px; height: 30px; font-size: 0.7rem; padding: 5px; }
         }
         
         @media (max-width: 480px) {
             .dashboard-grid { grid-template-columns: 1fr; }
-            .panel-body { padding: 12px 16px 24px; }
-            .panel-header { padding: 12px 16px; }
-            .photo-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
+            .panel-body { padding: 12px 14px 20px; }
+            .panel-header { padding: 10px 14px; }
+            .photo-grid { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); }
         }
         
-        /* ============================================================
-        DARK MODE
-        ============================================================ */
+        /* Dark mode */
         @media (prefers-color-scheme: dark) {
             :root {
                 --neutral-50: #1a242b;
@@ -1012,125 +736,29 @@
                 --neutral-800: #f0f3f5;
                 --neutral-900: #fafbfc;
             }
-            
             body { background: var(--neutral-100); }
-            
             .panel, .panel-header, .form-section, .inspection-card, .stat-card, .chart-container {
                 background: var(--neutral-50);
                 border-color: var(--neutral-200);
             }
-            
             .panel-header { border-color: var(--neutral-200); }
-            
             .section-header { background: var(--neutral-100); color: var(--brand-fern); }
             .section-content { border-color: var(--neutral-200); }
-            
-            input, select, textarea {
-                background: var(--neutral-100);
-                border-color: var(--neutral-200);
-                color: var(--neutral-800);
-            }
-            
-            input:focus, select:focus, textarea:focus {
-                border-color: var(--brand-fern);
-                box-shadow: 0 0 0 3px rgba(45, 138, 110, 0.15);
-            }
-            
-            .btn-secondary {
-                background: var(--neutral-100);
-                border-color: var(--neutral-200);
-                color: var(--neutral-700);
-            }
-            
+            input, select, textarea { background: var(--neutral-100); border-color: var(--neutral-200); color: var(--neutral-800); }
+            input:focus, select:focus, textarea:focus { border-color: var(--brand-fern); box-shadow: 0 0 0 3px rgba(45, 138, 110, 0.15); }
+            .btn-secondary { background: var(--neutral-100); border-color: var(--neutral-200); color: var(--neutral-700); }
             .btn-secondary:hover { background: var(--neutral-200); }
-            
-            .toolbar {
-                background: rgba(26, 36, 43, 0.9);
-                backdrop-filter: blur(12px);
-                border-color: var(--neutral-200);
-            }
-            
-            .map-tools .tool-btn, .layer-control {
-                background: var(--neutral-50);
-                color: var(--neutral-600);
-            }
-            
-            .map-tools .tool-btn:hover {
-                background: var(--brand-canopy);
-                color: white;
-            }
-            
-            .photo-upload-area {
-                background: var(--neutral-100);
-                border-color: var(--neutral-200);
-            }
-            
-            .photo-upload-area:hover {
-                border-color: var(--brand-fern);
-                background: rgba(45, 138, 110, 0.08);
-            }
-            
+            .toolbar { background: rgba(26, 36, 43, 0.9); backdrop-filter: blur(12px); border-color: var(--neutral-200); }
+            .map-tools .tool-btn, .layer-control { background: var(--neutral-50); color: var(--neutral-600); }
+            .map-tools .tool-btn:hover { background: var(--brand-canopy); color: white; }
+            .photo-upload-area { background: var(--neutral-100); border-color: var(--neutral-200); }
+            .photo-upload-area:hover { border-color: var(--brand-fern); background: rgba(45, 138, 110, 0.08); }
             .stat-card .stat-value { color: var(--neutral-800); }
             .stat-card .stat-label { color: var(--neutral-500); }
-            
             .inspection-card .card-title { color: var(--neutral-800); }
             .inspection-card .card-meta { color: var(--neutral-400); }
-            
             .panel-header h3 { color: var(--neutral-800); }
-            
             .form-group label { color: var(--neutral-400); }
-        }
-        
-        /* ============================================================
-        UTILITY
-        ============================================================ */
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            border: 0;
-        }
-        
-        .flex { display: flex; }
-        .flex-center { align-items: center; justify-content: center; }
-        .flex-between { justify-content: space-between; align-items: center; }
-        .gap-1 { gap: 4px; }
-        .gap-2 { gap: 8px; }
-        .gap-3 { gap: 12px; }
-        .gap-4 { gap: 16px; }
-        
-        .text-center { text-align: center; }
-        .text-muted { color: var(--neutral-400); font-size: 0.75rem; }
-        .text-sm { font-size: 0.75rem; }
-        .text-xs { font-size: 0.65rem; }
-        .font-mono { font-family: 'JetBrains Mono', monospace; }
-        
-        .mt-1 { margin-top: 4px; }
-        .mt-2 { margin-top: 8px; }
-        .mt-3 { margin-top: 12px; }
-        .mt-4 { margin-top: 16px; }
-        .mb-2 { margin-bottom: 8px; }
-        .mb-3 { margin-bottom: 12px; }
-        .mb-4 { margin-bottom: 16px; }
-        
-        .w-full { width: 100%; }
-        
-        .hidden { display: none !important; }
-        
-        .sidebar-toggle { display: none; }
-        
-        /* Leaflet override for dark mode compatibility */
-        .leaflet-control-zoom a { background: white; color: var(--neutral-700); }
-        .leaflet-control-zoom a:hover { background: var(--neutral-100); }
-        
-        .leaflet-draw-toolbar a { background: white; }
-        .leaflet-draw-toolbar a:hover { background: var(--neutral-100); }
-        
-        @media (prefers-color-scheme: dark) {
             .leaflet-control-zoom a { background: var(--neutral-50); color: var(--neutral-700); }
             .leaflet-control-zoom a:hover { background: var(--neutral-100); }
             .leaflet-draw-toolbar a { background: var(--neutral-50); }
@@ -1138,209 +766,109 @@
             .leaflet-control-attribution { background: rgba(0,0,0,0.7) !important; color: white !important; }
             .leaflet-control-attribution a { color: var(--brand-fern) !important; }
         }
+        
+        .text-center { text-align: center; }
+        .text-muted { color: var(--neutral-400); font-size: 0.7rem; }
+        .text-sm { font-size: 0.7rem; }
+        .text-xs { font-size: 0.6rem; }
+        .font-mono { font-family: 'Courier New', monospace; }
+        .mt-2 { margin-top: 6px; }
+        .mt-3 { margin-top: 10px; }
+        .mt-4 { margin-top: 14px; }
+        .mb-2 { margin-bottom: 6px; }
+        .mb-4 { margin-bottom: 14px; }
+        .w-full { width: 100%; }
+        .flex { display: flex; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .gap-2 { gap: 6px; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<!-- ============================================================
-APP STRUCTURE
-============================================================ -->
-<div class="app-container" role="application">
-    
-    <!-- SIDEBAR -->
-    <nav class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+<div class="app-container">
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
         <div class="sidebar-brand">
-            <h1>
-                <i class="fas fa-leaf" aria-hidden="true"></i>
-                EcoMaintain
-                <span style="font-size:0.5rem;font-weight:400;opacity:0.5;margin-left:auto;">v4.0</span>
-            </h1>
+            <h1><i class="fas fa-leaf"></i> EcoMaintain</h1>
             <div class="subtitle">Professional Environmental Platform</div>
         </div>
-        
         <div class="sidebar-nav">
             <div class="nav-label">Main</div>
-            <div class="nav-item active" data-view="dashboard" tabindex="0" role="button">
-                <i class="fas fa-tachometer-alt" aria-hidden="true"></i> Dashboard
-            </div>
-            <div class="nav-item" data-view="inspections" tabindex="0" role="button">
-                <i class="fas fa-clipboard-list" aria-hidden="true"></i> Inspections
-                <span class="badge" id="inspCount">0</span>
-            </div>
-            <div class="nav-item" data-view="new" tabindex="0" role="button">
-                <i class="fas fa-plus-circle" aria-hidden="true"></i> New Assessment
-            </div>
-            <div class="nav-item" data-view="mapview" tabindex="0" role="button">
-                <i class="fas fa-map" aria-hidden="true"></i> Map View
-            </div>
-            
-            <div class="nav-label" style="margin-top:8px;">Workflow</div>
-            <div class="nav-item" data-view="drafts" tabindex="0" role="button">
-                <i class="fas fa-save" aria-hidden="true"></i> Drafts
-                <span class="badge" id="draftCount">0</span>
-            </div>
-            <div class="nav-item" data-view="data" tabindex="0" role="button">
-                <i class="fas fa-database" aria-hidden="true"></i> Data Manager
-            </div>
-            
-            <div class="nav-label" style="margin-top:8px;">Enterprise</div>
-            <div class="nav-item" data-view="projects" tabindex="0" role="button">
-                <i class="fas fa-project-diagram" aria-hidden="true"></i> Projects
-                <span class="badge">New</span>
-            </div>
-            <div class="nav-item" data-view="reports" tabindex="0" role="button">
-                <i class="fas fa-file-alt" aria-hidden="true"></i> Report Templates
-                <span class="badge">Beta</span>
-            </div>
+            <div class="nav-item active" data-view="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</div>
+            <div class="nav-item" data-view="inspections"><i class="fas fa-clipboard-list"></i> Inspections <span class="badge" id="inspCount">0</span></div>
+            <div class="nav-item" data-view="new"><i class="fas fa-plus-circle"></i> New Assessment</div>
+            <div class="nav-item" data-view="mapview"><i class="fas fa-map"></i> Map View</div>
+            <div class="nav-label" style="margin-top:6px;">Workflow</div>
+            <div class="nav-item" data-view="drafts"><i class="fas fa-save"></i> Drafts <span class="badge" id="draftCount">0</span></div>
+            <div class="nav-item" data-view="data"><i class="fas fa-database"></i> Data Manager</div>
         </div>
     </nav>
-    
-    <!-- MAIN CONTENT -->
+
+    <!-- Main Content -->
     <main class="main-content">
-        <!-- Toolbar -->
-        <header class="toolbar" role="toolbar" aria-label="Main toolbar">
+        <header class="toolbar">
             <div class="toolbar-left">
-                <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
-                    <i class="fas fa-bars"></i>
-                </button>
-                
-                <div class="toolbar-divider" aria-hidden="true"></div>
-                
-                <button id="clearMapBtn" class="btn btn-secondary btn-sm" title="Clear all map layers">
-                    <i class="fas fa-trash-alt" aria-hidden="true"></i>
-                    <span>Clear</span>
-                </button>
-                
-                <button id="exportGeoJsonBtn" class="btn btn-secondary btn-sm" title="Export map data as GeoJSON">
-                    <i class="fas fa-download" aria-hidden="true"></i>
-                    <span>GeoJSON</span>
-                </button>
-                
-                <button id="exportCSVBtn" class="btn btn-secondary btn-sm" title="Export data as Excel">
-                    <i class="fas fa-file-excel" aria-hidden="true"></i>
-                    <span>Excel</span>
-                </button>
-                
-                <div class="toolbar-divider" aria-hidden="true"></div>
-                
-                <button id="measureBtn" class="btn btn-secondary btn-sm" title="Measure distance on map">
-                    <i class="fas fa-ruler" aria-hidden="true"></i>
-                    <span>Measure</span>
-                </button>
+                <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+                <div class="toolbar-divider"></div>
+                <button id="clearMapBtn" class="btn btn-secondary btn-sm"><i class="fas fa-trash-alt"></i><span> Clear</span></button>
+                <button id="exportGeoJsonBtn" class="btn btn-secondary btn-sm"><i class="fas fa-download"></i><span> GeoJSON</span></button>
+                <button id="exportCSVBtn" class="btn btn-secondary btn-sm"><i class="fas fa-file-excel"></i><span> Excel</span></button>
+                <div class="toolbar-divider"></div>
+                <button id="measureBtn" class="btn btn-secondary btn-sm"><i class="fas fa-ruler"></i><span> Measure</span></button>
             </div>
-            
             <div class="toolbar-right">
-                <span id="storageStatus" class="text-xs text-muted" style="padding:4px 8px;background:var(--neutral-100);border-radius:20px;">
-                    <i class="fas fa-database" aria-hidden="true"></i> Loading...
+                <span id="storageStatus" class="text-xs text-muted" style="padding:3px 8px;background:var(--neutral-100);border-radius:20px;">
+                    <i class="fas fa-database"></i> Loading...
                 </span>
-                
-                <div class="toolbar-divider" aria-hidden="true"></div>
-                
-                <button id="listInspectionsBtn" class="btn btn-secondary btn-sm">
-                    <i class="fas fa-folder-open" aria-hidden="true"></i>
-                    <span>Saved</span>
-                </button>
-                
-                <button id="newInspectionBtn" class="btn btn-primary btn-sm">
-                    <i class="fas fa-plus" aria-hidden="true"></i>
-                    <span>New</span>
-                </button>
+                <div class="toolbar-divider"></div>
+                <button id="listInspectionsBtn" class="btn btn-secondary btn-sm"><i class="fas fa-folder-open"></i><span> Saved</span></button>
+                <button id="newInspectionBtn" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i><span> New</span></button>
             </div>
         </header>
-        
-        <!-- Map -->
+
         <div class="map-wrapper" id="mapWrapper">
-            <div id="map" role="application" aria-label="Interactive map"></div>
-            
-            <!-- Map Status -->
-            <div class="map-status-bar" id="mapStatus">
+            <div id="map"></div>
+            <div class="map-status-bar">
                 <span><span class="dot green"></span> GPS: <span id="gpsStatus">Locating...</span></span>
                 <span>|</span>
-                <span><i class="fas fa-draw-polygon" aria-hidden="true"></i> <span id="polygonCount">0</span> polygons</span>
+                <span><i class="fas fa-draw-polygon"></i> <span id="polygonCount">0</span></span>
                 <span>|</span>
-                <span><i class="fas fa-map-marker-alt" aria-hidden="true"></i> <span id="waypointCount">0</span> waypoints</span>
+                <span><i class="fas fa-map-marker-alt"></i> <span id="waypointCount">0</span></span>
             </div>
-            
-            <!-- Layer Control -->
-            <div class="layer-control" role="group" aria-label="Map layers">
-                <div class="layer-item active" data-layer="streets" tabindex="0" role="button">
-                    <span class="indicator"></span> Streets
-                </div>
-                <div class="layer-item" data-layer="satellite" tabindex="0" role="button">
-                    <span class="indicator"></span> Satellite
-                </div>
-                <div class="layer-item" data-layer="topo" tabindex="0" role="button">
-                    <span class="indicator"></span> Topo
-                </div>
+
+            <div class="layer-control">
+                <div class="layer-item active" data-layer="streets"><span class="indicator"></span> Streets</div>
+                <div class="layer-item" data-layer="satellite"><span class="indicator"></span> Satellite</div>
+                <div class="layer-item" data-layer="topo"><span class="indicator"></span> Topo</div>
             </div>
-            
-            <!-- Map Tools -->
-            <div class="map-tools" role="group" aria-label="Map tools">
-                <button class="tool-btn" id="locateBtn" title="Go to my location" aria-label="Locate me">
-                    <i class="fas fa-location-arrow" aria-hidden="true"></i>
-                </button>
-                <button class="tool-btn" id="fullscreenBtn" title="Toggle fullscreen" aria-label="Toggle fullscreen">
-                    <i class="fas fa-expand" aria-hidden="true"></i>
-                </button>
-                <button class="tool-btn" id="resetMapBtn" title="Reset map view" aria-label="Reset map">
-                    <i class="fas fa-home" aria-hidden="true"></i>
-                </button>
+
+            <div class="map-tools">
+                <button class="tool-btn" id="locateBtn" title="My Location"><i class="fas fa-location-arrow"></i></button>
+                <button class="tool-btn" id="fullscreenBtn" title="Fullscreen"><i class="fas fa-expand"></i></button>
+                <button class="tool-btn" id="resetMapBtn" title="Reset View"><i class="fas fa-home"></i></button>
             </div>
         </div>
     </main>
-    
-    <!-- SLIDEOUT PANEL -->
-    <aside class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="panelTitle">
+
+    <!-- Panel -->
+    <aside class="panel" id="panel">
         <header class="panel-header">
-            <h3 id="panelTitle">
-                <i class="fas fa-clipboard" aria-hidden="true"></i>
-                Ecological Assessment
-            </h3>
+            <h3 id="panelTitle"><i class="fas fa-clipboard"></i> Ecological Assessment</h3>
             <div class="panel-actions">
-                <button id="closePanelBtn" class="btn btn-secondary btn-sm" aria-label="Close panel">
-                    <i class="fas fa-times" aria-hidden="true"></i>
-                </button>
+                <button id="closePanelBtn" class="btn btn-secondary btn-sm"><i class="fas fa-times"></i></button>
             </div>
         </header>
-        <div class="panel-body" id="panelBody" role="document"></div>
+        <div class="panel-body" id="panelBody"></div>
     </aside>
 </div>
 
-<!-- Toast Container -->
-<div class="toast-container" id="toastContainer" aria-live="polite"></div>
+<div class="toast-container" id="toastContainer"></div>
+<div class="storage-indicator"><span class="dot online"></span> <span id="storageDetail">Local</span></div>
 
-<!-- Storage Indicator -->
-<div class="storage-indicator" id="storageIndicator">
-    <span class="dot online"></span>
-    <span id="storageDetail">Local</span>
-</div>
-
-<!-- ============================================================
-JAVASCRIPT - MODULAR APPLICATION
-============================================================ -->
 <script>
 // ================================================================
-// MODULE 1: CONFIGURATION
-// ================================================================
-const CONFIG = {
-    version: '4.0.0',
-    appName: 'EcoMaintenance Professional',
-    defaultView: [-42.8806, 147.3250],
-    defaultZoom: 10,
-    maxPhotos: 20,
-    maxImageSize: 1024 * 1024 * 2, // 2MB
-    reportColour: '#1a5f4a',
-    tasmanianVegetationTypes: [
-        'Dry Eucalypt Forest', 'Wet Eucalypt Forest', 'Rainforest',
-        'Moorland', 'Grassland', 'Coastal Heath', 'Saltmarsh',
-        'Alpine Vegetation', 'Riparian Forest', 'Plantation'
-    ],
-    threatLevels: ['Low', 'Medium', 'High', 'Critical'],
-    feralAnimalOptions: ['Nil', 'Low', 'Medium', 'High']
-};
-
-// ================================================================
-// MODULE 2: UTILITY FUNCTIONS
+// UTILITIES
 // ================================================================
 const Utils = {
     uuid() {
@@ -1352,36 +880,36 @@ const Utils = {
     
     escapeHtml(str) {
         if (!str) return '';
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+        return str.replace(/[&<>"']/g, m => map[m]);
+    },
+    
+    sanitizeText(str) {
+        if (!str) return '';
+        return str.replace(/[^\w\s.,!?()'"]/g, '').trim();
     },
     
     formatDate(isoStr) {
         if (!isoStr) return '—';
-        const d = new Date(isoStr);
-        return d.toLocaleDateString('en-AU', { 
-            year: 'numeric', month: 'short', day: 'numeric',
-            hour: '2-digit', minute: '2-digit'
-        });
+        try {
+            const d = new Date(isoStr);
+            return d.toLocaleDateString('en-AU', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        } catch { return isoStr; }
     },
     
-    truncate(str, len = 50) {
+    truncate(str, len = 40) {
         if (!str) return '';
         return str.length > len ? str.slice(0, len) + '…' : str;
     },
     
     clamp(val, min, max) { return Math.max(min, Math.min(max, val)); },
-    
-    round(val, decimals = 1) { return Number(val.toFixed(decimals)); },
+    round(val, d = 1) { return Number(val.toFixed(d)); },
     
     haversineDist(lat1, lng1, lat2, lng2) {
         const R = 6371;
         const dLat = (lat2 - lat1) * Math.PI / 180;
         const dLon = (lng2 - lng1) * Math.PI / 180;
-        const a = Math.sin(dLat/2)**2 + 
-                  Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * 
-                  Math.sin(dLon/2)**2;
+        const a = Math.sin(dLat/2)**2 + Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.sin(dLon/2)**2;
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     },
     
@@ -1402,12 +930,12 @@ const Utils = {
                 ctx.drawImage(img, 0, 0, w, h);
                 resolve(canvas.toDataURL('image/jpeg', quality));
             };
+            img.onerror = () => resolve(dataURL);
             img.src = dataURL;
         });
     },
     
-    // Ecological scoring engine
-    calculateEcologicalScore(data) {
+    calculateScore(data) {
         const vh = parseFloat(data.vegHealth || 6);
         const sr = parseFloat(data.speciesRichness || 5);
         const wc = parseFloat(data.weedCover || 30);
@@ -1421,40 +949,21 @@ const Utils = {
             0, 10
         );
         
-        let riskRating, managementPriority, riskColour;
-        if (score < 3) { 
-            riskRating = 'Critical'; 
-            managementPriority = 'Immediate Intervention'; 
-            riskColour = '#dc2626'; 
-        } else if (score < 5) { 
-            riskRating = 'High Risk'; 
-            managementPriority = 'Urgent Management'; 
-            riskColour = '#f59e0b'; 
-        } else if (score < 7) { 
-            riskRating = 'Medium Risk'; 
-            managementPriority = 'Short-term Plan'; 
-            riskColour = '#f59e0b'; 
-        } else if (score < 8.5) { 
-            riskRating = 'Low Risk'; 
-            managementPriority = 'Regular Monitoring'; 
-            riskColour = '#3498db'; 
-        } else { 
-            riskRating = 'Excellent'; 
-            managementPriority = 'Maintenance Only'; 
-            riskColour = '#10b981'; 
-        }
+        let riskRating, priority, colour;
+        if (score < 3) { riskRating = 'Critical'; priority = 'Immediate Intervention'; colour = '#dc2626'; }
+        else if (score < 5) { riskRating = 'High Risk'; priority = 'Urgent Management'; colour = '#f59e0b'; }
+        else if (score < 7) { riskRating = 'Medium Risk'; priority = 'Short-term Plan'; colour = '#f59e0b'; }
+        else if (score < 8.5) { riskRating = 'Low Risk'; priority = 'Regular Monitoring'; colour = '#3498db'; }
+        else { riskRating = 'Excellent'; priority = 'Maintenance Only'; colour = '#10b981'; }
         
         return {
             conditionScore: Utils.round(score, 1),
-            riskRating,
-            riskColour,
-            managementPriority,
-            tasmanianSignificance: score > 7 ? 'High Conservation Value' : 
-                                  (score > 5 ? 'Moderate Conservation Value' : 'Low Conservation Value')
+            riskRating, priority, colour,
+            significance: score > 7 ? 'High Conservation Value' : (score > 5 ? 'Moderate Conservation Value' : 'Low Conservation Value')
         };
     },
     
-    getRatingBadge(score) {
+    getRatingClass(score) {
         if (score >= 8) return 'excellent';
         if (score >= 6.5) return 'good';
         if (score >= 4.5) return 'moderate';
@@ -1463,27 +972,18 @@ const Utils = {
 };
 
 // ================================================================
-// MODULE 3: TOAST NOTIFICATIONS
+// TOAST
 // ================================================================
 const Toast = {
-    show(message, type = 'info', duration = 3000) {
+    show(msg, type = 'info', duration = 3000) {
         const container = document.getElementById('toastContainer');
         const toast = document.createElement('div');
-        const icons = {
-            success: 'fa-check-circle',
-            warning: 'fa-exclamation-triangle',
-            error: 'fa-times-circle',
-            info: 'fa-info-circle'
-        };
+        const icons = { success: 'fa-check-circle', warning: 'fa-exclamation-triangle', error: 'fa-times-circle', info: 'fa-info-circle' };
         toast.className = `toast ${type}`;
-        toast.innerHTML = `<i class="fas ${icons[type] || icons.info}" aria-hidden="true"></i> ${message}`;
+        toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${Utils.escapeHtml(msg)}`;
         container.appendChild(toast);
-        
-        setTimeout(() => {
-            if (toast.parentNode) toast.remove();
-        }, duration);
+        setTimeout(() => { if (toast.parentNode) toast.remove(); }, duration);
     },
-    
     success(msg) { this.show(msg, 'success'); },
     warning(msg) { this.show(msg, 'warning'); },
     error(msg) { this.show(msg, 'error'); },
@@ -1491,74 +991,53 @@ const Toast = {
 };
 
 // ================================================================
-// MODULE 4: DATABASE (IndexedDB with localStorage fallback)
+// DATABASE
 // ================================================================
 class Database {
     constructor() {
         this.db = null;
         this.ready = false;
         this.useLocalStorage = false;
-        this.storeName = 'inspections';
-        this.draftStore = 'drafts';
     }
     
     async init() {
         return new Promise((resolve) => {
             try {
-                const req = indexedDB.open('EcoMaintenance_v4', 4);
+                const req = indexedDB.open('EcoMaintenance_v4', 5);
                 req.onupgradeneeded = (e) => {
                     const db = e.target.result;
-                    if (!db.objectStoreNames.contains(this.storeName)) {
-                        const s = db.createObjectStore(this.storeName, { keyPath: 'id' });
+                    if (!db.objectStoreNames.contains('inspections')) {
+                        const s = db.createObjectStore('inspections', { keyPath: 'id' });
                         s.createIndex('dateTime', 'dateTime');
                         s.createIndex('status', 'status');
                         s.createIndex('siteName', 'siteName');
-                        s.createIndex('projectId', 'projectId');
                     }
-                    if (!db.objectStoreNames.contains(this.draftStore)) {
-                        db.createObjectStore(this.draftStore, { keyPath: 'id' });
-                    }
-                    if (!db.objectStoreNames.contains('projects')) {
-                        db.createObjectStore('projects', { keyPath: 'id' });
+                    if (!db.objectStoreNames.contains('drafts')) {
+                        db.createObjectStore('drafts', { keyPath: 'id' });
                     }
                 };
-                req.onsuccess = (e) => {
-                    this.db = e.target.result;
-                    this.ready = true;
-                    resolve();
-                };
-                req.onerror = () => {
-                    this.useLocalStorage = true;
-                    this.ready = true;
-                    resolve();
-                };
-            } catch (e) {
-                this.useLocalStorage = true;
-                this.ready = true;
-                resolve();
-            }
+                req.onsuccess = (e) => { this.db = e.target.result; this.ready = true; resolve(); };
+                req.onerror = () => { this.useLocalStorage = true; this.ready = true; resolve(); };
+            } catch { this.useLocalStorage = true; this.ready = true; resolve(); }
         });
     }
     
-    _getStore(store, mode = 'readonly') {
-        if (!this.ready) throw new Error('Database not ready');
-        if (this.useLocalStorage) return null;
+    _store(store, mode = 'readonly') {
+        if (this.useLocalStorage || !this.ready) return null;
         return this.db.transaction([store], mode).objectStore(store);
     }
     
-    _lsKey(id, isDraft = false) {
-        return `${isDraft ? 'draft_' : 'insp_'}${id}`;
-    }
+    _key(id, draft = false) { return `${draft ? 'draft_' : 'insp_'}${id}`; }
     
-    async save(data, isDraft = false) {
-        const store = isDraft ? this.draftStore : this.storeName;
+    async save(data, draft = false) {
+        const store = draft ? 'drafts' : 'inspections';
         if (this.useLocalStorage) {
-            localStorage.setItem(this._lsKey(data.id, isDraft), JSON.stringify(data));
+            localStorage.setItem(this._key(data.id, draft), JSON.stringify(data));
             return;
         }
         return new Promise((resolve, reject) => {
             try {
-                const s = this._getStore(store, 'readwrite');
+                const s = this._store(store, 'readwrite');
                 const req = s.put(data);
                 req.onsuccess = () => resolve();
                 req.onerror = () => reject(req.error);
@@ -1566,16 +1045,14 @@ class Database {
         });
     }
     
-    async getAll(store = this.storeName) {
+    async getAll(store = 'inspections') {
         if (this.useLocalStorage) {
-            const prefix = store === this.storeName ? 'insp_' : 'draft_';
-            return Object.keys(localStorage)
-                .filter(k => k.startsWith(prefix))
-                .map(k => JSON.parse(localStorage.getItem(k)));
+            const prefix = store === 'inspections' ? 'insp_' : 'draft_';
+            return Object.keys(localStorage).filter(k => k.startsWith(prefix)).map(k => JSON.parse(localStorage.getItem(k)));
         }
         return new Promise((resolve, reject) => {
             try {
-                const s = this._getStore(store);
+                const s = this._store(store);
                 const req = s.getAll();
                 req.onsuccess = () => resolve(req.target.result || []);
                 req.onerror = () => reject(req.error);
@@ -1583,15 +1060,15 @@ class Database {
         });
     }
     
-    async get(id, isDraft = false) {
-        const store = isDraft ? this.draftStore : this.storeName;
+    async get(id, draft = false) {
+        const store = draft ? 'drafts' : 'inspections';
         if (this.useLocalStorage) {
-            const data = localStorage.getItem(this._lsKey(id, isDraft));
+            const data = localStorage.getItem(this._key(id, draft));
             return data ? JSON.parse(data) : null;
         }
         return new Promise((resolve, reject) => {
             try {
-                const s = this._getStore(store);
+                const s = this._store(store);
                 const req = s.get(id);
                 req.onsuccess = () => resolve(req.target.result);
                 req.onerror = () => reject(req.error);
@@ -1599,15 +1076,15 @@ class Database {
         });
     }
     
-    async delete(id, isDraft = false) {
-        const store = isDraft ? this.draftStore : this.storeName;
+    async delete(id, draft = false) {
+        const store = draft ? 'drafts' : 'inspections';
         if (this.useLocalStorage) {
-            localStorage.removeItem(this._lsKey(id, isDraft));
+            localStorage.removeItem(this._key(id, draft));
             return;
         }
         return new Promise((resolve, reject) => {
             try {
-                const s = this._getStore(store, 'readwrite');
+                const s = this._store(store, 'readwrite');
                 const req = s.delete(id);
                 req.onsuccess = () => resolve();
                 req.onerror = () => reject(req.error);
@@ -1615,17 +1092,15 @@ class Database {
         });
     }
     
-    async clear(store = this.storeName) {
+    async clear(store = 'inspections') {
         if (this.useLocalStorage) {
-            const prefix = store === this.storeName ? 'insp_' : 'draft_';
-            Object.keys(localStorage)
-                .filter(k => k.startsWith(prefix))
-                .forEach(k => localStorage.removeItem(k));
+            const prefix = store === 'inspections' ? 'insp_' : 'draft_';
+            Object.keys(localStorage).filter(k => k.startsWith(prefix)).forEach(k => localStorage.removeItem(k));
             return;
         }
         return new Promise((resolve, reject) => {
             try {
-                const s = this._getStore(store, 'readwrite');
+                const s = this._store(store, 'readwrite');
                 const req = s.clear();
                 req.onsuccess = () => resolve();
                 req.onerror = () => reject(req.error);
@@ -1633,75 +1108,76 @@ class Database {
         });
     }
     
-    async count(store = this.storeName) {
+    async count(store = 'inspections') {
         const items = await this.getAll(store);
         return items.length;
     }
 }
 
 // ================================================================
-// MODULE 5: MAP SERVICE
+// APPLICATION
 // ================================================================
-class MapService {
+class App {
     constructor() {
+        this.db = new Database();
         this.map = null;
         this.drawnItems = null;
-        this.layers = {
-            base: null,
-            satellite: null,
-            topo: null
-        };
+        this.layers = { base: null, satellite: null, topo: null };
         this.activeLayer = 'streets';
-        this.measureMode = false;
-        this.measurePoints = [];
-        this.measureLine = null;
-        this.measureMarkers = [];
+        this.currentId = null;
+        this.currentPhotos = [];
+        this.isDraft = false;
         this.gpsMarker = null;
         this.gpsWatchId = null;
         this.currentLat = -42.8806;
         this.currentLng = 147.3250;
+        this.measureMode = false;
+        this.measurePoints = [];
+        this.measureLine = null;
+        this.measureMarkers = [];
         this.polygonCount = 0;
         this.waypointCount = 0;
-        this.onLocationUpdate = null;
-        this.onPolygonAdded = null;
-        this.onWaypointAdded = null;
+        this.charts = {};
+        this.panelOpen = false;
     }
     
-    init(container, view = CONFIG.defaultView, zoom = CONFIG.defaultZoom) {
-        this.map = L.map(container, {
-            center: view,
-            zoom: zoom,
-            zoomControl: false,
-            attributionControl: true
+    // ================================================================
+    // INIT
+    // ================================================================
+    async init() {
+        await this.db.init();
+        this.initMap();
+        this.initGPS();
+        this.bindEvents();
+        this.updateStatus();
+        this.showDashboard();
+        Toast.success('EcoMaintenance Professional Ready');
+    }
+    
+    // ================================================================
+    // MAP
+    // ================================================================
+    initMap() {
+        this.map = L.map('map', { center: [-42.8806, 147.3250], zoom: 10, zoomControl: false });
+        
+        this.layers.base = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(this.map);
+        
+        this.layers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '&copy; Esri'
         });
         
-        // Base layers
-        this.layers.base = L.tileLayer(
-            'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-            { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }
-        ).addTo(this.map);
+        this.layers.topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenTopoMap'
+        });
         
-        this.layers.satellite = L.tileLayer(
-            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-            { attribution: '&copy; <a href="https://www.esri.com">Esri</a>' }
-        );
-        
-        this.layers.topo = L.tileLayer(
-            'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
-            { attribution: '&copy; <a href="https://opentopomap.org">OpenTopoMap</a>' }
-        );
-        
-        // Drawing layer
         this.drawnItems = L.featureGroup().addTo(this.map);
         
-        // Draw control
         const drawControl = new L.Control.Draw({
             position: 'topleft',
             draw: {
-                polygon: { 
-                    shapeOptions: { color: CONFIG.reportColour, weight: 3, opacity: 0.7 },
-                    showArea: true
-                },
+                polygon: { shapeOptions: { color: '#1a5f4a', weight: 3 }, showArea: true },
                 rectangle: true,
                 marker: true,
                 circle: false,
@@ -1711,35 +1187,20 @@ class MapService {
         });
         this.map.addControl(drawControl);
         
-        // Zoom control
         L.control.zoom({ position: 'bottomright' }).addTo(this.map);
         
-        // Event handlers
         this.map.on(L.Draw.Event.CREATED, (e) => {
             const layer = e.layer;
-            const geojson = layer.toGeoJSON();
-            
             if (e.layerType === 'polygon' || e.layerType === 'rectangle') {
                 this.polygonCount++;
                 document.getElementById('polygonCount').textContent = this.polygonCount;
-                const area = turf.area(geojson) / 10000;
+                const area = turf.area(layer.toGeoJSON()) / 10000;
                 Toast.success(`Polygon: ${area.toFixed(2)} ha`);
-                if (this.onPolygonAdded) this.onPolygonAdded(geojson);
             } else if (e.layerType === 'marker') {
                 this.waypointCount++;
                 document.getElementById('waypointCount').textContent = this.waypointCount;
-                const latlng = layer.getLatLng();
-                Toast.success(`Waypoint ${this.waypointCount} added`);
-                if (this.onWaypointAdded) {
-                    this.onWaypointAdded({
-                        id: Utils.uuid(),
-                        lat: latlng.lat,
-                        lng: latlng.lng,
-                        label: `WP${this.waypointCount}`
-                    });
-                }
+                Toast.success(`Waypoint ${this.waypointCount}`);
             }
-            
             this.drawnItems.addLayer(layer);
         });
         
@@ -1748,168 +1209,106 @@ class MapService {
             this.currentLng = e.latlng.lng;
         });
         
-        // Update status bar
         document.getElementById('polygonCount').textContent = '0';
         document.getElementById('waypointCount').textContent = '0';
-        
-        return this.map;
     }
     
-    switchLayer(layerName) {
-        // Remove all layers
-        Object.values(this.layers).forEach(l => {
-            if (l && this.map.hasLayer(l)) this.map.removeLayer(l);
-        });
-        
-        this.activeLayer = layerName;
-        const layer = this.layers[layerName];
+    switchLayer(name) {
+        Object.values(this.layers).forEach(l => { if (l && this.map.hasLayer(l)) this.map.removeLayer(l); });
+        this.activeLayer = name;
+        const layer = this.layers[name];
         if (layer) {
             layer.addTo(this.map);
-            // Update layer control UI
             document.querySelectorAll('.layer-item').forEach(el => {
-                el.classList.toggle('active', el.dataset.layer === layerName);
+                el.classList.toggle('active', el.dataset.layer === name);
             });
         }
     }
     
-    locate() {
-        if (!navigator.geolocation) {
-            Toast.warning('Geolocation not supported');
-            return;
-        }
+    locateUser() {
+        if (!navigator.geolocation) { Toast.warning('Geolocation not supported'); return; }
         navigator.geolocation.getCurrentPosition(
-            pos => {
-                this.map.setView([pos.coords.latitude, pos.coords.longitude], 16);
-                this.currentLat = pos.coords.latitude;
-                this.currentLng = pos.coords.longitude;
-                Toast.success('Location found');
-            },
+            pos => { this.map.setView([pos.coords.latitude, pos.coords.longitude], 16); Toast.success('Location found'); },
             () => Toast.warning('Location unavailable'),
             { enableHighAccuracy: true, timeout: 10000 }
         );
     }
     
-    startGPS() {
-        if (!navigator.geolocation) {
-            document.getElementById('gpsStatus').textContent = 'Unavailable';
-            return;
-        }
-        
+    initGPS() {
+        if (!navigator.geolocation) { document.getElementById('gpsStatus').textContent = 'Unavailable'; return; }
         this.gpsWatchId = navigator.geolocation.watchPosition(
             pos => {
                 this.currentLat = pos.coords.latitude;
                 this.currentLng = pos.coords.longitude;
                 document.getElementById('gpsStatus').textContent = `±${Math.round(pos.coords.accuracy)}m`;
-                
                 if (!this.gpsMarker) {
                     this.gpsMarker = L.marker([this.currentLat, this.currentLng], {
                         icon: L.divIcon({
-                            html: '<i class="fas fa-location-dot" style="color:#dc2626;font-size:22px;"></i>',
-                            iconSize: [22, 22],
-                            className: 'gps-marker'
+                            html: '<div style="background:#dc2626;width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 0 4px rgba(220,38,38,0.3);"></div>',
+                            iconSize: [12, 12],
+                            className: 'gps-pulse'
                         }),
                         zIndexOffset: 1000
                     }).addTo(this.map);
                 } else {
                     this.gpsMarker.setLatLng([this.currentLat, this.currentLng]);
                 }
-                
-                if (this.onLocationUpdate) {
-                    this.onLocationUpdate(this.currentLat, this.currentLng);
-                }
             },
-            () => {
-                document.getElementById('gpsStatus').textContent = 'Error';
-            },
+            () => document.getElementById('gpsStatus').textContent = 'Error',
             { enableHighAccuracy: true }
         );
     }
     
-    stopGPS() {
-        if (this.gpsWatchId) {
-            navigator.geolocation.clearWatch(this.gpsWatchId);
-            this.gpsWatchId = null;
-        }
-        if (this.gpsMarker) {
-            this.map.removeLayer(this.gpsMarker);
-            this.gpsMarker = null;
-        }
-        document.getElementById('gpsStatus').textContent = 'Stopped';
-    }
-    
     startMeasure() {
-        if (this.measureMode) {
-            this.stopMeasure();
-            return;
-        }
-        
+        if (this.measureMode) { this.stopMeasure(); return; }
         this.measureMode = true;
         this.measurePoints = [];
-        Toast.info('Measure ON - Click two points on map');
+        Toast.info('Measure ON - Click two points');
         
-        const clickHandler = (e) => {
+        const handler = (e) => {
             if (!this.measureMode) return;
             const latlng = e.latlng;
             this.measurePoints.push(latlng);
             
             const marker = L.marker(latlng, {
                 icon: L.divIcon({
-                    html: `<div style="background:#f59e0b;color:white;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-weight:bold;border:2px solid white;font-size:11px;">${this.measurePoints.length}</div>`,
-                    iconSize: [24, 24]
+                    html: `<div style="background:#f59e0b;color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:bold;border:2px solid white;font-size:10px;">${this.measurePoints.length}</div>`,
+                    iconSize: [22, 22]
                 })
             }).addTo(this.map);
             this.measureMarkers.push(marker);
             
             if (this.measurePoints.length === 2) {
-                const p1 = this.measurePoints[0];
-                const p2 = this.measurePoints[1];
+                const p1 = this.measurePoints[0], p2 = this.measurePoints[1];
                 const dist = Utils.haversineDist(p1.lat, p1.lng, p2.lat, p2.lng);
-                
                 if (this.measureLine) this.map.removeLayer(this.measureLine);
-                this.measureLine = L.polyline(this.measurePoints, {
-                    color: '#f59e0b',
-                    weight: 4,
-                    dashArray: '8,6'
-                }).addTo(this.map);
-                
-                const mid = L.latLng((p1.lat + p2.lat)/2, (p1.lng + p2.lng)/2);
+                this.measureLine = L.polyline(this.measurePoints, { color: '#f59e0b', weight: 4, dashArray: '8,6' }).addTo(this.map);
+                const mid = L.latLng((p1.lat+p2.lat)/2, (p1.lng+p2.lng)/2);
                 const label = L.divIcon({
-                    html: `<div style="background:#1a5f4a;color:white;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:bold;box-shadow:0 2px 8px rgba(0,0,0,0.2);">📏 ${Utils.formatDistance(dist)}</div>`,
-                    iconSize: [null, null],
-                    className: 'measure-label'
+                    html: `<div style="background:#1a5f4a;color:white;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:bold;">📏 ${Utils.formatDistance(dist)}</div>`,
+                    iconSize: [null, null]
                 });
                 this.measureMarkers.push(L.marker(mid, { icon: label, interactive: false }).addTo(this.map));
-                
                 Toast.success(`Distance: ${Utils.formatDistance(dist)}`);
                 setTimeout(() => this.stopMeasure(), 2000);
             }
         };
-        
-        this.map.on('click', clickHandler);
-        this._measureHandler = clickHandler;
-        
-        // Update button
+        this.map.on('click', handler);
+        this._measureHandler = handler;
         document.getElementById('measureBtn').classList.add('active');
     }
     
     stopMeasure() {
         this.measureMode = false;
-        if (this._measureHandler) {
-            this.map.off('click', this._measureHandler);
-            this._measureHandler = null;
-        }
-        if (this.measureLine) {
-            this.map.removeLayer(this.measureLine);
-            this.measureLine = null;
-        }
+        if (this._measureHandler) { this.map.off('click', this._measureHandler); this._measureHandler = null; }
+        if (this.measureLine) { this.map.removeLayer(this.measureLine); this.measureLine = null; }
         this.measureMarkers.forEach(m => this.map.removeLayer(m));
         this.measureMarkers = [];
         this.measurePoints = [];
         document.getElementById('measureBtn').classList.remove('active');
-        Toast.info('Measure OFF');
     }
     
-    clear() {
+    clearMap() {
         this.drawnItems.clearLayers();
         this.polygonCount = 0;
         this.waypointCount = 0;
@@ -1918,40 +1317,26 @@ class MapService {
         Toast.info('Map cleared');
     }
     
-    resetView() {
-        this.map.setView(CONFIG.defaultView, CONFIG.defaultZoom);
-    }
+    resetView() { this.map.setView([-42.8806, 147.3250], 10); }
     
     toggleFullscreen() {
         const el = document.getElementById('mapWrapper');
-        if (!document.fullscreenElement) {
-            el.requestFullscreen?.() || el.webkitRequestFullscreen?.();
-        } else {
-            document.exitFullscreen?.() || document.webkitExitFullscreen?.();
-        }
+        if (!document.fullscreenElement) { el.requestFullscreen?.(); } 
+        else { document.exitFullscreen?.(); }
     }
     
     getGeometry() {
         const features = [];
-        this.drawnItems.eachLayer(layer => {
-            try {
-                features.push(layer.toGeoJSON());
-            } catch (e) {}
-        });
+        this.drawnItems.eachLayer(l => { try { features.push(l.toGeoJSON()); } catch(e) {} });
         return features;
     }
     
     getWaypoints() {
         const wps = [];
-        this.drawnItems.eachLayer(layer => {
-            if (layer instanceof L.Marker && !layer._icon?.classList?.contains('gps-marker')) {
-                const latlng = layer.getLatLng();
-                wps.push({
-                    id: Utils.uuid(),
-                    lat: latlng.lat,
-                    lng: latlng.lng,
-                    label: `WP${wps.length + 1}`
-                });
+        this.drawnItems.eachLayer(l => {
+            if (l instanceof L.Marker && !l.options.icon?.className?.includes('gps')) {
+                const ll = l.getLatLng();
+                wps.push({ id: Utils.uuid(), lat: ll.lat, lng: ll.lng, label: `WP${wps.length+1}` });
             }
         });
         return wps;
@@ -1963,487 +1348,58 @@ class MapService {
             try {
                 const layer = L.geoJSON(g);
                 this.drawnItems.addLayer(layer);
-                if (g.geometry?.type === 'Polygon' || g.geometry?.type === 'MultiPolygon') {
-                    this.polygonCount++;
-                } else if (g.geometry?.type === 'Point') {
-                    this.waypointCount++;
-                }
-            } catch (e) {}
+                if (g.geometry?.type === 'Polygon' || g.geometry?.type === 'MultiPolygon') this.polygonCount++;
+                else if (g.geometry?.type === 'Point') this.waypointCount++;
+            } catch(e) {}
         });
         document.getElementById('polygonCount').textContent = this.polygonCount;
         document.getElementById('waypointCount').textContent = this.waypointCount;
     }
     
-    destroy() {
-        this.stopGPS();
-        if (this.map) {
-            this.map.remove();
-            this.map = null;
-        }
-    }
-}
-
-// ================================================================
-// MODULE 6: REPORT GENERATOR
-// ================================================================
-class ReportGenerator {
-    constructor() {
-        this.branding = {
-            primaryColour: CONFIG.reportColour,
-            logo: null,
-            clientLogo: null,
-            companyName: 'EcoMaintenance Professional'
-        };
-    }
-    
-    setBranding(options) {
-        Object.assign(this.branding, options);
-    }
-    
-    async generatePDF(inspection, mapService) {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
-        const pageWidth = 210, pageHeight = 297;
-        const margin = 20, contentWidth = pageWidth - 2 * margin;
-        let y = margin;
-        const eco = inspection.ecologicalScore || Utils.calculateEcologicalScore(inspection);
-        const colour = this.branding.primaryColour;
-        
-        // ============================================================
-        // HELPER FUNCTIONS
-        // ============================================================
-        const addTitle = (text, size = 16, color = colour, align = 'left') => {
-            doc.setFontSize(size);
-            doc.setTextColor(color);
-            doc.text(text, margin, y, { align });
-            y += size * 0.4;
-        };
-        
-        const addBody = (text, size = 10, color = '#444444', align = 'left') => {
-            doc.setFontSize(size);
-            doc.setTextColor(color);
-            const lines = doc.splitTextToSize(text, contentWidth);
-            doc.text(lines, margin, y, { align });
-            y += lines.length * (size * 0.45) + 2;
-        };
-        
-        const addLine = (x1, y1, x2, y2, color = colour, width = 0.5) => {
-            doc.setDrawColor(color);
-            doc.setLineWidth(width);
-            doc.line(x1, y1, x2, y2);
-        };
-        
-        // ============================================================
-        // COVER PAGE
-        // ============================================================
-        doc.setFillColor(colour);
-        doc.rect(0, 0, pageWidth, 6, 'F');
-        
-        y = 30;
-        doc.setFontSize(32);
-        doc.setTextColor(colour);
-        doc.text('ENVIRONMENTAL', margin, y);
-        y += 14;
-        doc.text('ASSESSMENT REPORT', margin, y);
-        y += 16;
-        
-        addLine(margin, y, margin + 100, y, colour, 2);
-        y += 10;
-        
-        doc.setFontSize(20);
-        doc.setTextColor('#222222');
-        doc.text(inspection.siteName || 'Site Assessment', margin, y);
-        y += 12;
-        
-        doc.setFontSize(12);
-        doc.setTextColor('#666666');
-        doc.text(`Prepared for: ${inspection.organization || 'Environmental Client'}`, margin, y);
-        y += 8;
-        doc.text(`Date: ${Utils.formatDate(inspection.dateTime)}`, margin, y);
-        y += 8;
-        
-        // Hero image
-        if (inspection.photos && inspection.photos.length > 0) {
-            const hero = inspection.photos.find(p => p.isHero) || inspection.photos[0];
-            try {
-                const imgWidth = contentWidth - 20;
-                const imgHeight = 80;
-                doc.addImage(hero.dataURL, 'JPEG', margin + 10, y, imgWidth, imgHeight);
-                y += imgHeight + 6;
-                doc.setFontSize(7);
-                doc.setTextColor('#999999');
-                doc.text(`Cover Photo: ${inspection.siteName}`, margin + 10, y);
-                y += 6;
-            } catch (e) {
-                // Fallback
-                doc.setDrawColor(colour);
-                doc.setFillColor('#f5f5f5');
-                doc.roundedRect(margin + 10, y, contentWidth - 20, 50, 4, 4, 'FD');
-                doc.setFontSize(10);
-                doc.setTextColor('#999999');
-                doc.text('Project Photograph', margin + 70, y + 25);
-                y += 54;
-            }
-        }
-        
-        // Metadata
-        y += 8;
-        doc.setFontSize(8);
-        doc.setTextColor('#555555');
-        doc.text(`Report ID: ${inspection.id}`, margin + 10, y);
-        doc.text(`Version: ${CONFIG.version}`, margin + 120, y);
-        y += 6;
-        doc.text(`Author: ${inspection.inspector || 'Environmental Consultant'}`, margin + 10, y);
-        doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin + 120, y);
-        
-        // Footer
-        y = pageHeight - 12;
-        doc.setFillColor(colour);
-        doc.rect(0, y, pageWidth, 4, 'F');
-        doc.setFontSize(7);
-        doc.setTextColor('#999999');
-        doc.text(`© ${this.branding.companyName} v${CONFIG.version}`, margin, pageHeight - 6);
-        doc.text('Environmental Assessment Report', pageWidth / 2, pageHeight - 6, { align: 'center' });
-        doc.text(`Report: ${inspection.id}`, pageWidth - margin, pageHeight - 6, { align: 'right' });
-        
-        doc.addPage();
-        
-        // ============================================================
-        // EXECUTIVE SUMMARY
-        // ============================================================
-        y = margin + 10;
-        addTitle('EXECUTIVE SUMMARY', 20);
-        y += 8;
-        addLine(margin, y, pageWidth - margin, y, colour, 1);
-        y += 12;
-        
-        // Two-column layout
-        const colWidth = contentWidth * 0.55;
-        const rightCol = contentWidth * 0.45 + 5;
-        
-        // Left column - text
-        doc.setFontSize(11);
-        doc.setTextColor(colour);
-        doc.text('Purpose', margin, y);
-        y += 5;
-        const purpose = `This report presents findings of an ecological assessment at "${inspection.siteName}" conducted on ${Utils.formatDate(inspection.dateTime)}.`;
-        addBody(purpose, 9, '#444444');
-        y += 6;
-        
-        doc.setFontSize(11);
-        doc.setTextColor(colour);
-        doc.text('Key Findings', margin, y);
-        y += 5;
-        const findings = [
-            `• Condition Score: ${eco.conditionScore}/10 (${eco.riskRating})`,
-            `• ${eco.tasmanianSignificance}`,
-            `• ${inspection.speciesRichness || 5} species recorded`,
-            `• Weed cover: ${inspection.weedCover || 30}%`,
-            `• ${inspection.feralAnimals || 'Low'} feral activity`
-        ];
-        doc.setFontSize(9);
-        doc.setTextColor('#444444');
-        findings.forEach(f => { doc.text(f, margin, y); y += 5; });
-        y += 6;
-        
-        // Right column - dashboard
-        let ry = margin + 14;
-        // Score gauge
-        doc.setFillColor('#f5f5f5');
-        doc.roundedRect(margin + rightCol, ry, contentWidth * 0.38, 12, 2, 2, 'F');
-        const scoreWidth = (eco.conditionScore / 10) * (contentWidth * 0.38);
-        doc.setFillColor(eco.riskColour);
-        doc.roundedRect(margin + rightCol, ry, scoreWidth, 12, 2, 2, 'F');
-        doc.setFontSize(8);
-        doc.setTextColor('#333333');
-        doc.text(`Score: ${eco.conditionScore}/10`, margin + rightCol + 5, ry + 8);
-        ry += 16;
-        
-        // Risk badge
-        doc.setFillColor(eco.riskColour);
-        doc.roundedRect(margin + rightCol, ry, contentWidth * 0.38, 10, 2, 2, 'F');
-        doc.setFontSize(8);
-        doc.setTextColor('#ffffff');
-        doc.text(`Risk: ${eco.riskRating}`, margin + rightCol + 5, ry + 7);
-        ry += 14;
-        
-        // Priority
-        doc.setFillColor('#3498db');
-        doc.roundedRect(margin + rightCol, ry, contentWidth * 0.38, 10, 2, 2, 'F');
-        doc.setFontSize(8);
-        doc.setTextColor('#ffffff');
-        doc.text(`Priority: ${eco.managementPriority}`, margin + rightCol + 5, ry + 7);
-        ry += 16;
-        
-        // Metrics
-        doc.setFontSize(8);
-        doc.setTextColor(colour);
-        doc.text('Key Metrics', margin + rightCol, ry);
-        ry += 5;
-        doc.setTextColor('#555555');
-        const metrics = [
-            `📍 Area: ${inspection.geometry ? inspection.geometry.length * 10 : 0} ha`,
-            `🌿 Type: ${inspection.vegetationType || 'Mixed'}`,
-            `🐾 Species: ${inspection.speciesRichness || 0}`
-        ];
-        metrics.forEach(m => { doc.text(m, margin + rightCol, ry); ry += 5; });
-        
-        y = Math.max(y, ry + 10);
-        doc.addPage();
-        
-        // ============================================================
-        // ASSESSMENT DETAILS
-        // ============================================================
-        y = margin + 10;
-        addTitle('ECOLOGICAL ASSESSMENT', 20);
-        y += 8;
-        addLine(margin, y, pageWidth - margin, y, colour, 1);
-        y += 12;
-        
-        // Assessment table
-        const assessmentData = [
-            ['Vegetation Health', `${inspection.vegHealth || 6}/10`],
-            ['Species Richness', `${inspection.speciesRichness || 5}/10`],
-            ['Regeneration', `${inspection.regeneration || 5}/10`],
-            ['Weed Cover', `${inspection.weedCover || 30}%`],
-            ['Habitat Quality', `${inspection.habitatQuality || 5}/10`],
-            ['Disturbance', `${inspection.disturbance || 3}/10`]
-        ];
-        
-        doc.autoTable({
-            startY: y,
-            head: [['Parameter', 'Value']],
-            body: assessmentData,
-            theme: 'striped',
-            headStyles: { fillColor: colour, textColor: '#ffffff', fontSize: 9 },
-            bodyStyles: { fontSize: 8 },
-            columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 100 } }
-        });
-        y = doc.lastAutoTable.finalY + 12;
-        
-        // Recommendations
-        addTitle('RECOMMENDATIONS', 14);
-        y += 6;
-        if (inspection.recommendations) {
-            addBody(inspection.recommendations, 9);
-        } else {
-            addBody('No recommendations recorded.', 9);
-        }
-        y += 6;
-        
-        // Observations
-        addTitle('OBSERVATIONS', 14);
-        y += 6;
-        if (inspection.observations) {
-            addBody(inspection.observations, 9);
-        } else {
-            addBody('No observations recorded.', 9);
-        }
-        
-        doc.addPage();
-        
-        // ============================================================
-        // PHOTOS
-        // ============================================================
-        y = margin + 10;
-        addTitle('PHOTO DOCUMENTATION', 20);
-        y += 8;
-        addLine(margin, y, pageWidth - margin, y, colour, 1);
-        y += 12;
-        
-        if (inspection.photos && inspection.photos.length > 0) {
-            const photosToShow = inspection.photos.slice(0, 8);
-            let px = margin, py = y;
-            const size = 60;
-            let count = 0;
-            
-            photosToShow.forEach((p, i) => {
-                try {
-                    if (i > 0 && i % 3 === 0) {
-                        px = margin;
-                        py += size + 8;
-                    }
-                    doc.addImage(p.dataURL, 'JPEG', px, py, size, size * 0.75);
-                    px += size + 6;
-                    count++;
-                } catch (e) {}
-            });
-            
-            y = py + size + 12;
-            doc.setFontSize(8);
-            doc.setTextColor('#666666');
-            doc.text(`Total ${inspection.photos.length} images captured.`, margin, y);
-        } else {
-            doc.text('No photos uploaded.', margin, y);
-        }
-        
-        // ============================================================
-        // FOOTER
-        // ============================================================
-        const totalPages = doc.internal.getNumberOfPages();
-        for (let i = 1; i <= totalPages; i++) {
-            doc.setPage(i);
-            doc.setDrawColor(colour);
-            doc.setLineWidth(0.3);
-            doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
-            doc.setFontSize(8);
-            doc.setTextColor('#888888');
-            doc.text(`Page ${i} of ${totalPages}`, pageWidth / 2, pageHeight - 6, { align: 'center' });
-            doc.text(`Report: ${inspection.id}`, margin, pageHeight - 6);
-            doc.text(Utils.formatDate(inspection.dateTime), pageWidth - margin, pageHeight - 6, { align: 'right' });
-        }
-        
-        doc.save(`EcoMaintenance_Report_${inspection.id}.pdf`);
-        Toast.success('Report generated successfully');
-    }
-}
-
-// ================================================================
-// MODULE 7: MAIN APPLICATION
-// ================================================================
-class EcoMaintenanceApp {
-    constructor() {
-        this.db = new Database();
-        this.mapService = new MapService();
-        this.reportGenerator = new ReportGenerator();
-        this.currentId = null;
-        this.currentPhotos = [];
-        this.currentGeometry = [];
-        this.currentWaypoints = [];
-        this.currentInspection = null;
-        this.isDraft = false;
-        this.currentProject = null;
-        this.charts = [];
-    }
-    
-    async init() {
-        await this.db.init();
-        this.mapService.init('map');
-        this.mapService.startGPS();
-        this.mapService.onPolygonAdded = (g) => this.currentGeometry.push(g);
-        this.mapService.onWaypointAdded = (w) => this.currentWaypoints.push(w);
-        
-        this.bindEvents();
-        this.updateStorageStatus();
-        this.showDashboard();
-        
-        Toast.success(`${CONFIG.appName} v${CONFIG.version} Ready`);
-    }
-    
     // ================================================================
-    // EVENT BINDING
-    // ================================================================
-    bindEvents() {
-        // Navigation
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', () => {
-                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-                item.classList.add('active');
-                const view = item.dataset.view;
-                switch(view) {
-                    case 'dashboard': this.showDashboard(); break;
-                    case 'inspections': this.showInspections(); break;
-                    case 'new': this.newInspection(); break;
-                    case 'mapview': this.closePanel(); break;
-                    case 'drafts': this.showDrafts(); break;
-                    case 'data': this.showDataManager(); break;
-                    case 'projects': this.showProjects(); break;
-                    case 'reports': this.showReportTemplates(); break;
-                }
-            });
-        });
-        
-        // Toolbar
-        document.getElementById('newInspectionBtn').addEventListener('click', () => this.newInspection());
-        document.getElementById('listInspectionsBtn').addEventListener('click', () => this.showInspections());
-        document.getElementById('closePanelBtn').addEventListener('click', () => this.closePanel());
-        document.getElementById('clearMapBtn').addEventListener('click', () => this.mapService.clear());
-        document.getElementById('exportGeoJsonBtn').addEventListener('click', () => this.exportGeoJSON());
-        document.getElementById('exportCSVBtn').addEventListener('click', () => this.exportCSV());
-        document.getElementById('measureBtn').addEventListener('click', () => this.mapService.startMeasure());
-        document.getElementById('locateBtn').addEventListener('click', () => this.mapService.locate());
-        document.getElementById('fullscreenBtn').addEventListener('click', () => this.mapService.toggleFullscreen());
-        document.getElementById('resetMapBtn').addEventListener('click', () => this.mapService.resetView());
-        document.getElementById('sidebarToggle').addEventListener('click', () => {
-            document.getElementById('sidebar').classList.toggle('open');
-        });
-        
-        // Layer control
-        document.querySelectorAll('.layer-item').forEach(el => {
-            el.addEventListener('click', () => {
-                this.mapService.switchLayer(el.dataset.layer);
-            });
-        });
-        
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') this.closePanel();
-            if (e.ctrlKey && e.key === 'n') { e.preventDefault(); this.newInspection(); }
-            if (e.ctrlKey && e.key === 's') { e.preventDefault(); this.saveDraft(); }
-        });
-        
-        // Click outside panel to close
-        document.addEventListener('click', (e) => {
-            const panel = document.getElementById('panel');
-            if (panel.classList.contains('open')) {
-                if (!panel.contains(e.target) && !e.target.closest('.nav-item') && !e.target.closest('.btn')) {
-                    // Don't auto-close for now
-                }
-            }
-        });
-        
-        // Close sidebar on mobile when clicking content
-        document.querySelector('.main-content').addEventListener('click', () => {
-            if (window.innerWidth <= 768) {
-                document.getElementById('sidebar').classList.remove('open');
-            }
-        });
-    }
-    
-    // ================================================================
-    // STORAGE STATUS
-    // ================================================================
-    async updateStorageStatus() {
-        const inspCount = await this.db.count('inspections');
-        const draftCount = await this.db.count('drafts');
-        document.getElementById('storageStatus').innerHTML = 
-            `<i class="fas fa-database" aria-hidden="true"></i> ${inspCount} Reports | ${draftCount} Drafts`;
-        document.getElementById('inspCount').textContent = inspCount;
-        document.getElementById('draftCount').textContent = draftCount;
-    }
-    
-    // ================================================================
-    // PANEL MANAGEMENT
+    // PANEL
     // ================================================================
     openPanel() {
         document.getElementById('panel').classList.add('open');
+        this.panelOpen = true;
     }
     
     closePanel() {
         document.getElementById('panel').classList.remove('open');
+        this.panelOpen = false;
     }
     
-    setPanelContent(html, title) {
+    setPanel(html, title) {
         document.getElementById('panelBody').innerHTML = html;
         document.getElementById('panelTitle').innerHTML = title;
         this.openPanel();
     }
     
     // ================================================================
-    // FORM HANDLING
+    // STATUS
     // ================================================================
-    collectFormData() {
+    async updateStatus() {
+        const insp = await this.db.count('inspections');
+        const drafts = await this.db.count('drafts');
+        document.getElementById('storageStatus').innerHTML = `<i class="fas fa-database"></i> ${insp} Reports | ${drafts} Drafts`;
+        document.getElementById('inspCount').textContent = insp;
+        document.getElementById('draftCount').textContent = drafts;
+    }
+    
+    // ================================================================
+    // FORM
+    // ================================================================
+    collectForm() {
         const get = (id) => document.getElementById(id)?.value || '';
         const getNum = (id) => parseFloat(document.getElementById(id)?.value) || 0;
-        
         return {
             id: this.currentId,
             status: this.isDraft ? 'draft' : 'finalised',
             siteName: get('siteName'),
             inspector: get('inspector'),
             organization: get('organization'),
-            dateTime: get('dateTime') || new Date().toISOString().slice(0, 16),
-            coords: `${this.mapService.currentLat.toFixed(6)}, ${this.mapService.currentLng.toFixed(6)}`,
+            dateTime: get('dateTime') || new Date().toISOString().slice(0,16),
+            coords: `${this.currentLat.toFixed(6)}, ${this.currentLng.toFixed(6)}`,
             vegetationType: get('vegetationType'),
             tenure: get('tenure'),
             vegHealth: getNum('vegHealth'),
@@ -2461,289 +1417,185 @@ class EcoMaintenanceApp {
             weather: get('weather'),
             soilCondition: get('soilCondition'),
             photos: this.currentPhotos,
-            geometry: this.mapService.getGeometry(),
-            waypoints: this.mapService.getWaypoints(),
-            updatedAt: new Date().toISOString(),
-            projectId: this.currentProject
+            geometry: this.getGeometry(),
+            waypoints: this.getWaypoints(),
+            updatedAt: new Date().toISOString()
         };
     }
     
     renderForm(data = null) {
         const d = data || {};
-        const eco = Utils.calculateEcologicalScore(d);
-        const vegOptions = CONFIG.tasmanianVegetationTypes
-            .map(v => `<option ${d.vegetationType === v ? 'selected' : ''}>${v}</option>`)
-            .join('');
-        const threatOptions = CONFIG.threatLevels
-            .map(t => `<option ${d.threatLevel === t ? 'selected' : ''}>${t}</option>`)
-            .join('');
-        const feralOptions = CONFIG.feralAnimalOptions
-            .map(f => `<option ${d.feralAnimals === f ? 'selected' : ''}>${f}</option>`)
-            .join('');
+        const eco = Utils.calculateScore(d);
+        const vegTypes = ['Dry Eucalypt Forest','Wet Eucalypt Forest','Rainforest','Moorland','Grassland','Coastal Heath','Saltmarsh','Alpine Vegetation','Riparian Forest','Plantation'];
+        const threats = ['Low','Medium','High','Critical'];
+        const feral = ['Nil','Low','Medium','High'];
+        
+        const vegOpts = vegTypes.map(v => `<option ${d.vegetationType === v ? 'selected' : ''}>${v}</option>`).join('');
+        const threatOpts = threats.map(t => `<option ${d.threatLevel === t ? 'selected' : ''}>${t}</option>`).join('');
+        const feralOpts = feral.map(f => `<option ${d.feralAnimals === f ? 'selected' : ''}>${f}</option>`).join('');
         
         return `
-            <form id="inspectionForm" novalidate>
-                <!-- Site Information -->
+            <form id="inspectionForm">
                 <div class="form-section">
-                    <div class="section-header">
-                        <span><i class="fas fa-info-circle" aria-hidden="true"></i> Site Information</span>
-                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
-                    </div>
+                    <div class="section-header"><span><i class="fas fa-info-circle"></i> Site Information</span><i class="fas fa-chevron-down"></i></div>
                     <div class="section-content">
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>Inspection ID</label>
-                                <input id="inspId" value="${d.id || ('ECO-' + Date.now())}" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label>Status</label>
-                                <input value="${this.isDraft ? 'DRAFT' : 'NEW'}" readonly style="font-weight:700;color:${this.isDraft ? 'var(--warning)' : 'var(--brand-canopy)'};">
-                            </div>
+                            <div class="form-group"><label>ID</label><input id="inspId" value="${d.id || ('ECO-'+Date.now())}" readonly></div>
+                            <div class="form-group"><label>Status</label><input value="${this.isDraft ? 'DRAFT' : 'NEW'}" style="font-weight:700;color:${this.isDraft ? 'var(--warning)' : 'var(--brand-canopy)'};" readonly></div>
                         </div>
-                        <div class="form-group">
-                            <label>Site Name <span class="required">*</span></label>
-                            <input id="siteName" required value="${Utils.escapeHtml(d.siteName || '')}" placeholder="e.g., Huon Valley Conservation Area">
+                        <div class="form-group"><label>Site Name <span class="required">*</span></label><input id="siteName" required value="${Utils.escapeHtml(d.siteName||'')}" placeholder="e.g., Huon Valley"></div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Inspector</label><input id="inspector" value="${Utils.escapeHtml(d.inspector||'')}" placeholder="Full name"></div>
+                            <div class="form-group"><label>Organization</label><input id="organization" value="${Utils.escapeHtml(d.organization||'')}" placeholder="Company/Agency"></div>
                         </div>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>Inspector</label>
-                                <input id="inspector" value="${Utils.escapeHtml(d.inspector || '')}" placeholder="Full name">
-                            </div>
-                            <div class="form-group">
-                                <label>Organization</label>
-                                <input id="organization" value="${Utils.escapeHtml(d.organization || '')}" placeholder="Company/Agency">
-                            </div>
+                            <div class="form-group"><label>Date & Time</label><input type="datetime-local" id="dateTime" value="${d.dateTime || new Date().toISOString().slice(0,16)}"></div>
+                            <div class="form-group"><label>Vegetation Type</label><select id="vegetationType">${vegOpts}</select></div>
                         </div>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>Date & Time</label>
-                                <input type="datetime-local" id="dateTime" value="${d.dateTime || new Date().toISOString().slice(0, 16)}">
-                            </div>
-                            <div class="form-group">
-                                <label>Vegetation Type</label>
-                                <select id="vegetationType">${vegOptions}</select>
-                            </div>
+                            <div class="form-group"><label>Tenure</label><input id="tenure" value="${Utils.escapeHtml(d.tenure||'')}" placeholder="Private/Parks"></div>
+                            <div class="form-group"><label>Weather</label><input id="weather" value="${Utils.escapeHtml(d.weather||'')}" placeholder="Temp, wind"></div>
                         </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Tenure / Land Manager</label>
-                                <input id="tenure" value="${Utils.escapeHtml(d.tenure || '')}" placeholder="e.g., Private, Parks">
-                            </div>
-                            <div class="form-group">
-                                <label>Weather</label>
-                                <input id="weather" value="${Utils.escapeHtml(d.weather || '')}" placeholder="Temp, wind, precip">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Soil Condition</label>
-                            <textarea id="soilCondition" rows="2">${Utils.escapeHtml(d.soilCondition || '')}</textarea>
-                        </div>
+                        <div class="form-group"><label>Soil Condition</label><textarea id="soilCondition" rows="2">${Utils.escapeHtml(d.soilCondition||'')}</textarea></div>
                     </div>
                 </div>
                 
-                <!-- Ecological Health -->
                 <div class="form-section">
-                    <div class="section-header">
-                        <span><i class="fas fa-chart-line" aria-hidden="true"></i> Ecological Health</span>
-                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
-                    </div>
+                    <div class="section-header"><span><i class="fas fa-chart-line"></i> Ecological Health</span><i class="fas fa-chevron-down"></i></div>
                     <div class="section-content">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
                             <span style="font-weight:700;">Condition Score</span>
                             <span style="font-weight:700;font-size:1.2rem;" id="scoreDisplay">${eco.conditionScore}/10</span>
                         </div>
-                        <div class="health-meter">
-                            <div class="health-fill" style="width:${eco.conditionScore * 10}%;background:${eco.riskColour};"></div>
+                        <div class="health-meter"><div class="health-fill" style="width:${eco.conditionScore*10}%;background:${eco.colour};"></div></div>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
+                            <span class="rating-badge ${Utils.getRatingClass(eco.conditionScore)}">${eco.riskRating}</span>
+                            <span class="text-muted text-sm">${eco.significance}</span>
+                            <span class="text-muted text-sm">Priority: ${eco.priority}</span>
                         </div>
-                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
-                            <span class="rating-badge ${Utils.getRatingBadge(eco.conditionScore)}">${eco.riskRating}</span>
-                            <span class="text-sm text-muted">${eco.tasmanianSignificance}</span>
-                            <span class="text-sm text-muted">Priority: ${eco.managementPriority}</span>
-                        </div>
-                        <hr style="margin:10px 0;border-color:var(--neutral-200);">
+                        <hr style="margin:8px 0;border-color:var(--neutral-200);">
                         
-                        <div class="form-group">
-                            <label>Vegetation Health (0-10)</label>
-                            <input type="range" id="vegHealth" min="0" max="10" step="0.5" value="${d.vegHealth || 6}" oninput="document.getElementById('vegHealthVal').textContent=this.value">
-                            <span id="vegHealthVal" class="text-sm text-muted">${d.vegHealth || 6}</span>
+                        <div class="form-group"><label>Vegetation Health (0-10)</label>
+                            <input type="range" id="vegHealth" min="0" max="10" step="0.5" value="${d.vegHealth||6}" oninput="document.getElementById('vhVal').textContent=this.value">
+                            <span id="vhVal" class="text-muted text-sm">${d.vegHealth||6}</span>
                         </div>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>Species Richness (0-10)</label>
-                                <input type="range" id="speciesRichness" min="0" max="10" step="0.5" value="${d.speciesRichness || 5}" oninput="document.getElementById('speciesRichnessVal').textContent=this.value">
-                                <span id="speciesRichnessVal" class="text-sm text-muted">${d.speciesRichness || 5}</span>
+                            <div class="form-group"><label>Species Richness (0-10)</label>
+                                <input type="range" id="speciesRichness" min="0" max="10" step="0.5" value="${d.speciesRichness||5}" oninput="document.getElementById('srVal').textContent=this.value">
+                                <span id="srVal" class="text-muted text-sm">${d.speciesRichness||5}</span>
                             </div>
-                            <div class="form-group">
-                                <label>Regeneration (0-10)</label>
-                                <input type="range" id="regeneration" min="0" max="10" step="0.5" value="${d.regeneration || 5}" oninput="document.getElementById('regenerationVal').textContent=this.value">
-                                <span id="regenerationVal" class="text-sm text-muted">${d.regeneration || 5}</span>
+                            <div class="form-group"><label>Regeneration (0-10)</label>
+                                <input type="range" id="regeneration" min="0" max="10" step="0.5" value="${d.regeneration||5}" oninput="document.getElementById('reVal').textContent=this.value">
+                                <span id="reVal" class="text-muted text-sm">${d.regeneration||5}</span>
                             </div>
                         </div>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>Weed Cover (%)</label>
-                                <input type="number" id="weedCover" value="${d.weedCover || 30}" min="0" max="100">
-                            </div>
-                            <div class="form-group">
-                                <label>Habitat Quality (0-10)</label>
-                                <input type="range" id="habitatQuality" min="0" max="10" step="0.5" value="${d.habitatQuality || 5}" oninput="document.getElementById('habitatQualityVal').textContent=this.value">
-                                <span id="habitatQualityVal" class="text-sm text-muted">${d.habitatQuality || 5}</span>
+                            <div class="form-group"><label>Weed Cover (%)</label><input type="number" id="weedCover" value="${d.weedCover||30}" min="0" max="100"></div>
+                            <div class="form-group"><label>Habitat Quality (0-10)</label>
+                                <input type="range" id="habitatQuality" min="0" max="10" step="0.5" value="${d.habitatQuality||5}" oninput="document.getElementById('hqVal').textContent=this.value">
+                                <span id="hqVal" class="text-muted text-sm">${d.habitatQuality||5}</span>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label>Disturbance (0-10)</label>
-                            <input type="range" id="disturbance" min="0" max="10" step="0.5" value="${d.disturbance || 3}" oninput="document.getElementById('disturbanceVal').textContent=this.value">
-                            <span id="disturbanceVal" class="text-sm text-muted">${d.disturbance || 3}</span>
+                        <div class="form-group"><label>Disturbance (0-10)</label>
+                            <input type="range" id="disturbance" min="0" max="10" step="0.5" value="${d.disturbance||3}" oninput="document.getElementById('distVal').textContent=this.value">
+                            <span id="distVal" class="text-muted text-sm">${d.disturbance||3}</span>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Species & Threats -->
                 <div class="form-section">
-                    <div class="section-header">
-                        <span><i class="fas fa-paw" aria-hidden="true"></i> Species & Threats</span>
-                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
-                    </div>
+                    <div class="section-header"><span><i class="fas fa-paw"></i> Species & Threats</span><i class="fas fa-chevron-down"></i></div>
                     <div class="section-content">
-                        <div class="form-group">
-                            <label>Declared Weeds</label>
-                            <input id="weedsList" value="${Utils.escapeHtml(d.weedsList || '')}" placeholder="e.g., Gorse, Blackberry">
-                        </div>
+                        <div class="form-group"><label>Declared Weeds</label><input id="weedsList" value="${Utils.escapeHtml(d.weedsList||'')}" placeholder="e.g., Gorse, Blackberry"></div>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>Feral Animals</label>
-                                <select id="feralAnimals">${feralOptions}</select>
-                            </div>
-                            <div class="form-group">
-                                <label>Threat Level</label>
-                                <select id="threatLevel">${threatOptions}</select>
-                            </div>
+                            <div class="form-group"><label>Feral Animals</label><select id="feralAnimals">${feralOpts}</select></div>
+                            <div class="form-group"><label>Threat Level</label><select id="threatLevel">${threatOpts}</select></div>
                         </div>
-                        <div class="form-group">
-                            <label>Fire History</label>
-                            <input id="fireHistory" value="${Utils.escapeHtml(d.fireHistory || '')}" placeholder="Years since fire">
-                        </div>
-                        <div class="form-group">
-                            <label>Observations</label>
-                            <textarea id="observations" rows="2">${Utils.escapeHtml(d.observations || '')}</textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Recommendations</label>
-                            <textarea id="recommendations" rows="2">${Utils.escapeHtml(d.recommendations || '')}</textarea>
-                        </div>
+                        <div class="form-group"><label>Fire History</label><input id="fireHistory" value="${Utils.escapeHtml(d.fireHistory||'')}" placeholder="Years since fire"></div>
+                        <div class="form-group"><label>Observations</label><textarea id="observations" rows="2">${Utils.escapeHtml(d.observations||'')}</textarea></div>
+                        <div class="form-group"><label>Recommendations</label><textarea id="recommendations" rows="2">${Utils.escapeHtml(d.recommendations||'')}</textarea></div>
                     </div>
                 </div>
                 
-                <!-- Photos -->
                 <div class="form-section">
-                    <div class="section-header">
-                        <span><i class="fas fa-camera" aria-hidden="true"></i> Photos (${this.currentPhotos.length})</span>
-                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
-                    </div>
+                    <div class="section-header"><span><i class="fas fa-camera"></i> Photos (${this.currentPhotos.length})</span><i class="fas fa-chevron-down"></i></div>
                     <div class="section-content">
                         <div class="photo-upload-area" id="photoDropZone">
-                            <i class="fas fa-cloud-upload-alt" aria-hidden="true"></i>
-                            <p>Drag & drop photos or click to browse</p>
-                            <p class="text-xs text-muted">Max ${CONFIG.maxPhotos} images</p>
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Click or drag to add photos</p>
                         </div>
                         <input type="file" id="photoInput" accept="image/*" capture="environment" multiple style="display:none;">
                         <div id="photoGallery" class="photo-grid"></div>
-                        <small class="text-muted text-xs" style="display:block;margin-top:6px;">
-                            <i class="fas fa-info-circle" aria-hidden="true"></i> Click a photo to set as cover (hero)
-                        </small>
+                        <small class="text-muted text-xs" style="display:block;margin-top:4px;"><i class="fas fa-info-circle"></i> Click a photo to set as cover</small>
                     </div>
                 </div>
                 
-                <!-- Actions -->
-                <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
-                    <button type="button" id="saveDraftBtn" class="btn btn-secondary">
-                        <i class="fas fa-save" aria-hidden="true"></i> Save Draft
-                    </button>
-                    <button type="button" id="finaliseBtn" class="btn btn-primary">
-                        <i class="fas fa-file-pdf" aria-hidden="true"></i> Generate Report
-                    </button>
-                    <button type="button" id="cancelBtn" class="btn btn-secondary">
-                        <i class="fas fa-times" aria-hidden="true"></i> Cancel
-                    </button>
+                <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+                    <button type="button" id="saveDraftBtn" class="btn btn-secondary"><i class="fas fa-save"></i> Save Draft</button>
+                    <button type="button" id="finaliseBtn" class="btn btn-primary"><i class="fas fa-file-pdf"></i> Generate Report</button>
+                    <button type="button" id="cancelBtn" class="btn btn-secondary">Cancel</button>
                 </div>
             </form>
         `;
     }
     
-    bindFormEvents() {
-        const photoInput = document.getElementById('photoInput');
-        const dropZone = document.getElementById('photoDropZone');
-        
-        if (photoInput) {
-            photoInput.addEventListener('change', (e) => this.handlePhotos(e.target.files));
+    bindForm() {
+        const input = document.getElementById('photoInput');
+        const drop = document.getElementById('photoDropZone');
+        if (input) {
+            input.onchange = (e) => this.handlePhotos(e.target.files);
         }
-        
-        if (dropZone) {
-            dropZone.addEventListener('click', () => photoInput?.click());
-            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--brand-canopy)'; });
-            dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = ''; });
-            dropZone.addEventListener('drop', (e) => {
+        if (drop) {
+            drop.onclick = () => input?.click();
+            drop.ondragover = (e) => { e.preventDefault(); drop.style.borderColor = 'var(--brand-canopy)'; };
+            drop.ondragleave = () => { drop.style.borderColor = ''; };
+            drop.ondrop = (e) => {
                 e.preventDefault();
-                dropZone.style.borderColor = '';
-                if (e.dataTransfer.files.length) {
-                    this.handlePhotos(e.dataTransfer.files);
-                }
-            });
+                drop.style.borderColor = '';
+                if (e.dataTransfer.files.length) this.handlePhotos(e.dataTransfer.files);
+            };
         }
         
         this.renderGallery();
         
         document.getElementById('saveDraftBtn')?.addEventListener('click', () => this.saveDraft());
-        document.getElementById('finaliseBtn')?.addEventListener('click', () => this.finaliseInspection());
+        document.getElementById('finaliseBtn')?.addEventListener('click', () => this.finalise());
         document.getElementById('cancelBtn')?.addEventListener('click', () => this.closePanel());
         
-        // Section toggle
         document.querySelectorAll('.section-header').forEach(h => {
-            h.addEventListener('click', () => {
+            h.onclick = () => {
                 h.classList.toggle('collapsed');
                 h.nextElementSibling?.classList.toggle('collapsed');
-            });
+            };
         });
         
-        // Live score update
-        ['vegHealth', 'speciesRichness', 'regeneration', 'weedCover', 'habitatQuality', 'disturbance'].forEach(id => {
+        ['vegHealth','speciesRichness','regeneration','weedCover','habitatQuality','disturbance'].forEach(id => {
             const el = document.getElementById(id);
             if (el) {
-                el.addEventListener('input', () => {
-                    const data = this.collectFormData();
-                    const eco = Utils.calculateEcologicalScore(data);
+                el.oninput = () => {
+                    const data = this.collectForm();
+                    const eco = Utils.calculateScore(data);
                     const fill = document.querySelector('.health-fill');
-                    const scoreDisplay = document.getElementById('scoreDisplay');
-                    if (fill) {
-                        fill.style.width = `${eco.conditionScore * 10}%`;
-                        fill.style.background = eco.riskColour;
-                    }
-                    if (scoreDisplay) {
-                        scoreDisplay.textContent = `${eco.conditionScore}/10`;
-                    }
-                });
+                    const display = document.getElementById('scoreDisplay');
+                    if (fill) { fill.style.width = `${eco.conditionScore*10}%`; fill.style.background = eco.colour; }
+                    if (display) display.textContent = `${eco.conditionScore}/10`;
+                };
             }
         });
     }
     
     // ================================================================
-    // PHOTO HANDLING
+    // PHOTOS
     // ================================================================
     async handlePhotos(files) {
-        const fileArray = Array.from(files);
-        const remaining = CONFIG.maxPhotos - this.currentPhotos.length;
-        const toProcess = fileArray.slice(0, remaining);
+        const maxPhotos = 20;
+        const remaining = maxPhotos - this.currentPhotos.length;
+        const toProcess = Array.from(files).slice(0, remaining);
         
-        if (fileArray.length > remaining) {
-            Toast.warning(`Only ${remaining} photos can be added`);
-        }
+        if (Array.from(files).length > remaining) Toast.warning(`Only ${remaining} photos can be added`);
         
         for (const file of toProcess) {
-            if (file.size > CONFIG.maxImageSize) {
-                Toast.warning(`${file.name} is too large (max 2MB)`);
-                continue;
-            }
-            
+            if (file.size > 2 * 1024 * 1024) { Toast.warning(`${file.name} is too large`); continue; }
             const reader = new FileReader();
             const data = await new Promise((resolve) => {
                 reader.onload = async (e) => {
@@ -2752,18 +1604,15 @@ class EcoMaintenanceApp {
                 };
                 reader.readAsDataURL(file);
             });
-            
             this.currentPhotos.push({
                 id: Utils.uuid(),
                 dataURL: data,
                 timestamp: new Date().toISOString(),
-                lat: this.mapService.currentLat,
-                lng: this.mapService.currentLng,
-                caption: '',
+                lat: this.currentLat,
+                lng: this.currentLng,
                 isHero: this.currentPhotos.length === 0
             });
         }
-        
         this.renderGallery();
         Toast.success(`${toProcess.length} photo(s) added`);
     }
@@ -2771,32 +1620,21 @@ class EcoMaintenanceApp {
     renderGallery() {
         const g = document.getElementById('photoGallery');
         if (!g) return;
-        
         if (this.currentPhotos.length === 0) {
-            g.innerHTML = `
-                <div style="padding:24px;text-align:center;color:var(--neutral-400);grid-column:1/-1;">
-                    <i class="fas fa-camera" style="font-size:24px;display:block;margin-bottom:8px;"></i>
-                    <span>No photos</span>
-                </div>
-            `;
+            g.innerHTML = `<div style="padding:20px;text-align:center;color:var(--neutral-400);grid-column:1/-1;"><i class="fas fa-camera" style="font-size:20px;display:block;margin-bottom:4px;"></i>No photos</div>`;
             return;
         }
-        
-        g.innerHTML = this.currentPhotos.map((p, idx) => `
-            <div class="photo-item" data-idx="${idx}">
-                <img src="${p.dataURL}" alt="Field photo ${idx + 1}" loading="lazy">
-                <div class="photo-overlay">
-                    <span>${new Date(p.timestamp).toLocaleTimeString()}</span>
-                    ${p.isHero ? '<span style="font-weight:700;color:var(--warning);">★ Cover</span>' : ''}
-                </div>
-                <button class="remove-photo" data-idx="${idx}" aria-label="Remove photo">×</button>
+        g.innerHTML = this.currentPhotos.map((p, i) => `
+            <div class="photo-item" data-idx="${i}">
+                <img src="${p.dataURL}" alt="Photo ${i+1}" loading="lazy">
+                <div class="photo-overlay"><span>${new Date(p.timestamp).toLocaleTimeString()}</span></div>
+                <button class="remove-photo" data-idx="${i}">×</button>
                 ${p.isHero ? '<div class="hero-badge">Cover</div>' : ''}
             </div>
         `).join('');
         
-        // Remove photo
         document.querySelectorAll('.remove-photo').forEach(el => {
-            el.addEventListener('click', (e) => {
+            el.onclick = (e) => {
                 e.stopPropagation();
                 const idx = parseInt(el.dataset.idx);
                 this.currentPhotos.splice(idx, 1);
@@ -2804,549 +1642,501 @@ class EcoMaintenanceApp {
                     this.currentPhotos[0].isHero = true;
                 }
                 this.renderGallery();
-            });
+            };
         });
         
-        // Set hero on click
         document.querySelectorAll('.photo-item').forEach((el, idx) => {
-            el.addEventListener('click', () => {
+            el.onclick = () => {
                 this.currentPhotos.forEach((p, i) => p.isHero = (i === idx));
                 this.renderGallery();
                 Toast.success('Cover photo set');
-            });
+            };
         });
     }
     
     // ================================================================
-    // INSPECTION OPERATIONS
+    // CRUD OPERATIONS
     // ================================================================
     async newInspection() {
         this.currentId = Utils.uuid();
         this.currentPhotos = [];
-        this.currentGeometry = [];
-        this.currentWaypoints = [];
         this.isDraft = false;
-        this.mapService.clear();
-        
-        const html = this.renderForm({ id: this.currentId });
-        this.setPanelContent(html, 'New Ecological Assessment');
-        this.bindFormEvents();
+        this.clearMap();
+        this.setPanel(this.renderForm({ id: this.currentId }), 'New Ecological Assessment');
+        this.bindForm();
     }
     
-    async loadInspection(id, isDraft = false) {
-        const data = await this.db.get(id, isDraft);
-        if (!data) {
-            Toast.error('Inspection not found');
-            return;
-        }
-        
+    async loadInspection(id, draft = false) {
+        const data = await this.db.get(id, draft);
+        if (!data) { Toast.error('Not found'); return; }
         this.currentId = data.id;
         this.currentPhotos = data.photos || [];
-        this.currentGeometry = data.geometry || [];
-        this.currentWaypoints = data.waypoints || [];
-        this.isDraft = isDraft;
-        this.currentInspection = data;
-        this.currentProject = data.projectId || null;
-        
-        this.mapService.clear();
-        this.mapService.loadGeometry(data.geometry || []);
-        data.waypoints?.forEach(w => {
-            this.mapService.drawnItems.addLayer(
-                L.marker([w.lat, w.lng]).bindPopup(`<strong>${w.label}</strong>`)
-            );
+        this.isDraft = draft;
+        this.clearMap();
+        this.loadGeometry(data.geometry || []);
+        (data.waypoints || []).forEach(w => {
+            this.drawnItems.addLayer(L.marker([w.lat, w.lng]).bindPopup(`<strong>${Utils.escapeHtml(w.label)}</strong>`));
         });
-        
-        const html = this.renderForm(data);
-        this.setPanelContent(html, isDraft ? 'Edit Draft' : 'View Inspection');
-        this.bindFormEvents();
+        this.setPanel(this.renderForm(data), draft ? 'Edit Draft' : 'View Inspection');
+        this.bindForm();
     }
     
     async saveDraft() {
-        const data = this.collectFormData();
-        if (!data.siteName) {
-            Toast.warning('Site name is required');
-            return;
-        }
+        const data = this.collectForm();
+        if (!data.siteName) { Toast.warning('Site name required'); return; }
         data.status = 'draft';
         await this.db.save(data, true);
         this.isDraft = true;
         Toast.success('Draft saved');
-        this.updateStorageStatus();
+        this.updateStatus();
     }
     
-    async finaliseInspection() {
-        const data = this.collectFormData();
-        if (!data.siteName) {
-            Toast.warning('Site name is required');
-            return;
+    async finalise() {
+        const data = this.collectForm();
+        if (!data.siteName) { Toast.warning('Site name required'); return; }
+        data.status = 'finalised';
+        data.ecologicalScore = Utils.calculateScore(data);
+        await this.db.save(data, false);
+        await this.db.delete(data.id, true);
+        await this.generateReport(data);
+        this.closePanel();
+        this.updateStatus();
+        this.showInspections();
+    }
+    
+    // ================================================================
+    // REPORT GENERATION
+    // ================================================================
+    async generateReport(inspection) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        const pageWidth = 210, pageHeight = 297, margin = 18;
+        let y = margin;
+        const eco = inspection.ecologicalScore || Utils.calculateScore(inspection);
+        const colour = '#1a5f4a';
+        
+        // Helper
+        const addText = (text, size = 10, color = '#333', align = 'left') => {
+            doc.setFontSize(size);
+            doc.setTextColor(color);
+            const lines = doc.splitTextToSize(text || '', pageWidth - 2*margin);
+            doc.text(lines, margin, y, { align });
+            y += lines.length * (size * 0.45) + 1.5;
+        };
+        
+        const addTitle = (text, size = 18, color = colour) => {
+            doc.setFontSize(size);
+            doc.setTextColor(color);
+            doc.text(text, margin, y);
+            y += size * 0.4 + 2;
+        };
+        
+        const line = () => { doc.setDrawColor(colour); doc.setLineWidth(0.5); doc.line(margin, y, pageWidth - margin, y); y += 6; };
+        
+        // Cover
+        doc.setFillColor(colour);
+        doc.rect(0, 0, pageWidth, 5, 'F');
+        y = 30;
+        doc.setFontSize(28);
+        doc.setTextColor(colour);
+        doc.text('ENVIRONMENTAL', margin, y);
+        y += 14;
+        doc.text('ASSESSMENT REPORT', margin, y);
+        y += 12;
+        line();
+        y += 4;
+        doc.setFontSize(18);
+        doc.setTextColor('#222');
+        doc.text(Utils.escapeHtml(inspection.siteName || 'Site Assessment'), margin, y);
+        y += 10;
+        doc.setFontSize(11);
+        doc.setTextColor('#666');
+        doc.text(`Prepared for: ${Utils.escapeHtml(inspection.organization || 'Environmental Client')}`, margin, y);
+        y += 6;
+        doc.text(`Date: ${Utils.formatDate(inspection.dateTime)}`, margin, y);
+        y += 8;
+        
+        // Hero image
+        if (inspection.photos && inspection.photos.length > 0) {
+            const hero = inspection.photos.find(p => p.isHero) || inspection.photos[0];
+            try {
+                doc.addImage(hero.dataURL, 'JPEG', margin+5, y, pageWidth-2*margin-10, 60);
+                y += 66;
+            } catch(e) {
+                doc.setFillColor('#f5f5f5');
+                doc.roundedRect(margin+5, y, pageWidth-2*margin-10, 40, 3, 3, 'F');
+                doc.setFontSize(10);
+                doc.setTextColor('#999');
+                doc.text('Cover Photo', pageWidth/2, y+22, { align: 'center' });
+                y += 46;
+            }
         }
         
-        data.status = 'finalised';
-        data.ecologicalScore = Utils.calculateEcologicalScore(data);
-        await this.db.save(data, false);
+        doc.setFontSize(8);
+        doc.setTextColor('#888');
+        doc.text(`Report ID: ${inspection.id}`, margin, y);
+        doc.text(`v${'4.0'}`, pageWidth-margin, y, { align: 'right' });
+        y += 6;
+        doc.text(`Author: ${Utils.escapeHtml(inspection.inspector || 'Consultant')}`, margin, y);
+        y += 8;
         
-        // Delete draft if exists
-        await this.db.delete(data.id, true);
+        // Footer
+        doc.setFillColor(colour);
+        doc.rect(0, pageHeight-6, pageWidth, 3, 'F');
+        doc.setFontSize(7);
+        doc.setTextColor('#999');
+        doc.text('© EcoMaintenance Professional', margin, pageHeight-3);
+        doc.text(new Date().toLocaleDateString(), pageWidth-margin, pageHeight-3, { align: 'right' });
         
-        // Generate report
-        await this.reportGenerator.generatePDF(data, this.mapService);
+        doc.addPage();
         
-        this.closePanel();
-        this.updateStorageStatus();
-        Toast.success('Report generated successfully');
-        this.showInspections();
+        // Summary
+        y = margin + 8;
+        addTitle('EXECUTIVE SUMMARY', 20);
+        line();
+        y += 4;
+        addText(`This report presents findings of an ecological assessment at "${Utils.escapeHtml(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`, 10);
+        y += 4;
+        addText(`Condition Score: ${eco.conditionScore}/10 (${eco.riskRating})`, 10);
+        addText(`Significance: ${eco.significance}`, 10);
+        addText(`Management Priority: ${eco.priority}`, 10);
+        y += 4;
+        
+        // Assessment details
+        addTitle('ASSESSMENT DETAILS', 16);
+        line();
+        y += 4;
+        const details = [
+            ['Vegetation Health', `${inspection.vegHealth || 6}/10`],
+            ['Species Richness', `${inspection.speciesRichness || 5}/10`],
+            ['Regeneration', `${inspection.regeneration || 5}/10`],
+            ['Weed Cover', `${inspection.weedCover || 30}%`],
+            ['Habitat Quality', `${inspection.habitatQuality || 5}/10`],
+            ['Disturbance', `${inspection.disturbance || 3}/10`]
+        ];
+        doc.autoTable({
+            startY: y,
+            head: [['Parameter', 'Value']],
+            body: details,
+            theme: 'striped',
+            headStyles: { fillColor: colour, textColor: '#fff', fontSize: 9 },
+            bodyStyles: { fontSize: 8 },
+            columnStyles: { 0: { cellWidth: 70 }, 1: { cellWidth: 100 } }
+        });
+        y = doc.lastAutoTable.finalY + 8;
+        
+        // Recommendations
+        addTitle('RECOMMENDATIONS', 14);
+        line();
+        y += 4;
+        const recs = inspection.recommendations || 'No recommendations recorded.';
+        addText(recs, 9);
+        y += 4;
+        
+        // Observations
+        addTitle('OBSERVATIONS', 14);
+        line();
+        y += 4;
+        const obs = inspection.observations || 'No observations recorded.';
+        addText(obs, 9);
+        
+        // Photos appendix
+        doc.addPage();
+        y = margin + 8;
+        addTitle('PHOTO DOCUMENTATION', 18);
+        line();
+        y += 4;
+        if (inspection.photos && inspection.photos.length > 0) {
+            const photos = inspection.photos.slice(0, 9);
+            let px = margin, py = y;
+            const size = 55;
+            photos.forEach((p, i) => {
+                if (i > 0 && i % 3 === 0) { px = margin; py += size + 6; }
+                try {
+                    doc.addImage(p.dataURL, 'JPEG', px, py, size, size * 0.75);
+                    px += size + 4;
+                } catch(e) {}
+            });
+            y = py + size + 10;
+            doc.setFontSize(8);
+            doc.setTextColor('#666');
+            doc.text(`Total ${inspection.photos.length} images`, margin, y);
+        } else {
+            addText('No photos uploaded.', 10);
+        }
+        
+        // Footer on all pages
+        const total = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= total; i++) {
+            doc.setPage(i);
+            doc.setDrawColor(colour);
+            doc.setLineWidth(0.3);
+            doc.line(margin, pageHeight-10, pageWidth-margin, pageHeight-10);
+            doc.setFontSize(7);
+            doc.setTextColor('#aaa');
+            doc.text(`Page ${i} of ${total}`, pageWidth/2, pageHeight-5, { align: 'center' });
+            doc.text(inspection.id, margin, pageHeight-5);
+        }
+        
+        doc.save(`EcoMaintenance_Report_${inspection.id}.pdf`);
+        Toast.success('Report generated');
     }
     
     // ================================================================
     // VIEWS
     // ================================================================
     async showDashboard() {
-        const inspections = await this.db.getAll('inspections');
+        const insp = await this.db.getAll('inspections');
         const drafts = await this.db.getAll('drafts');
-        const total = inspections.length;
-        const avgScore = total > 0 ? 
-            inspections.reduce((s, i) => s + (i.ecologicalScore?.conditionScore || 0), 0) / total : 0;
-        const highValue = inspections.filter(i => (i.ecologicalScore?.conditionScore || 0) >= 7).length;
-        const critical = inspections.filter(i => (i.ecologicalScore?.conditionScore || 0) < 4).length;
+        const total = insp.length;
+        const avg = total > 0 ? insp.reduce((s, i) => s + (i.ecologicalScore?.conditionScore || 0), 0) / total : 0;
+        const high = insp.filter(i => (i.ecologicalScore?.conditionScore || 0) >= 7).length;
+        const crit = insp.filter(i => (i.ecologicalScore?.conditionScore || 0) < 4).length;
         
-        // Generate chart data
-        const recent = inspections.slice(-10).reverse();
-        const chartLabels = recent.map(i => Utils.truncate(i.siteName || 'Unnamed', 15));
-        const chartData = recent.map(i => i.ecologicalScore?.conditionScore || 0);
+        const recent = insp.slice(-8).reverse();
+        const labels = recent.map(i => Utils.truncate(i.siteName || 'Site', 12));
+        const scores = recent.map(i => i.ecologicalScore?.conditionScore || 0);
         
         const html = `
             <div class="dashboard-grid">
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-clipboard-list"></i></div>
-                    <div class="stat-value">${total}</div>
-                    <div class="stat-label">Total Reports</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
-                    <div class="stat-value">${avgScore > 0 ? avgScore.toFixed(1) : '—'}</div>
-                    <div class="stat-label">Average Score</div>
-                    <span class="stat-change ${avgScore >= 6 ? 'positive' : 'negative'}">${avgScore >= 6 ? 'Good' : 'Needs attention'}</span>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-star" style="color:var(--warning);"></i></div>
-                    <div class="stat-value">${highValue}</div>
-                    <div class="stat-label">High Value Sites</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-exclamation-triangle" style="color:var(--danger);"></i></div>
-                    <div class="stat-value">${critical}</div>
-                    <div class="stat-label">Critical Sites</div>
-                </div>
+                <div class="stat-card"><div class="stat-icon"><i class="fas fa-clipboard-list"></i></div>
+                    <div class="stat-value">${total}</div><div class="stat-label">Reports</div></div>
+                <div class="stat-card"><div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="stat-value">${avg > 0 ? avg.toFixed(1) : '—'}</div><div class="stat-label">Avg Score</div>
+                    <span class="stat-change ${avg >= 6 ? 'positive' : 'negative'}">${avg >= 6 ? 'Good' : 'Needs attention'}</span></div>
+                <div class="stat-card"><div class="stat-icon"><i class="fas fa-star" style="color:var(--warning);"></i></div>
+                    <div class="stat-value">${high}</div><div class="stat-label">High Value</div></div>
+                <div class="stat-card"><div class="stat-icon"><i class="fas fa-exclamation-triangle" style="color:var(--danger);"></i></div>
+                    <div class="stat-value">${crit}</div><div class="stat-label">Critical</div></div>
             </div>
             
             <div class="chart-container">
-                <h4><i class="fas fa-chart-bar" aria-hidden="true"></i> Recent Scores</h4>
-                <canvas id="scoreChart" height="150"></canvas>
+                <h4><i class="fas fa-chart-bar"></i> Recent Scores</h4>
+                <canvas id="scoreChart" height="140"></canvas>
             </div>
             
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                <div class="stat-card" style="cursor:pointer;" onclick="window.app?.showInspections()">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div class="stat-card" style="cursor:pointer;" onclick="app.showInspections()">
                     <div style="display:flex;justify-content:space-between;align-items:center;">
                         <span><i class="fas fa-folder-open" style="color:var(--brand-canopy);"></i> <strong>${total}</strong> Reports</span>
-                        <span class="text-xs text-muted">View all →</span>
+                        <span class="text-muted text-xs">View →</span>
                     </div>
                 </div>
-                <div class="stat-card" style="cursor:pointer;" onclick="window.app?.showDrafts()">
+                <div class="stat-card" style="cursor:pointer;" onclick="app.showDrafts()">
                     <div style="display:flex;justify-content:space-between;align-items:center;">
                         <span><i class="fas fa-save" style="color:var(--warning);"></i> <strong>${drafts.length}</strong> Drafts</span>
-                        <span class="text-xs text-muted">View all →</span>
+                        <span class="text-muted text-xs">View →</span>
                     </div>
                 </div>
             </div>
             
-            <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
-                <button class="btn btn-primary" onclick="window.app?.newInspection()">
-                    <i class="fas fa-plus"></i> New Assessment
-                </button>
-                <button class="btn btn-secondary" onclick="window.app?.showDataManager()">
-                    <i class="fas fa-database"></i> Data Manager
-                </button>
+            <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;">
+                <button class="btn btn-primary" onclick="app.newInspection()"><i class="fas fa-plus"></i> New Assessment</button>
+                <button class="btn btn-secondary" onclick="app.showDataManager()"><i class="fas fa-database"></i> Data Manager</button>
             </div>
             
-            <div style="margin-top:16px;padding:12px 16px;background:var(--neutral-50);border-radius:var(--radius-md);border:1px solid var(--neutral-200);">
-                <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-                    <span class="text-sm font-mono">v${CONFIG.version}</span>
-                    <span class="text-xs text-muted">|</span>
-                    <span class="text-xs text-muted"><i class="fas fa-database" aria-hidden="true"></i> ${this.db.useLocalStorage ? 'LocalStorage' : 'IndexedDB'}</span>
-                    <span class="text-xs text-muted">|</span>
-                    <span class="text-xs text-muted"><i class="fas fa-map-pin" aria-hidden="true"></i> ${inspections.length > 0 ? inspections.length : 'No'} assessments</span>
+            <div style="margin-top:12px;padding:10px 14px;background:var(--neutral-50);border-radius:var(--radius-md);border:1px solid var(--neutral-200);">
+                <div class="flex-between text-xs text-muted">
+                    <span>v${'4.0'}</span>
+                    <span><i class="fas fa-database"></i> ${this.db.useLocalStorage ? 'LocalStorage' : 'IndexedDB'}</span>
+                    <span><i class="fas fa-map-pin"></i> ${total} assessments</span>
                 </div>
             </div>
         `;
         
-        this.setPanelContent(html, 'Dashboard');
+        this.setPanel(html, 'Dashboard');
         
-        // Render chart after DOM update
         setTimeout(() => {
-            this.renderChart('scoreChart', chartLabels, chartData);
-        }, 100);
-    }
-    
-    renderChart(canvasId, labels, data) {
-        const canvas = document.getElementById(canvasId);
-        if (!canvas) return;
-        
-        // Destroy existing chart
-        if (this.charts[canvasId]) {
-            this.charts[canvasId].destroy();
-        }
-        
-        const ctx = canvas.getContext('2d');
-        const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-        gradient.addColorStop(0, 'rgba(26, 95, 74, 0.2)');
-        gradient.addColorStop(1, 'rgba(26, 95, 74, 0)');
-        
-        this.charts[canvasId] = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels.length ? labels : ['No data'],
-                datasets: [{
-                    label: 'Condition Score',
-                    data: data.length ? data : [0],
-                    borderColor: '#1a5f4a',
-                    backgroundColor: gradient,
-                    fill: true,
-                    tension: 0.3,
-                    pointBackgroundColor: data.map(v => {
-                        if (v >= 7) return '#10b981';
-                        if (v >= 4) return '#f59e0b';
-                        return '#dc2626';
-                    }),
-                    pointRadius: 4,
-                    pointHoverRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: { 
-                        min: 0, 
-                        max: 10,
-                        grid: { color: 'rgba(0,0,0,0.05)' },
-                        ticks: { stepSize: 2 }
+            const canvas = document.getElementById('scoreChart');
+            if (canvas && labels.length) {
+                if (this.charts.score) this.charts.score.destroy();
+                const ctx = canvas.getContext('2d');
+                const grad = ctx.createLinearGradient(0, 0, 0, 140);
+                grad.addColorStop(0, 'rgba(26,95,74,0.2)');
+                grad.addColorStop(1, 'rgba(26,95,74,0)');
+                this.charts.score = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels.length ? labels : ['No Data'],
+                        datasets: [{
+                            label: 'Score',
+                            data: scores.length ? scores : [0],
+                            borderColor: '#1a5f4a',
+                            backgroundColor: grad,
+                            fill: true,
+                            tension: 0.3,
+                            pointBackgroundColor: scores.map(v => v >= 7 ? '#10b981' : v >= 4 ? '#f59e0b' : '#dc2626'),
+                            pointRadius: 4
+                        }]
                     },
-                    x: {
-                        grid: { display: false },
-                        ticks: { font: { size: 9 } }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { min: 0, max: 10, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { stepSize: 2 } },
+                            x: { grid: { display: false }, ticks: { font: { size: 9 } } }
+                        }
                     }
-                },
-                interaction: {
-                    intersect: false,
-                    mode: 'index'
-                }
+                });
             }
-        });
+        }, 150);
     }
     
     async showInspections() {
         const inspections = await this.db.getAll('inspections');
-        
         if (inspections.length === 0) {
-            this.setPanelContent(`
-                <div style="text-align:center;padding:40px 20px;">
-                    <i class="fas fa-folder-open" style="font-size:48px;opacity:0.3;display:block;margin-bottom:16px;"></i>
+            this.setPanel(`
+                <div class="text-center" style="padding:40px 20px;">
+                    <i class="fas fa-folder-open" style="font-size:40px;opacity:0.3;display:block;margin-bottom:12px;"></i>
                     <h3>No Finalised Inspections</h3>
-                    <p class="text-muted">Complete an assessment and generate a report to see it here.</p>
-                    <button class="btn btn-primary mt-3" onclick="window.app?.newInspection()">
-                        <i class="fas fa-plus"></i> Start New
-                    </button>
+                    <p class="text-muted">Complete an assessment to generate a report.</p>
+                    <button class="btn btn-primary mt-3" onclick="app.newInspection()"><i class="fas fa-plus"></i> Start New</button>
                 </div>
             `, 'Inspections');
             return;
         }
         
-        let html = `
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
-                <span><strong>${inspections.length}</strong> reports</span>
-                <div style="display:flex;gap:6px;">
-                    <button class="btn btn-secondary btn-sm" onclick="window.app?.showDrafts()">
-                        <i class="fas fa-save"></i> Drafts
-                    </button>
-                    <button class="btn btn-primary btn-sm" onclick="window.app?.newInspection()">
-                        <i class="fas fa-plus"></i> New
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        // Sort by date descending
         inspections.sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime));
+        let html = `<div class="flex-between mb-2"><span><strong>${inspections.length}</strong> reports</span>
+            <div class="flex gap-2"><button class="btn btn-secondary btn-sm" onclick="app.showDrafts()"><i class="fas fa-save"></i> Drafts</button>
+            <button class="btn btn-primary btn-sm" onclick="app.newInspection()"><i class="fas fa-plus"></i> New</button></div></div>`;
         
         inspections.forEach(ins => {
-            const eco = ins.ecologicalScore || Utils.calculateEcologicalScore(ins);
-            const badgeClass = Utils.getRatingBadge(eco.conditionScore);
-            
+            const eco = ins.ecologicalScore || Utils.calculateScore(ins);
+            const cls = Utils.getRatingClass(eco.conditionScore);
             html += `
-                <div class="inspection-card" style="border-left-color:${eco.riskColour};">
-                    <div class="card-title">${Utils.escapeHtml(ins.siteName || 'Unnamed Site')}</div>
-                    <div class="card-meta">
-                        ${Utils.formatDate(ins.dateTime)} · ${ins.inspector || 'Unknown inspector'}
+                <div class="inspection-card" style="border-left-color:${eco.colour};">
+                    <div class="card-title">${Utils.escapeHtml(ins.siteName || 'Unnamed')}</div>
+                    <div class="card-meta">${Utils.formatDate(ins.dateTime)} · ${ins.inspector || 'Unknown'}</div>
+                    <div class="flex gap-2" style="margin:4px 0;">
+                        <span class="rating-badge ${cls}">${eco.conditionScore}/10</span>
+                        <span class="text-muted text-sm">${eco.riskRating}</span>
                     </div>
-                    <div style="display:flex;gap:8px;align-items:center;margin:6px 0;">
-                        <span class="rating-badge ${badgeClass}">${eco.conditionScore}/10</span>
-                        <span class="text-xs text-muted">${eco.riskRating}</span>
-                    </div>
-                    <div class="health-meter">
-                        <div class="health-fill" style="width:${eco.conditionScore * 10}%;background:${eco.riskColour};"></div>
-                    </div>
+                    <div class="health-meter"><div class="health-fill" style="width:${eco.conditionScore*10}%;background:${eco.colour};"></div></div>
                     <div class="card-actions">
-                        <button class="btn btn-secondary btn-sm view-inspection" data-id="${ins.id}">
-                            <i class="fas fa-eye"></i> View
-                        </button>
-                        <button class="btn btn-primary btn-sm pdf-inspection" data-id="${ins.id}">
-                            <i class="fas fa-file-pdf"></i> Report
-                        </button>
-                        <button class="btn btn-danger btn-sm delete-inspection" data-id="${ins.id}">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <button class="btn btn-secondary btn-sm view-insp" data-id="${ins.id}"><i class="fas fa-eye"></i> View</button>
+                        <button class="btn btn-primary btn-sm pdf-insp" data-id="${ins.id}"><i class="fas fa-file-pdf"></i> Report</button>
+                        <button class="btn btn-danger btn-sm del-insp" data-id="${ins.id}"><i class="fas fa-trash"></i></button>
                     </div>
-                    <div class="card-badge" style="background:${eco.riskColour}20;color:${eco.riskColour};">${eco.riskRating}</div>
+                    <div class="card-badge" style="background:${eco.colour}20;color:${eco.colour};">${eco.riskRating}</div>
                 </div>
             `;
         });
         
-        this.setPanelContent(html, 'Inspections');
+        this.setPanel(html, 'Inspections');
         
-        // Event binding
-        document.querySelectorAll('.view-inspection').forEach(el => {
-            el.addEventListener('click', () => {
-                this.loadInspection(el.dataset.id, false);
-            });
+        document.querySelectorAll('.view-insp').forEach(el => {
+            el.onclick = () => this.loadInspection(el.dataset.id, false);
         });
-        
-        document.querySelectorAll('.pdf-inspection').forEach(el => {
-            el.addEventListener('click', async () => {
+        document.querySelectorAll('.pdf-insp').forEach(el => {
+            el.onclick = async () => {
                 const ins = await this.db.get(el.dataset.id, false);
-                if (ins) {
-                    await this.reportGenerator.generatePDF(ins, this.mapService);
-                }
-            });
+                if (ins) this.generateReport(ins);
+            };
         });
-        
-        document.querySelectorAll('.delete-inspection').forEach(el => {
-            el.addEventListener('click', async () => {
-                if (confirm('Delete this report permanently?')) {
+        document.querySelectorAll('.del-insp').forEach(el => {
+            el.onclick = async () => {
+                if (confirm('Delete this report?')) {
                     await this.db.delete(el.dataset.id, false);
-                    Toast.success('Report deleted');
-                    this.updateStorageStatus();
+                    Toast.success('Deleted');
+                    this.updateStatus();
                     this.showInspections();
                 }
-            });
+            };
         });
     }
     
     async showDrafts() {
         const drafts = await this.db.getAll('drafts');
-        
         if (drafts.length === 0) {
-            this.setPanelContent(`
-                <div style="text-align:center;padding:40px 20px;">
-                    <i class="fas fa-save" style="font-size:48px;opacity:0.3;display:block;margin-bottom:16px;"></i>
+            this.setPanel(`
+                <div class="text-center" style="padding:40px 20px;">
+                    <i class="fas fa-save" style="font-size:40px;opacity:0.3;display:block;margin-bottom:12px;"></i>
                     <h3>No Drafts</h3>
                     <p class="text-muted">Start a new assessment to create a draft.</p>
-                    <button class="btn btn-primary mt-3" onclick="window.app?.newInspection()">
-                        <i class="fas fa-plus"></i> Start New
-                    </button>
+                    <button class="btn btn-primary mt-3" onclick="app.newInspection()"><i class="fas fa-plus"></i> Start New</button>
                 </div>
             `, 'Drafts');
             return;
         }
         
-        let html = `
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
-                <span><strong>${drafts.length}</strong> drafts</span>
-                <div style="display:flex;gap:6px;">
-                    <button class="btn btn-secondary btn-sm" onclick="window.app?.showInspections()">
-                        <i class="fas fa-folder-open"></i> Reports
-                    </button>
-                    <button class="btn btn-primary btn-sm" onclick="window.app?.newInspection()">
-                        <i class="fas fa-plus"></i> New
-                    </button>
-                </div>
-            </div>
-        `;
-        
         drafts.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+        let html = `<div class="flex-between mb-2"><span><strong>${drafts.length}</strong> drafts</span>
+            <div class="flex gap-2"><button class="btn btn-secondary btn-sm" onclick="app.showInspections()"><i class="fas fa-folder-open"></i> Reports</button>
+            <button class="btn btn-primary btn-sm" onclick="app.newInspection()"><i class="fas fa-plus"></i> New</button></div></div>`;
         
         drafts.forEach(d => {
             html += `
                 <div class="inspection-card" style="border-left-color:var(--warning);">
                     <div class="card-title">${Utils.escapeHtml(d.siteName || 'Unnamed Draft')}</div>
-                    <div class="card-meta">
-                        Last edited: ${Utils.formatDate(d.updatedAt)} · ${d.inspector || 'No inspector'}
-                    </div>
+                    <div class="card-meta">Edited: ${Utils.formatDate(d.updatedAt)} · ${d.inspector || 'No inspector'}</div>
                     <div class="card-actions">
-                        <button class="btn btn-secondary btn-sm resume-draft" data-id="${d.id}">
-                            <i class="fas fa-pen"></i> Resume
-                        </button>
-                        <button class="btn btn-danger btn-sm delete-draft" data-id="${d.id}">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <button class="btn btn-secondary btn-sm resume-draft" data-id="${d.id}"><i class="fas fa-pen"></i> Resume</button>
+                        <button class="btn btn-danger btn-sm del-draft" data-id="${d.id}"><i class="fas fa-trash"></i></button>
                     </div>
                     <div class="card-badge" style="background:rgba(212,168,67,0.15);color:var(--warning);">Draft</div>
                 </div>
             `;
         });
         
-        this.setPanelContent(html, 'Drafts');
+        this.setPanel(html, 'Drafts');
         
         document.querySelectorAll('.resume-draft').forEach(el => {
-            el.addEventListener('click', () => {
-                this.loadInspection(el.dataset.id, true);
-            });
+            el.onclick = () => this.loadInspection(el.dataset.id, true);
         });
-        
-        document.querySelectorAll('.delete-draft').forEach(el => {
-            el.addEventListener('click', async () => {
+        document.querySelectorAll('.del-draft').forEach(el => {
+            el.onclick = async () => {
                 if (confirm('Delete this draft?')) {
                     await this.db.delete(el.dataset.id, true);
-                    Toast.success('Draft deleted');
-                    this.updateStorageStatus();
+                    Toast.success('Deleted');
+                    this.updateStatus();
                     this.showDrafts();
                 }
-            });
+            };
         });
     }
     
     async showDataManager() {
-        const inspCount = await this.db.count('inspections');
-        const draftCount = await this.db.count('drafts');
-        
+        const insp = await this.db.count('inspections');
+        const drafts = await this.db.count('drafts');
         const html = `
-            <div style="max-width:500px;margin:0 auto;">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
-                    <div class="stat-card" style="text-align:center;">
-                        <div class="stat-value">${inspCount}</div>
-                        <div class="stat-label">Reports</div>
-                    </div>
-                    <div class="stat-card" style="text-align:center;">
-                        <div class="stat-value">${draftCount}</div>
-                        <div class="stat-label">Drafts</div>
-                    </div>
+            <div style="max-width:440px;margin:0 auto;">
+                <div class="dashboard-grid" style="grid-template-columns:1fr 1fr;">
+                    <div class="stat-card text-center"><div class="stat-value">${insp}</div><div class="stat-label">Reports</div></div>
+                    <div class="stat-card text-center"><div class="stat-value">${drafts}</div><div class="stat-label">Drafts</div></div>
                 </div>
-                
-                <h4 style="margin-bottom:12px;"><i class="fas fa-download"></i> Export Data</h4>
-                <button class="btn btn-primary w-full mb-2" onclick="window.app?.exportCSV()">
-                    <i class="fas fa-file-excel"></i> Export to Excel
-                </button>
-                <button class="btn btn-secondary w-full mb-2" onclick="window.app?.exportJSON()">
-                    <i class="fas fa-code"></i> Export to JSON
-                </button>
-                <button class="btn btn-secondary w-full mb-4" onclick="window.app?.exportGeoJSON()">
-                    <i class="fas fa-map"></i> Export Map as GeoJSON
-                </button>
-                
-                <h4 style="margin-bottom:12px;"><i class="fas fa-upload"></i> Import Data</h4>
-                <input type="file" id="importFile" accept=".json" style="margin-bottom:8px;">
-                <button class="btn btn-secondary w-full mb-4" onclick="window.app?.importJSON()">
-                    <i class="fas fa-upload"></i> Import JSON
-                </button>
-                
-                <hr style="margin:16px 0;border-color:var(--neutral-200);">
-                
-                <button class="btn btn-danger w-full" onclick="window.app?.clearAllData()">
-                    <i class="fas fa-trash"></i> Clear All Data
-                </button>
-                
-                <div style="margin-top:16px;padding:12px;background:var(--neutral-50);border-radius:var(--radius-sm);border:1px solid var(--neutral-200);">
+                <h4 class="mb-2"><i class="fas fa-download"></i> Export</h4>
+                <button class="btn btn-primary w-full mb-2" onclick="app.exportCSV()"><i class="fas fa-file-excel"></i> Export Excel</button>
+                <button class="btn btn-secondary w-full mb-2" onclick="app.exportJSON()"><i class="fas fa-code"></i> Export JSON</button>
+                <button class="btn btn-secondary w-full mb-4" onclick="app.exportGeoJSON()"><i class="fas fa-map"></i> Export GeoJSON</button>
+                <h4 class="mb-2"><i class="fas fa-upload"></i> Import</h4>
+                <input type="file" id="importFile" accept=".json" style="margin-bottom:6px;">
+                <button class="btn btn-secondary w-full mb-4" onclick="app.importJSON()"><i class="fas fa-upload"></i> Import JSON</button>
+                <hr style="margin:12px 0;border-color:var(--neutral-200);">
+                <button class="btn btn-danger w-full" onclick="app.clearAll()"><i class="fas fa-trash"></i> Clear All Data</button>
+                <div style="margin-top:12px;padding:10px;background:var(--neutral-50);border-radius:var(--radius-sm);border:1px solid var(--neutral-200);">
                     <div class="text-xs text-muted">
                         <strong>Storage:</strong> ${this.db.useLocalStorage ? 'LocalStorage' : 'IndexedDB'}<br>
-                        <strong>Reports:</strong> ${inspCount} | <strong>Drafts:</strong> ${draftCount}
+                        <strong>Reports:</strong> ${insp} | <strong>Drafts:</strong> ${drafts}
                     </div>
                 </div>
             </div>
         `;
-        
-        this.setPanelContent(html, 'Data Manager');
-    }
-    
-    async showProjects() {
-        const html = `
-            <div style="text-align:center;padding:40px 20px;">
-                <i class="fas fa-project-diagram" style="font-size:48px;opacity:0.3;display:block;margin-bottom:16px;"></i>
-                <h3>Project Management</h3>
-                <p class="text-muted">Coming soon in v5.0</p>
-                <div style="margin-top:16px;display:inline-block;background:var(--neutral-100);padding:8px 16px;border-radius:var(--radius-sm);">
-                    <span class="text-sm">Group assessments by project, region, or client</span>
-                </div>
-                <div style="margin-top:20px;text-align:left;max-width:400px;margin-left:auto;margin-right:auto;">
-                    <div style="display:flex;gap:8px;padding:8px;border-bottom:1px solid var(--neutral-200);">
-                        <i class="fas fa-check-circle" style="color:var(--success);"></i>
-                        <span class="text-sm">Multi-site project grouping</span>
-                    </div>
-                    <div style="display:flex;gap:8px;padding:8px;border-bottom:1px solid var(--neutral-200);">
-                        <i class="fas fa-check-circle" style="color:var(--success);"></i>
-                        <span class="text-sm">Client and stakeholder management</span>
-                    </div>
-                    <div style="display:flex;gap:8px;padding:8px;">
-                        <i class="fas fa-check-circle" style="color:var(--success);"></i>
-                        <span class="text-sm">Project-level reporting and dashboards</span>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        this.setPanelContent(html, 'Projects');
-    }
-    
-    async showReportTemplates() {
-        const html = `
-            <div style="text-align:center;padding:40px 20px;">
-                <i class="fas fa-file-alt" style="font-size:48px;opacity:0.3;display:block;margin-bottom:16px;"></i>
-                <h3>Report Templates</h3>
-                <p class="text-muted">Custom report templates coming soon</p>
-                <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:400px;margin-left:auto;margin-right:auto;">
-                    <div style="padding:16px;border:2px solid var(--neutral-200);border-radius:var(--radius-md);">
-                        <i class="fas fa-file-pdf" style="font-size:24px;color:var(--brand-canopy);"></i>
-                        <div class="text-sm font-bold">Standard</div>
-                        <div class="text-xs text-muted">Current default</div>
-                    </div>
-                    <div style="padding:16px;border:2px solid var(--neutral-200);border-radius:var(--radius-md);opacity:0.5;">
-                        <i class="fas fa-file-pdf" style="font-size:24px;"></i>
-                        <div class="text-sm font-bold">Executive</div>
-                        <div class="text-xs text-muted">Coming soon</div>
-                    </div>
-                </div>
-                <div class="text-xs text-muted mt-3">Custom branding and templates in Enterprise version</div>
-            </div>
-        `;
-        
-        this.setPanelContent(html, 'Report Templates');
+        this.setPanel(html, 'Data Manager');
     }
     
     // ================================================================
-    // DATA EXPORT/IMPORT
+    // EXPORT/IMPORT
     // ================================================================
     async exportCSV() {
-        const inspections = await this.db.getAll('inspections');
-        if (inspections.length === 0) {
-            Toast.warning('No data to export');
-            return;
-        }
-        
-        const data = inspections.map(i => ({
-            'ID': i.id,
-            'Site': i.siteName,
-            'Inspector': i.inspector,
-            'Organization': i.organization,
-            'Date': i.dateTime,
-            'Score': i.ecologicalScore?.conditionScore || '',
-            'Risk': i.ecologicalScore?.riskRating || '',
-            'Vegetation': i.vegetationType || '',
-            'Weed Cover': i.weedCover || '',
-            'Threat Level': i.threatLevel || '',
-            'Priority': i.ecologicalScore?.managementPriority || ''
+        const insp = await this.db.getAll('inspections');
+        if (!insp.length) { Toast.warning('No data'); return; }
+        const data = insp.map(i => ({
+            'ID': i.id, 'Site': i.siteName, 'Inspector': i.inspector,
+            'Date': i.dateTime, 'Score': i.ecologicalScore?.conditionScore || '',
+            'Risk': i.ecologicalScore?.riskRating || ''
         }));
-        
         const ws = XLSX.utils.json_to_sheet(data);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Inspections');
@@ -3355,99 +2145,127 @@ class EcoMaintenanceApp {
     }
     
     async exportJSON() {
-        const inspections = await this.db.getAll('inspections');
+        const insp = await this.db.getAll('inspections');
         const drafts = await this.db.getAll('drafts');
-        const data = {
-            exportDate: new Date().toISOString(),
-            version: CONFIG.version,
-            app: CONFIG.appName,
-            inspections: inspections,
-            drafts: drafts
-        };
-        
+        const data = { exportDate: new Date().toISOString(), version: '4.0', inspections: insp, drafts: drafts };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
+        a.href = URL.createObjectURL(blob);
         a.download = `EcoMaintenance_Data_${new Date().toISOString().slice(0,10)}.json`;
         a.click();
-        URL.revokeObjectURL(url);
+        URL.revokeObjectURL(a.href);
         Toast.success('JSON export complete');
     }
     
     exportGeoJSON() {
         const features = [
-            ...this.mapService.getGeometry(),
-            ...this.mapService.getWaypoints().map(w => ({
+            ...this.getGeometry(),
+            ...this.getWaypoints().map(w => ({
                 type: 'Feature',
                 geometry: { type: 'Point', coordinates: [w.lng, w.lat] },
-                properties: { label: w.label, type: 'waypoint' }
+                properties: { label: w.label }
             }))
         ];
-        
         const fc = { type: 'FeatureCollection', features };
         const blob = new Blob([JSON.stringify(fc, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
+        a.href = URL.createObjectURL(blob);
         a.download = `EcoMaintenance_Map_${Date.now()}.geojson`;
         a.click();
-        URL.revokeObjectURL(url);
+        URL.revokeObjectURL(a.href);
         Toast.success('GeoJSON exported');
     }
     
     async importJSON() {
         const file = document.getElementById('importFile')?.files[0];
-        if (!file) {
-            Toast.warning('Select a JSON file');
-            return;
-        }
-        
+        if (!file) { Toast.warning('Select a JSON file'); return; }
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
                 const data = JSON.parse(e.target.result);
-                let imported = 0;
-                
+                let count = 0;
                 if (data.inspections) {
-                    for (const insp of data.inspections) {
-                        await this.db.save(insp, false);
-                        imported++;
-                    }
+                    for (const insp of data.inspections) { await this.db.save(insp, false); count++; }
                 }
                 if (data.drafts) {
-                    for (const draft of data.drafts) {
-                        await this.db.save(draft, true);
-                        imported++;
-                    }
+                    for (const draft of data.drafts) { await this.db.save(draft, true); count++; }
                 }
-                
-                Toast.success(`Imported ${imported} records`);
-                this.updateStorageStatus();
+                Toast.success(`Imported ${count} records`);
+                this.updateStatus();
                 this.showDataManager();
-            } catch (err) {
-                Toast.error('Invalid JSON file');
-            }
+            } catch { Toast.error('Invalid JSON file'); }
         };
         reader.readAsText(file);
     }
     
-    async clearAllData() {
+    async clearAll() {
         if (!confirm('Delete ALL data? This cannot be undone.')) return;
         if (!confirm('Are you absolutely sure?')) return;
-        
         await this.db.clear('inspections');
         await this.db.clear('drafts');
         Toast.success('All data cleared');
-        this.updateStorageStatus();
+        this.updateStatus();
         this.showDashboard();
+    }
+    
+    // ================================================================
+    // EVENTS
+    // ================================================================
+    bindEvents() {
+        // Navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.onclick = () => {
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                item.classList.add('active');
+                const view = item.dataset.view;
+                switch(view) {
+                    case 'dashboard': this.showDashboard(); break;
+                    case 'inspections': this.showInspections(); break;
+                    case 'new': this.newInspection(); break;
+                    case 'mapview': this.closePanel(); break;
+                    case 'drafts': this.showDrafts(); break;
+                    case 'data': this.showDataManager(); break;
+                }
+            };
+        });
+        
+        document.getElementById('newInspectionBtn').onclick = () => this.newInspection();
+        document.getElementById('listInspectionsBtn').onclick = () => this.showInspections();
+        document.getElementById('closePanelBtn').onclick = () => this.closePanel();
+        document.getElementById('clearMapBtn').onclick = () => this.clearMap();
+        document.getElementById('exportGeoJsonBtn').onclick = () => this.exportGeoJSON();
+        document.getElementById('exportCSVBtn').onclick = () => this.exportCSV();
+        document.getElementById('measureBtn').onclick = () => this.startMeasure();
+        document.getElementById('locateBtn').onclick = () => this.locateUser();
+        document.getElementById('fullscreenBtn').onclick = () => this.toggleFullscreen();
+        document.getElementById('resetMapBtn').onclick = () => this.resetView();
+        document.getElementById('sidebarToggle').onclick = () => {
+            document.getElementById('sidebar').classList.toggle('open');
+        };
+        
+        document.querySelectorAll('.layer-item').forEach(el => {
+            el.onclick = () => this.switchLayer(el.dataset.layer);
+        });
+        
+        // Close sidebar on mobile when clicking content
+        document.querySelector('.main-content').onclick = () => {
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
+        };
+        
+        // ESC to close panel
+        document.onkeydown = (e) => {
+            if (e.key === 'Escape') this.closePanel();
+            if (e.ctrlKey && e.key === 'n') { e.preventDefault(); this.newInspection(); }
+        };
     }
 }
 
 // ================================================================
-// INITIALISE
+// START
 // ================================================================
-const app = new EcoMaintenanceApp();
+const app = new App();
 window.app = app;
 app.init();
 </script>
