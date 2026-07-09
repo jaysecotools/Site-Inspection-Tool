@@ -1,5 +1,5 @@
 // ================================================================
-// REPORT - WITH WORKING MAP CAPTURE USING html2canvas
+// REPORT GENERATION - CLEAN VERSION
 // ================================================================
 async generateReport(inspection) {
     try {
@@ -10,15 +10,14 @@ async generateReport(inspection) {
         const eco = inspection.ecologicalScore || Utils.calculateScore(inspection);
         const colour = '#1a5f4a';
         
-        // Helper: Clean text for PDF (preserve essential characters)
-        const cleanPdfText = (text) => {
+        // Helper: Clean text for PDF
+        const cleanText = (text) => {
             if (!text) return '';
-            // Convert to string and remove HTML tags
             let clean = String(text);
             // Remove HTML tags
             clean = clean.replace(/<[^>]*>/g, '');
-            // Remove ✓ prefix if present
-            clean = clean.replace(/^✓\s*/, '');
+            // Remove special checkbox characters
+            clean = clean.replace(/[✓✗☐☑✅❌]/g, '');
             // Keep alphanumeric, spaces, and common punctuation
             clean = clean.replace(/[^\w\s.,!?\-()'"]/g, ' ');
             // Normalize spaces
@@ -26,42 +25,45 @@ async generateReport(inspection) {
             return clean;
         };
         
-        // Helper: Add plain text with proper spacing
+        // Helper: Add text with auto-page breaks
         const addText = (text, size = 10, color = '#333') => {
             if (!text) return;
-            const cleanText = cleanPdfText(text);
-            if (!cleanText) return;
+            const clean = cleanText(text);
+            if (!clean) return;
             doc.setFontSize(size);
             doc.setTextColor(color);
-            const lines = doc.splitTextToSize(cleanText, pageWidth - 2 * margin);
+            const lines = doc.splitTextToSize(clean, pageWidth - 2 * margin);
             const lineHeight = size * 0.45;
             const totalHeight = lines.length * lineHeight + 1.5;
             if (y + totalHeight > pageHeight - margin - 8) {
                 doc.addPage();
                 y = margin + 5;
-                addFooter(doc, inspection, pageWidth, pageHeight, margin);
+                addFooter();
             }
             doc.text(lines, margin, y);
             y += totalHeight;
         };
         
+        // Helper: Add title
         const addTitle = (text, size = 18, color = colour) => {
-            const cleanText = cleanPdfText(text);
-            if (!cleanText) return;
+            const clean = cleanText(text);
+            if (!clean) return;
             doc.setFontSize(size);
             doc.setTextColor(color);
-            doc.text(cleanText, margin, y);
+            doc.text(clean, margin, y);
             y += size * 0.4 + 2;
         };
         
-        const drawLine = () => { 
-            doc.setDrawColor(colour); 
-            doc.setLineWidth(0.5); 
-            doc.line(margin, y, pageWidth - margin, y); 
-            y += 5; 
+        // Helper: Draw line
+        const drawLine = () => {
+            doc.setDrawColor(colour);
+            doc.setLineWidth(0.5);
+            doc.line(margin, y, pageWidth - margin, y);
+            y += 5;
         };
         
-        const addFooter = (doc, inspection, pageWidth, pageHeight, margin) => {
+        // Helper: Add footer
+        const addFooter = () => {
             doc.setDrawColor(colour);
             doc.setLineWidth(0.3);
             doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
@@ -73,7 +75,9 @@ async generateReport(inspection) {
             doc.text(`Page ${pageNum}`, pageWidth/2, pageHeight - 5, { align: 'center' });
         };
         
-        // --- COVER PAGE ---
+        // ============================================================
+        // COVER PAGE
+        // ============================================================
         doc.setFillColor(colour);
         doc.rect(0, 0, pageWidth, 6, 'F');
         y = 30;
@@ -89,21 +93,21 @@ async generateReport(inspection) {
         
         doc.setFontSize(20);
         doc.setTextColor('#222');
-        doc.text(cleanPdfText(inspection.siteName || 'Site Assessment'), margin, y);
+        doc.text(cleanText(inspection.siteName || 'Site Assessment'), margin, y);
         y += 12;
         
         doc.setFontSize(11);
         doc.setTextColor('#555');
-        doc.text(`Prepared for: ${cleanPdfText(inspection.organization || 'Environmental Client')}`, margin, y);
+        doc.text(`Prepared for: ${cleanText(inspection.organization || 'Environmental Client')}`, margin, y);
         y += 6;
         doc.text(`Date: ${Utils.formatDate(inspection.dateTime)}`, margin, y);
         y += 6;
         doc.text(`Report ID: ${inspection.id || 'N/A'}`, margin, y);
         y += 6;
-        doc.text(`Author: ${cleanPdfText(inspection.inspector || 'Environmental Consultant')}`, margin, y);
+        doc.text(`Author: ${cleanText(inspection.inspector || 'Environmental Consultant')}`, margin, y);
         y += 10;
         
-        // Hero image
+        // Add cover photo if available
         if (inspection.photos && inspection.photos.length > 0) {
             const hero = inspection.photos.find(p => p.isHero) || inspection.photos[0];
             try {
@@ -115,7 +119,7 @@ async generateReport(inspection) {
                 });
                 
                 if (imgData) {
-                    const maxImgWidth = pageWidth - 2*margin - 20;
+                    const maxImgWidth = pageWidth - 2 * margin - 20;
                     const maxImgHeight = 70;
                     let imgWidth = maxImgWidth;
                     let imgHeight = (imgData.height / imgData.width) * maxImgWidth;
@@ -128,38 +132,28 @@ async generateReport(inspection) {
                     y += imgHeight + 8;
                     doc.setFontSize(7);
                     doc.setTextColor('#999');
-                    doc.text(`Cover Photo: ${cleanPdfText(inspection.siteName)}`, margin + 10, y);
+                    doc.text(`Cover Photo: ${cleanText(inspection.siteName)}`, margin + 10, y);
                     y += 6;
-                } else {
-                    doc.setFillColor('#f5f5f5');
-                    doc.roundedRect(margin+10, y, pageWidth-2*margin-20, 45, 4, 4, 'F');
-                    doc.setFontSize(10);
-                    doc.setTextColor('#999');
-                    doc.text('Project Photograph', pageWidth/2, y+22, { align: 'center' });
-                    y += 50;
                 }
-            } catch(e) {
-                doc.setFillColor('#f5f5f5');
-                doc.roundedRect(margin+10, y, pageWidth-2*margin-20, 45, 4, 4, 'F');
-                doc.setFontSize(10);
-                doc.setTextColor('#999');
-                doc.text('Project Photograph', pageWidth/2, y+22, { align: 'center' });
-                y += 50;
+            } catch (e) {
+                // Skip photo if error
             }
         }
         
         doc.setFillColor(colour);
-        doc.rect(0, pageHeight-6, pageWidth, 3, 'F');
+        doc.rect(0, pageHeight - 6, pageWidth, 3, 'F');
         doc.setFontSize(7);
         doc.setTextColor('#999');
-        doc.text('© EcoMaintenance Professional v4.0', margin, pageHeight-3);
-        doc.text('Environmental Assessment Report', pageWidth/2, pageHeight-3, { align: 'center' });
-        doc.text(`Page 1`, pageWidth - margin, pageHeight-3, { align: 'right' });
+        doc.text('© EcoMaintenance Professional v4.0', margin, pageHeight - 3);
+        doc.text('Environmental Assessment Report', pageWidth / 2, pageHeight - 3, { align: 'center' });
+        doc.text('Page 1', pageWidth - margin, pageHeight - 3, { align: 'right' });
         
-        // --- EXECUTIVE SUMMARY ---
+        // ============================================================
+        // EXECUTIVE SUMMARY
+        // ============================================================
         doc.addPage();
         y = margin + 5;
-        addFooter(doc, inspection, pageWidth, pageHeight, margin);
+        addFooter();
         addTitle('EXECUTIVE SUMMARY', 22);
         drawLine();
         y += 4;
@@ -179,7 +173,7 @@ async generateReport(inspection) {
         doc.text(`Conservation Significance: ${eco.significance}`, margin, y);
         y += 10;
         
-        addText(`This report presents findings of an ecological assessment at "${cleanPdfText(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`, 10);
+        addText(`This report presents findings of an ecological assessment at "${cleanText(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`, 10);
         y += 4;
         
         doc.setFontSize(11);
@@ -195,120 +189,136 @@ async generateReport(inspection) {
             `• Habitat Quality: ${inspection.habitatQuality || 5}/10`,
             `• Disturbance Level: ${inspection.disturbance || 3}/10`
         ];
-        findings.forEach(f => { doc.text(f, margin + 4, y); y += 5; });
+        findings.forEach(f => {
+            doc.text(f, margin + 4, y);
+            y += 5;
+        });
         y += 6;
         
-        // --- CHECKLIST SUMMARY ---
+        // ============================================================
+        // CHECKLIST SUMMARY
+        // ============================================================
         if (y > pageHeight - 60) {
             doc.addPage();
             y = margin + 5;
-            addFooter(doc, inspection, pageWidth, pageHeight, margin);
+            addFooter();
         }
         addTitle('CHECKLIST SUMMARY', 16);
         drawLine();
         y += 4;
         
-        // Define the checklist items with clean labels (no special characters)
-        const checklistSections = [
-            { 
-                title: 'General Site Conditions', 
-                items: [
-                    { label: 'Verified site location and boundaries', value: inspection.siteLocation },
-                    { label: 'Assessed accessibility and entry points', value: inspection.accessibility },
-                    { label: 'Evaluated site conditions (topography, soil, vegetation, drainage)', value: inspection.siteConditions },
-                    { label: 'Identified existing infrastructure or features', value: inspection.infrastructure }
-                ]
-            },
-            { 
-                title: 'Environmental Considerations', 
-                items: [
-                    { label: 'Assessed presence of protected flora or fauna', value: inspection.protectedSpecies },
-                    { label: 'Evaluated potential environmental impacts', value: inspection.environmentalImpacts },
-                    { label: 'Verified compliance with environmental regulations', value: inspection.compliance },
-                    { label: 'Noted areas of conservation significance', value: inspection.conservation }
-                ]
-            },
-            { 
-                title: 'Work Practices and Procedures', 
-                items: [
-                    { label: 'Observed and evaluated work practices', value: inspection.workPractices },
-                    { label: 'Assessed compliance with health and safety regulations', value: inspection.healthSafety },
-                    { label: 'Identified potential risks and hazards', value: inspection.risksHazards },
-                    { label: 'Reviewed implementation of control measures', value: inspection.controlMeasures }
-                ]
-            },
-            { 
-                title: 'Equipment and Machinery', 
-                items: [
-                    { label: 'Inspected equipment and machinery', value: inspection.equipmentInspected },
-                    { label: 'Ensured equipment in safe working condition', value: inspection.safeCondition },
-                    { label: 'Checked maintenance and service records', value: inspection.maintenanceRecords },
-                    { label: 'Verified compliance with industry standards', value: inspection.industryStandards }
-                ]
-            }
-        ];
+        // Define checklist items with clean labels
+        const checklistData = {
+            'General Site Conditions': [
+                { label: 'Verified site location and boundaries', value: inspection.siteLocation },
+                { label: 'Assessed accessibility and entry points', value: inspection.accessibility },
+                { label: 'Evaluated site conditions', value: inspection.siteConditions },
+                { label: 'Identified existing infrastructure or features', value: inspection.infrastructure }
+            ],
+            'Environmental Considerations': [
+                { label: 'Assessed presence of protected flora or fauna', value: inspection.protectedSpecies },
+                { label: 'Evaluated potential environmental impacts', value: inspection.environmentalImpacts },
+                { label: 'Verified compliance with environmental regulations', value: inspection.compliance },
+                { label: 'Noted areas of conservation significance', value: inspection.conservation }
+            ],
+            'Work Practices and Procedures': [
+                { label: 'Observed and evaluated work practices', value: inspection.workPractices },
+                { label: 'Assessed compliance with health and safety regulations', value: inspection.healthSafety },
+                { label: 'Identified potential risks and hazards', value: inspection.risksHazards },
+                { label: 'Reviewed implementation of control measures', value: inspection.controlMeasures }
+            ],
+            'Equipment and Machinery': [
+                { label: 'Inspected equipment and machinery', value: inspection.equipmentInspected },
+                { label: 'Ensured equipment in safe working condition', value: inspection.safeCondition },
+                { label: 'Checked maintenance and service records', value: inspection.maintenanceRecords },
+                { label: 'Verified compliance with industry standards', value: inspection.industryStandards }
+            ]
+        };
         
-        // Render each checklist section
-        checklistSections.forEach(section => {
-            if (y > pageHeight - 50) { 
-                doc.addPage(); 
-                y = margin + 5; 
-                addFooter(doc, inspection, pageWidth, pageHeight, margin); 
+        // Calculate progress
+        let totalItems = 0, completedItems = 0;
+        Object.values(checklistData).forEach(section => {
+            section.forEach(item => {
+                totalItems++;
+                if (item.value === true || item.value === 'true' || item.value === 1) {
+                    completedItems++;
+                }
+            });
+        });
+        
+        // Show progress
+        doc.setFontSize(9);
+        doc.setTextColor('#555');
+        doc.text(`Completion: ${completedItems}/${totalItems} items (${Math.round((completedItems/totalItems)*100)}%)`, margin, y);
+        y += 6;
+        
+        // Render each section
+        Object.entries(checklistData).forEach(([sectionTitle, items]) => {
+            if (y > pageHeight - 50) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
             }
             
-            doc.setFontSize(11); 
+            doc.setFontSize(11);
             doc.setTextColor(colour);
-            doc.text(section.title, margin, y);
-            y += 6;
+            doc.text(sectionTitle, margin, y);
+            y += 5;
             
-            doc.setFontSize(8); 
-            section.items.forEach(item => {
-                const statusSymbol = item.value ? '\u2713' : '\u2717'; // ✓ or ✗
-                const statusColor = item.value ? '#10b981' : '#dc2626';
-                const cleanLabel = cleanPdfText(item.label);
+            doc.setFontSize(8);
+            items.forEach(item => {
+                const isChecked = (item.value === true || item.value === 'true' || item.value === 1);
+                const symbol = isChecked ? '\u2713' : '\u2717';
+                const color = isChecked ? '#10b981' : '#dc2626';
                 
-                // Ensure we have enough space
-                if (y > pageHeight - 30) {
+                if (y > pageHeight - 20) {
                     doc.addPage();
                     y = margin + 5;
-                    addFooter(doc, inspection, pageWidth, pageHeight, margin);
+                    addFooter();
                     doc.setFontSize(8);
                 }
                 
-                doc.setTextColor(statusColor);
-                doc.text(`${statusSymbol}  ${cleanLabel}`, margin + 4, y);
+                doc.setTextColor(color);
+                doc.text(`${symbol}  ${cleanText(item.label)}`, margin + 4, y);
                 y += 5;
             });
-            
             y += 3;
         });
         
-        // --- ABORIGINAL HERITAGE ---
+        // ============================================================
+        // ABORIGINAL HERITAGE
+        // ============================================================
         if (y > pageHeight - 50) {
             doc.addPage();
             y = margin + 5;
-            addFooter(doc, inspection, pageWidth, pageHeight, margin);
+            addFooter();
         }
         addTitle('ABORIGINAL HERITAGE', 16);
         drawLine();
         y += 4;
-        doc.setFontSize(10); doc.setTextColor('#333');
-        doc.text(`Heritage Significance: ${cleanPdfText(inspection.heritageSignificance || 'Not Assessed')}`, margin, y);
+        
+        doc.setFontSize(10);
+        doc.setTextColor('#333');
+        doc.text(`Heritage Significance: ${cleanText(inspection.heritageSignificance || 'Not Assessed')}`, margin, y);
         y += 6;
+        
         doc.text('Cultural Sites / Artefacts:', margin, y);
         y += 4;
         addText(inspection.culturalSites || 'No cultural sites recorded.', 9);
         y += 4;
+        
         doc.text('Heritage Management Notes:', margin, y);
         y += 4;
         addText(inspection.aboriginalHeritage || 'No heritage management notes.', 9);
         y += 6;
-
-        // --- OBSERVATIONS ---
+        
+        // ============================================================
+        // OBSERVATIONS
+        // ============================================================
         if (y > pageHeight - 40) {
             doc.addPage();
             y = margin + 5;
-            addFooter(doc, inspection, pageWidth, pageHeight, margin);
+            addFooter();
         }
         addTitle('OBSERVATIONS', 14);
         drawLine();
@@ -316,22 +326,26 @@ async generateReport(inspection) {
         addText(inspection.observations || 'No observations recorded.', 10);
         y += 4;
         
-        // --- RECOMMENDATIONS ---
+        // ============================================================
+        // RECOMMENDATIONS
+        // ============================================================
         if (y > pageHeight - 40) {
             doc.addPage();
             y = margin + 5;
-            addFooter(doc, inspection, pageWidth, pageHeight, margin);
+            addFooter();
         }
         addTitle('RECOMMENDATIONS', 14);
         drawLine();
         y += 4;
         addText(inspection.recommendations || 'No specific recommendations recorded.', 10);
         
-        // --- PHOTOS ---
+        // ============================================================
+        // PHOTOS
+        // ============================================================
         if (inspection.photos && inspection.photos.length > 0) {
             doc.addPage();
             y = margin + 5;
-            addFooter(doc, inspection, pageWidth, pageHeight, margin);
+            addFooter();
             addTitle('PHOTO DOCUMENTATION', 18);
             drawLine();
             y += 6;
@@ -350,7 +364,7 @@ async generateReport(inspection) {
                 if (py + photoSize + 10 > pageHeight - margin - 15) {
                     doc.addPage();
                     y = margin + 5;
-                    addFooter(doc, inspection, pageWidth, pageHeight, margin);
+                    addFooter();
                     addTitle('PHOTO DOCUMENTATION (continued)', 14);
                     drawLine();
                     y += 6;
@@ -385,7 +399,7 @@ async generateReport(inspection) {
                     doc.setFontSize(6);
                     doc.setTextColor('#666');
                     doc.text(`Photo ${i+1}`, px + 2, py + photoSize * 0.75 + 4);
-                } catch(e) {
+                } catch (e) {
                     doc.setFillColor('#f0f0f0');
                     doc.roundedRect(px, py, photoSize, photoSize * 0.75, 2, 2, 'F');
                     doc.setFontSize(8);
@@ -394,14 +408,19 @@ async generateReport(inspection) {
                 }
                 
                 col++;
-                if (col >= maxCols) { col = 0; row++; }
+                if (col >= maxCols) {
+                    col = 0;
+                    row++;
+                }
             }
         }
         
-        doc.save(`EcoMaintenance_Report_${inspection.id}.pdf`);
-        Toast.success('Professional report generated');
-    } catch (e) { 
-        console.error('Report error:', e); 
-        Toast.error('Failed to generate report: ' + e.message); 
+        // Save the PDF
+        doc.save(`EcoMaintenance_Report_${inspection.id || Date.now()}.pdf`);
+        Toast.success('Professional report generated successfully');
+        
+    } catch (e) {
+        console.error('Report generation error:', e);
+        Toast.error('Failed to generate report: ' + e.message);
     }
 }
