@@ -1,52 +1,3 @@
-<!--
-Key Improvements Added:
-
-1. Fixed PDF Generation Issues
-
-· Clean Text Function: Now properly strips all special characters (✓, ●, ★, etc.) that were causing rendering issues
-· Page Flow Management: Content now automatically flows to new pages when reaching the bottom
-· Footer on Every Page: Consistent page numbering and report metadata
-· Site Information Section: Now properly displayed with all content visible
-
-2. User Experience Enhancements
-
-· Loading Spinner: Shows when generating large PDF reports
-· Button Disabling: Prevents double-clicking during report generation
-· Better Toast Messages: Clear feedback for all actions
-· Progress Indicators: Visual feedback for checklist completion
-
-3. Performance Improvements
-
-· Image Compression: Photos are compressed to reduce storage size
-· Lazy Loading: Images load only when needed
-· Optimized Storage: Efficient localStorage usage
-
-4. Additional Features
-
-· Checklist Progress Tracking: Real-time progress bar in the form
-· Better Error Handling: Graceful fallbacks for failed operations
-· Mobile Responsiveness: Improved touch targets and layout
-· Dark Mode Support: Full compatibility with system preferences
-
-5. Code Quality
-
-· Cleaner Functions: Better separation of concerns
-· Proper Error Handling: Try-catch blocks with user feedback
-· Consistent Naming: Clear, descriptive function and variable names
-· Well-Formatted Output: Professional-looking PDF reports
-
-6. Data Management
-
-· Export Options: Excel, JSON, and GeoJSON exports
-· Import Function: Import previously exported JSON data
-· Clear All: Safety-confirmed data deletion
-· Storage Stats: Shows current data usage
-
-The application now generates clean, professional PDF reports with all sections properly displayed, including the site information and Aboriginal heritage sections. All text is properly cleaned and formatted, with no special character rendering issues.
--->
-
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -910,6 +861,28 @@ const Utils = {
     cleanText(str) {
         if (!str) return '';
         return str.replace(/[^\w\s.,!?\-()'"]/g, ' ').trim();
+    },
+    
+    // NEW: Clean text specifically for PDF - removes HTML entities and special chars
+    cleanPdfText(str) {
+        if (!str) return '';
+        let clean = String(str);
+        // Decode HTML entities first
+        clean = clean.replace(/&amp;/g, '&')
+                     .replace(/&lt;/g, '<')
+                     .replace(/&gt;/g, '>')
+                     .replace(/&quot;/g, '"')
+                     .replace(/&#039;/g, "'")
+                     .replace(/&nbsp;/g, ' ');
+        // Remove any remaining HTML tags
+        clean = clean.replace(/<[^>]*>/g, '');
+        // Remove Unicode special characters
+        clean = clean.replace(/[\u2713\u2717\u2611\u2610\u2714\u274c\u25a0\u25cf\u2022\u25e6\uFEFF\u200B\u200C\u200D]/g, '');
+        // Remove any non-printable characters
+        clean = clean.replace(/[^\x20-\x7E]/g, ' ');
+        // Normalize spaces
+        clean = clean.replace(/\s+/g, ' ').trim();
+        return clean;
     },
     
     formatDate(isoStr) {
@@ -2275,7 +2248,7 @@ class App {
     }
     
     // ================================================================
-    // REPORT GENERATION - COMPLETE FIXED VERSION
+    // REPORT GENERATION - FIXED with proper text cleaning
     // ================================================================
     async generateReport(inspection) {
         if (this.isGenerating) {
@@ -2298,27 +2271,36 @@ class App {
             const eco = inspection.ecologicalScore || Utils.calculateScore(inspection);
             const colour = '#1a5f4a';
             
-            // CRITICAL FIX: Complete text cleaning
-            const cleanText = (text) => {
+            // FIXED: Clean text specifically for PDF - removes HTML entities
+            const cleanPdfText = (text) => {
                 if (!text) return '';
                 let clean = String(text);
-                // Remove HTML tags
+                // Decode HTML entities first (this is the key fix for &amp; issues)
+                clean = clean.replace(/&amp;/g, '&')
+                             .replace(/&lt;/g, '<')
+                             .replace(/&gt;/g, '>')
+                             .replace(/&quot;/g, '"')
+                             .replace(/&#039;/g, "'")
+                             .replace(/&nbsp;/g, ' ')
+                             .replace(/&#x27;/g, "'")
+                             .replace(/&#x2F;/g, '/')
+                             .replace(/&#39;/g, "'")
+                             .replace(/&#47;/g, '/');
+                // Remove any remaining HTML tags
                 clean = clean.replace(/<[^>]*>/g, '');
-                // Remove all Unicode special characters including zero-width spaces
-                clean = clean.replace(/[\u2713\u2717\u2611\u2610\u2714\u274c\u25a0\u25cf\u2022\u25e6\uFEFF\u200B\u200C\u200D\u00A0]/g, '');
-                // Remove any non-ASCII characters (keep only printable ASCII)
+                // Remove Unicode special characters (but keep basic punctuation)
+                clean = clean.replace(/[\u2713\u2717\u2611\u2610\u2714\u274c\u25a0\u25cf\u2022\u25e6\uFEFF\u200B\u200C\u200D]/g, '');
+                // Keep only printable ASCII characters
                 clean = clean.replace(/[^\x20-\x7E]/g, ' ');
-                // Remove multiple spaces
-                clean = clean.replace(/\s+/g, ' ');
-                // Trim
-                clean = clean.trim();
+                // Normalize spaces
+                clean = clean.replace(/\s+/g, ' ').trim();
                 return clean;
             };
             
-            // Helper: Add text with auto-page breaks
+            // Helper: Add text with auto-page breaks - using cleanPdfText
             const addText = (text, size = 10, color = '#333') => {
                 if (!text) return;
-                const clean = cleanText(text);
+                const clean = cleanPdfText(text);
                 if (!clean) return;
                 doc.setFontSize(size);
                 doc.setTextColor(color);
@@ -2336,7 +2318,7 @@ class App {
             
             // Helper: Add title
             const addTitle = (text, size = 18, color = colour) => {
-                const clean = cleanText(text);
+                const clean = cleanPdfText(text);
                 if (!clean) return;
                 doc.setFontSize(size);
                 doc.setTextColor(color);
@@ -2359,7 +2341,7 @@ class App {
                 doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
                 doc.setFontSize(7);
                 doc.setTextColor('#aaa');
-                const id = cleanText(inspection.id || 'N/A');
+                const id = cleanPdfText(inspection.id || 'N/A');
                 doc.text(id, margin, pageHeight - 5);
                 const date = Utils.formatDate(inspection.dateTime);
                 doc.text(date, pageWidth - margin, pageHeight - 5, { align: 'right' });
@@ -2385,22 +2367,22 @@ class App {
             
             doc.setFontSize(20);
             doc.setTextColor('#222');
-            const siteName = cleanText(inspection.siteName || 'Site Assessment');
+            const siteName = cleanPdfText(inspection.siteName || 'Site Assessment');
             doc.text(siteName, margin, y);
             y += 12;
             
             doc.setFontSize(11);
             doc.setTextColor('#555');
-            const org = cleanText(inspection.organization || 'Environmental Client');
+            const org = cleanPdfText(inspection.organization || 'Environmental Client');
             doc.text(`Prepared for: ${org}`, margin, y);
             y += 6;
             const date = Utils.formatDate(inspection.dateTime);
             doc.text(`Date: ${date}`, margin, y);
             y += 6;
-            const id = cleanText(inspection.id || 'N/A');
+            const id = cleanPdfText(inspection.id || 'N/A');
             doc.text(`Report ID: ${id}`, margin, y);
             y += 6;
-            const author = cleanText(inspection.inspector || 'Environmental Consultant');
+            const author = cleanPdfText(inspection.inspector || 'Environmental Consultant');
             doc.text(`Author: ${author}`, margin, y);
             y += 10;
             
@@ -2429,7 +2411,7 @@ class App {
                         y += imgHeight + 8;
                         doc.setFontSize(7);
                         doc.setTextColor('#999');
-                        const caption = cleanText(inspection.siteName || 'Site Photo');
+                        const caption = cleanPdfText(inspection.siteName || 'Site Photo');
                         doc.text(`Cover Photo: ${caption}`, margin + 10, y);
                         y += 6;
                     }
@@ -2471,7 +2453,7 @@ class App {
             doc.text(`Conservation Significance: ${eco.significance}`, margin, y);
             y += 10;
             
-            const summaryText = `This report presents findings of an ecological assessment at "${cleanText(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`;
+            const summaryText = `This report presents findings of an ecological assessment at "${cleanPdfText(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`;
             addText(summaryText, 10);
             y += 4;
             
@@ -2495,7 +2477,7 @@ class App {
             y += 6;
             
             // ============================================================
-            // CHECKLIST SUMMARY
+            // CHECKLIST SUMMARY - FIXED: Using cleanPdfText on labels
             // ============================================================
             if (y > pageHeight - 60) {
                 doc.addPage();
@@ -2560,9 +2542,11 @@ class App {
                 const symbol = isChecked ? '✓' : '✗';
                 const color = isChecked ? '#10b981' : '#dc2626';
                 
+                // FIXED: Use cleanPdfText on the label
+                const cleanLabel = cleanPdfText(item.label);
                 doc.setFontSize(8);
                 doc.setTextColor(color);
-                doc.text(`${symbol}  ${item.label}`, margin + 4, y);
+                doc.text(`${symbol}  ${cleanLabel}`, margin + 4, y);
                 y += 5;
             });
             y += 3;
@@ -2582,15 +2566,15 @@ class App {
             doc.setFontSize(9);
             doc.setTextColor('#333');
             const siteInfo = [
-                ['Site Name:', cleanText(inspection.siteName || 'Not specified')],
-                ['Inspector:', cleanText(inspection.inspector || 'Not specified')],
-                ['Organization:', cleanText(inspection.organization || 'Not specified')],
+                ['Site Name:', cleanPdfText(inspection.siteName || 'Not specified')],
+                ['Inspector:', cleanPdfText(inspection.inspector || 'Not specified')],
+                ['Organization:', cleanPdfText(inspection.organization || 'Not specified')],
                 ['Date/Time:', Utils.formatDate(inspection.dateTime)],
-                ['Coordinates:', cleanText(inspection.coords || 'Not recorded')],
-                ['Vegetation Type:', cleanText(inspection.vegetationType || 'Not specified')],
-                ['Tenure:', cleanText(inspection.tenure || 'Not specified')],
-                ['Weather:', cleanText(inspection.weather || 'Not recorded')],
-                ['Soil Condition:', cleanText(inspection.soilCondition || 'Not recorded')]
+                ['Coordinates:', cleanPdfText(inspection.coords || 'Not recorded')],
+                ['Vegetation Type:', cleanPdfText(inspection.vegetationType || 'Not specified')],
+                ['Tenure:', cleanPdfText(inspection.tenure || 'Not specified')],
+                ['Weather:', cleanPdfText(inspection.weather || 'Not recorded')],
+                ['Soil Condition:', cleanPdfText(inspection.soilCondition || 'Not recorded')]
             ];
             
             siteInfo.forEach(([label, value]) => {
@@ -2620,10 +2604,10 @@ class App {
             doc.setFontSize(9);
             doc.setTextColor('#333');
             const threats = [
-                ['Declared Weeds Present:', cleanText(inspection.weedsList || 'None recorded')],
-                ['Feral Animals:', cleanText(inspection.feralAnimals || 'Not assessed')],
-                ['Fire History:', cleanText(inspection.fireHistory || 'Not recorded')],
-                ['Overall Threat Level:', cleanText(inspection.threatLevel || 'Not assessed')]
+                ['Declared Weeds Present:', cleanPdfText(inspection.weedsList || 'None recorded')],
+                ['Feral Animals:', cleanPdfText(inspection.feralAnimals || 'Not assessed')],
+                ['Fire History:', cleanPdfText(inspection.fireHistory || 'Not recorded')],
+                ['Overall Threat Level:', cleanPdfText(inspection.threatLevel || 'Not assessed')]
             ];
             
             threats.forEach(([label, value]) => {
@@ -2652,19 +2636,19 @@ class App {
             
             doc.setFontSize(10);
             doc.setTextColor('#333');
-            const heritageSig = cleanText(inspection.heritageSignificance || 'Not Assessed');
+            const heritageSig = cleanPdfText(inspection.heritageSignificance || 'Not Assessed');
             doc.text(`Heritage Significance: ${heritageSig}`, margin, y);
             y += 6;
             
             doc.text('Cultural Sites / Artefacts:', margin, y);
             y += 4;
-            const culturalSites = cleanText(inspection.culturalSites || 'No cultural sites recorded.');
+            const culturalSites = cleanPdfText(inspection.culturalSites || 'No cultural sites recorded.');
             addText(culturalSites, 9);
             y += 4;
             
             doc.text('Heritage Management Notes:', margin, y);
             y += 4;
-            const heritageNotes = cleanText(inspection.aboriginalHeritage || 'No heritage management notes.');
+            const heritageNotes = cleanPdfText(inspection.aboriginalHeritage || 'No heritage management notes.');
             addText(heritageNotes, 9);
             y += 6;
             
@@ -2679,7 +2663,7 @@ class App {
             addTitle('OBSERVATIONS', 14);
             drawLine();
             y += 4;
-            const observations = cleanText(inspection.observations || 'No observations recorded.');
+            const observations = cleanPdfText(inspection.observations || 'No observations recorded.');
             addText(observations, 10);
             y += 4;
             
@@ -2694,7 +2678,7 @@ class App {
             addTitle('RECOMMENDATIONS', 14);
             drawLine();
             y += 4;
-            const recommendations = cleanText(inspection.recommendations || 'No specific recommendations recorded.');
+            const recommendations = cleanPdfText(inspection.recommendations || 'No specific recommendations recorded.');
             addText(recommendations, 10);
             y += 4;
             
