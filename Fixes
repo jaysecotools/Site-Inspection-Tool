@@ -1,3 +1,6 @@
+// ================================================================
+// REPORT GENERATION - COMPLETE WITH FIXES
+// ================================================================
 async generateReport(inspection) {
     if (this.isGenerating) {
         Toast.warning('Report generation already in progress');
@@ -14,70 +17,114 @@ async generateReport(inspection) {
     try {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
-        const pageWidth = 210, pageHeight = 297, margin = 18;
+        const pageWidth = 210;
+        const pageHeight = 297;
+        const margin = 18;
+        const contentWidth = pageWidth - 2 * margin;
         let y = margin;
+        
         const eco = inspection.ecologicalScore || Utils.calculateScore(inspection);
         const colour = '#1a5f4a';
         
-        // FIX 1: Simple HTML entity decoder - no aggressive cleaning
-        const cleanText = (text) => {
+        // FIXED: Improved clean function - preserves normal spaces
+        const clean = (text) => {
             if (!text) return '';
-            let clean = String(text);
-            // Only decode HTML entities
-            clean = clean.replace(/&amp;/g, '&')
-                         .replace(/&lt;/g, '<')
-                         .replace(/&gt;/g, '>')
-                         .replace(/&quot;/g, '"')
-                         .replace(/&#039;/g, "'")
-                         .replace(/&nbsp;/g, ' ');
-            return clean;
+            let s = String(text);
+            // Decode HTML entities
+            s = s.replace(/&amp;/g, '&')
+                 .replace(/&lt;/g, '<')
+                 .replace(/&gt;/g, '>')
+                 .replace(/&quot;/g, '"')
+                 .replace(/&#039;/g, "'")
+                 .replace(/&nbsp;/g, ' ');
+            // Remove HTML tags
+            s = s.replace(/<[^>]*>/g, '');
+            // Remove non-printable characters but KEEP normal spaces
+            s = s.replace(/[^\x20-\x7E]/g, '');
+            // Normalize multiple spaces but preserve single spaces between words
+            s = s.replace(/\s{2,}/g, ' ').trim();
+            return s;
         };
         
-        // Helper: Add text with auto-page breaks
-        const addText = (text, size = 10, color = '#333') => {
+        // FIXED: Better clean for checklist labels - preserve spaces
+        const cleanChecklistLabel = (text) => {
+            if (!text) return '';
+            let s = String(text);
+            // Only decode HTML entities, don't strip anything else
+            s = s.replace(/&amp;/g, '&')
+                 .replace(/&lt;/g, '<')
+                 .replace(/&gt;/g, '>')
+                 .replace(/&quot;/g, '"')
+                 .replace(/&#039;/g, "'")
+                 .replace(/&nbsp;/g, ' ');
+            // Remove HTML tags only
+            s = s.replace(/<[^>]*>/g, '');
+            return s;
+        };
+        
+        // Add text with wrapping
+        const addText = (text, fontSize = 10, color = '#000000') => {
             if (!text) return;
-            const clean = cleanText(text);
-            if (!clean) return;
-            doc.setFontSize(size);
+            const cleaned = clean(text);
+            if (!cleaned) return;
+            
+            doc.setFontSize(fontSize);
             doc.setTextColor(color);
-            const lines = doc.splitTextToSize(clean, pageWidth - 2 * margin);
-            const lineHeight = size * 0.45;
-            const totalHeight = lines.length * lineHeight + 1.5;
-            if (y + totalHeight > pageHeight - margin - 8) {
+            
+            // Split text to fit within page width
+            const lines = doc.splitTextToSize(cleaned, contentWidth);
+            const lineHeight = fontSize * 0.45;
+            
+            // Check if we need a new page
+            const neededHeight = lines.length * lineHeight;
+            if (y + neededHeight > pageHeight - margin - 10) {
                 doc.addPage();
                 y = margin + 5;
                 addFooter();
             }
+            
             doc.text(lines, margin, y);
-            y += totalHeight;
+            y += neededHeight + 2;
         };
         
-        // Helper: Add title
-        const addTitle = (text, size = 18, color = colour) => {
-            const clean = cleanText(text);
-            if (!clean) return;
-            doc.setFontSize(size);
+        // Add title
+        const addTitle = (text, fontSize = 18, color = colour) => {
+            const cleaned = clean(text);
+            if (!cleaned) return;
+            
+            if (y > pageHeight - 30) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+            }
+            
+            doc.setFontSize(fontSize);
             doc.setTextColor(color);
-            doc.text(clean, margin, y);
-            y += size * 0.4 + 2;
+            doc.text(cleaned, margin, y);
+            y += fontSize * 0.4 + 2;
         };
         
-        // Helper: Draw line
+        // Draw line
         const drawLine = () => {
+            if (y > pageHeight - 15) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+            }
             doc.setDrawColor(colour);
             doc.setLineWidth(0.5);
             doc.line(margin, y, pageWidth - margin, y);
             y += 5;
         };
         
-        // Helper: Add footer
+        // Add footer
         const addFooter = () => {
             doc.setDrawColor(colour);
             doc.setLineWidth(0.3);
             doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
             doc.setFontSize(7);
             doc.setTextColor('#aaa');
-            const id = cleanText(inspection.id || 'N/A');
+            const id = clean(inspection.id || 'N/A');
             doc.text(id, margin, pageHeight - 5);
             const date = Utils.formatDate(inspection.dateTime);
             doc.text(date, pageWidth - margin, pageHeight - 5, { align: 'right' });
@@ -102,23 +149,23 @@ async generateReport(inspection) {
         y += 6;
         
         doc.setFontSize(20);
-        doc.setTextColor('#222');
-        const siteName = cleanText(inspection.siteName || 'Site Assessment');
+        doc.setTextColor('#000000'); // FIXED: Black text for better readability
+        const siteName = clean(inspection.siteName || 'Site Assessment');
         doc.text(siteName, margin, y);
         y += 12;
         
         doc.setFontSize(11);
-        doc.setTextColor('#555');
-        const org = cleanText(inspection.organization || 'Environmental Client');
+        doc.setTextColor('#000000'); // FIXED: Black text
+        const org = clean(inspection.organization || 'Environmental Client');
         doc.text(`Prepared for: ${org}`, margin, y);
         y += 6;
         const date = Utils.formatDate(inspection.dateTime);
         doc.text(`Date: ${date}`, margin, y);
         y += 6;
-        const id = cleanText(inspection.id || 'N/A');
+        const id = clean(inspection.id || 'N/A');
         doc.text(`Report ID: ${id}`, margin, y);
         y += 6;
-        const author = cleanText(inspection.inspector || 'Environmental Consultant');
+        const author = clean(inspection.inspector || 'Environmental Consultant');
         doc.text(`Author: ${author}`, margin, y);
         y += 10;
         
@@ -134,7 +181,7 @@ async generateReport(inspection) {
                 });
                 
                 if (imgData) {
-                    const maxImgWidth = pageWidth - 2 * margin - 20;
+                    const maxImgWidth = contentWidth - 20;
                     const maxImgHeight = 70;
                     let imgWidth = maxImgWidth;
                     let imgHeight = (imgData.height / imgData.width) * maxImgWidth;
@@ -147,7 +194,7 @@ async generateReport(inspection) {
                     y += imgHeight + 8;
                     doc.setFontSize(7);
                     doc.setTextColor('#999');
-                    const caption = cleanText(inspection.siteName || 'Site Photo');
+                    const caption = clean(inspection.siteName || 'Site Photo');
                     doc.text(`Cover Photo: ${caption}`, margin + 10, y);
                     y += 6;
                 }
@@ -181,14 +228,13 @@ async generateReport(inspection) {
         doc.setTextColor(eco.colour);
         doc.text(`Risk Rating: ${eco.riskRating}`, margin, y);
         y += 6;
-        doc.setTextColor('#333');
+        doc.setTextColor('#000000'); // FIXED: Black text
         doc.text(`Management Priority: ${eco.priority}`, margin, y);
         y += 6;
         doc.text(`Conservation Significance: ${eco.significance}`, margin, y);
         y += 10;
         
-        const summaryText = `This report presents findings of an ecological assessment at "${cleanText(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`;
-        addText(summaryText, 10);
+        addText(`This report presents findings of an ecological assessment at "${clean(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`, 10);
         y += 4;
         
         doc.setFontSize(11);
@@ -196,7 +242,7 @@ async generateReport(inspection) {
         doc.text('Key Findings:', margin, y);
         y += 5;
         doc.setFontSize(9);
-        doc.setTextColor('#444');
+        doc.setTextColor('#000000'); // FIXED: Black text
         const findings = [
             `Vegetation Health: ${inspection.vegHealth || 6}/10`,
             `Species Richness: ${inspection.speciesRichness || 5} species recorded`,
@@ -211,7 +257,7 @@ async generateReport(inspection) {
         y += 6;
         
         // ============================================================
-        // CHECKLIST SUMMARY
+        // CHECKLIST SUMMARY - FIXED: Preserve spaces in labels
         // ============================================================
         if (y > pageHeight - 60) {
             doc.addPage();
@@ -248,7 +294,7 @@ async generateReport(inspection) {
         let completed = checklistItems.filter(item => item.value === true || item.value === 'true' || item.value === 1).length;
         
         doc.setFontSize(9);
-        doc.setTextColor('#555');
+        doc.setTextColor('#000000'); // FIXED: Black text
         doc.text(`Completion: ${completed}/${total} items (${Math.round((completed/total)*100)}%)`, margin, y);
         y += 6;
         
@@ -259,7 +305,7 @@ async generateReport(inspection) {
                 y = margin + 5;
                 addFooter();
                 doc.setFontSize(9);
-                doc.setTextColor('#555');
+                doc.setTextColor('#000000');
                 doc.text(`Completion: ${completed}/${total} items (${Math.round((completed/total)*100)}%)`, margin, y);
                 y += 6;
             }
@@ -276,16 +322,18 @@ async generateReport(inspection) {
             const symbol = isChecked ? '✓' : '✗';
             const color = isChecked ? '#10b981' : '#dc2626';
             
-            // FIX 3: Use the label directly - no cleaning needed here
+            // FIXED: Use cleanChecklistLabel instead of clean to preserve spaces
+            const label = cleanChecklistLabel(item.label);
+            
             doc.setFontSize(8);
             doc.setTextColor(color);
-            doc.text(`${symbol}  ${item.label}`, margin + 4, y);
+            doc.text(`${symbol}  ${label}`, margin + 4, y);
             y += 5;
         });
         y += 3;
         
         // ============================================================
-        // SITE INFORMATION DETAILS - FIX 2: Pure black text
+        // SITE INFORMATION DETAILS - FIXED: Proper text wrapping and black color
         // ============================================================
         if (y > pageHeight - 50) {
             doc.addPage();
@@ -296,30 +344,34 @@ async generateReport(inspection) {
         drawLine();
         y += 4;
         
-        doc.setFontSize(9);
-        doc.setTextColor('#000000'); // Pure black for maximum visibility
-        
         const siteInfo = [
-            ['Site Name:', cleanText(inspection.siteName || 'Not specified')],
-            ['Inspector:', cleanText(inspection.inspector || 'Not specified')],
-            ['Organization:', cleanText(inspection.organization || 'Not specified')],
+            ['Site Name:', clean(inspection.siteName || 'Not specified')],
+            ['Inspector:', clean(inspection.inspector || 'Not specified')],
+            ['Organization:', clean(inspection.organization || 'Not specified')],
             ['Date/Time:', Utils.formatDate(inspection.dateTime)],
-            ['Coordinates:', cleanText(inspection.coords || 'Not recorded')],
-            ['Vegetation Type:', cleanText(inspection.vegetationType || 'Not specified')],
-            ['Tenure:', cleanText(inspection.tenure || 'Not specified')],
-            ['Weather:', cleanText(inspection.weather || 'Not recorded')],
-            ['Soil Condition:', cleanText(inspection.soilCondition || 'Not recorded')]
+            ['Coordinates:', clean(inspection.coords || 'Not recorded')],
+            ['Vegetation Type:', clean(inspection.vegetationType || 'Not specified')],
+            ['Tenure:', clean(inspection.tenure || 'Not specified')],
+            ['Weather:', clean(inspection.weather || 'Not recorded')],
+            ['Soil Condition:', clean(inspection.soilCondition || 'Not recorded')]
         ];
         
+        // FIXED: Use wrapped text for all site info entries
         siteInfo.forEach(([label, value]) => {
             if (y > pageHeight - 20) {
                 doc.addPage();
                 y = margin + 5;
                 addFooter();
                 doc.setFontSize(9);
+                doc.setTextColor('#000000');
             }
-            doc.text(`${label} ${value}`, margin, y);
-            y += 5;
+            
+            const fullText = `${label} ${value}`;
+            const lines = doc.splitTextToSize(fullText, contentWidth);
+            doc.setFontSize(9);
+            doc.setTextColor('#000000'); // FIXED: Black text for readability
+            doc.text(lines, margin, y);
+            y += (lines.length * 4.5) + 2; // Adjust spacing for wrapped lines
         });
         y += 3;
         
@@ -335,13 +387,11 @@ async generateReport(inspection) {
         drawLine();
         y += 4;
         
-        doc.setFontSize(9);
-        doc.setTextColor('#000000');
         const threats = [
-            ['Declared Weeds Present:', cleanText(inspection.weedsList || 'None recorded')],
-            ['Feral Animals:', cleanText(inspection.feralAnimals || 'Not assessed')],
-            ['Fire History:', cleanText(inspection.fireHistory || 'Not recorded')],
-            ['Overall Threat Level:', cleanText(inspection.threatLevel || 'Not assessed')]
+            ['Declared Weeds Present:', clean(inspection.weedsList || 'None recorded')],
+            ['Feral Animals:', clean(inspection.feralAnimals || 'Not assessed')],
+            ['Fire History:', clean(inspection.fireHistory || 'Not recorded')],
+            ['Overall Threat Level:', clean(inspection.threatLevel || 'Not assessed')]
         ];
         
         threats.forEach(([label, value]) => {
@@ -350,9 +400,14 @@ async generateReport(inspection) {
                 y = margin + 5;
                 addFooter();
                 doc.setFontSize(9);
+                doc.setTextColor('#000000');
             }
-            doc.text(`${label} ${value}`, margin, y);
-            y += 5;
+            const fullText = `${label} ${value}`;
+            const lines = doc.splitTextToSize(fullText, contentWidth);
+            doc.setFontSize(9);
+            doc.setTextColor('#000000'); // FIXED: Black text
+            doc.text(lines, margin, y);
+            y += (lines.length * 4.5) + 2;
         });
         y += 3;
         
@@ -369,20 +424,20 @@ async generateReport(inspection) {
         y += 4;
         
         doc.setFontSize(10);
-        doc.setTextColor('#000000');
-        const heritageSig = cleanText(inspection.heritageSignificance || 'Not Assessed');
+        doc.setTextColor('#000000'); // FIXED: Black text
+        const heritageSig = clean(inspection.heritageSignificance || 'Not Assessed');
         doc.text(`Heritage Significance: ${heritageSig}`, margin, y);
         y += 6;
         
         doc.text('Cultural Sites / Artefacts:', margin, y);
         y += 4;
-        const culturalSites = cleanText(inspection.culturalSites || 'No cultural sites recorded.');
+        const culturalSites = clean(inspection.culturalSites || 'No cultural sites recorded.');
         addText(culturalSites, 9);
         y += 4;
         
         doc.text('Heritage Management Notes:', margin, y);
         y += 4;
-        const heritageNotes = cleanText(inspection.aboriginalHeritage || 'No heritage management notes.');
+        const heritageNotes = clean(inspection.aboriginalHeritage || 'No heritage management notes.');
         addText(heritageNotes, 9);
         y += 6;
         
@@ -397,7 +452,7 @@ async generateReport(inspection) {
         addTitle('OBSERVATIONS', 14);
         drawLine();
         y += 4;
-        const observations = cleanText(inspection.observations || 'No observations recorded.');
+        const observations = clean(inspection.observations || 'No observations recorded.');
         addText(observations, 10);
         y += 4;
         
@@ -412,7 +467,7 @@ async generateReport(inspection) {
         addTitle('RECOMMENDATIONS', 14);
         drawLine();
         y += 4;
-        const recommendations = cleanText(inspection.recommendations || 'No specific recommendations recorded.');
+        const recommendations = clean(inspection.recommendations || 'No specific recommendations recorded.');
         addText(recommendations, 10);
         y += 4;
         
@@ -429,7 +484,7 @@ async generateReport(inspection) {
         y += 4;
         
         doc.setFontSize(9);
-        doc.setTextColor('#000000');
+        doc.setTextColor('#000000'); // FIXED: Black text
         const metrics = [
             ['Vegetation Health:', `${inspection.vegHealth || 6}/10`],
             ['Species Richness:', `${inspection.speciesRichness || 5}/10`],
@@ -446,9 +501,12 @@ async generateReport(inspection) {
                 y = margin + 5;
                 addFooter();
                 doc.setFontSize(9);
+                doc.setTextColor('#000000');
             }
-            doc.text(`${label} ${value}`, margin, y);
-            y += 5;
+            const fullText = `${label} ${value}`;
+            const lines = doc.splitTextToSize(fullText, contentWidth);
+            doc.text(lines, margin, y);
+            y += (lines.length * 4.5) + 2;
         });
         y += 3;
         
@@ -480,7 +538,7 @@ async generateReport(inspection) {
                     doc.text(note.title, margin, y);
                     y += 4;
                     doc.setFontSize(9);
-                    doc.setTextColor('#000000');
+                    doc.setTextColor('#000000'); // FIXED: Black text
                     addText(note.text, 9);
                     y += 2;
                 }
@@ -501,7 +559,7 @@ async generateReport(inspection) {
             const photos = inspection.photos.slice(0, 15);
             const photoSize = 50;
             const gap = 5;
-            const maxCols = Math.floor((pageWidth - 2 * margin + gap) / (photoSize + gap));
+            const maxCols = Math.floor((contentWidth + gap) / (photoSize + gap));
             let row = 0, col = 0;
             
             for (let i = 0; i < photos.length; i++) {
