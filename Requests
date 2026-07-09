@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>EcoMaintenance – Cultural Heritage & Site Inspection</title>
-    <!-- Leaflet & Draw -->
+    <title>Site Inspection - Cultural Heritage & Ecology</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
@@ -17,7 +15,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --primary: #1a5f4a;
             --primary-dark: #0f3b2e;
@@ -46,7 +44,6 @@
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--gray-100); height: 100vh; overflow: hidden; }
         .app { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
 
-        /* Sidebar */
         .sidebar {
             width: 240px;
             background: linear-gradient(180deg, var(--primary-dark) 0%, #0a241f 100%);
@@ -89,7 +86,6 @@
 
         .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--gray-50); }
 
-        /* Toolbar */
         .toolbar {
             background: rgba(255,255,255,0.9);
             backdrop-filter: blur(12px);
@@ -141,7 +137,6 @@
             padding: 2px 4px;
         }
         .search-box input { border: none; padding: 3px 6px; font-size: 0.65rem; width: 140px; outline: none; background: transparent; }
-        .search-box input:focus { outline: none; }
 
         .map-wrapper { flex: 1; position: relative; min-height: 0; overflow: hidden; }
         #map { height: 100%; width: 100%; position: absolute; top: 0; left: 0; }
@@ -192,7 +187,7 @@
             align-items: center;
             justify-content: center;
         }
-        .map-tools .tool-btn:hover { background: var(--primary); color: white; transform: scale(1.05); }
+        .map-tools .tool-btn:hover { background: var(--primary); color: white; }
 
         .layer-control {
             position: absolute;
@@ -237,7 +232,7 @@
             position: fixed;
             top: 0;
             right: 0;
-            width: 680px;
+            width: 720px;
             max-width: 94vw;
             height: 100vh;
             background: white;
@@ -328,7 +323,42 @@
         }
         textarea { resize: vertical; min-height: 40px; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 10px;
+            padding: 4px 0;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--gray-700);
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: background var(--transition);
+        }
+        .checkbox-group label:hover { background: var(--gray-50); }
+        .checkbox-group input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .checklist-summary {
+            font-size: 0.6rem;
+            color: var(--gray-500);
+            padding: 4px 0;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .checklist-summary .done { color: var(--success); }
+        .checklist-summary .pending { color: var(--gray-400); }
+        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } .checkbox-group { grid-template-columns: 1fr; } }
 
         .photo-grid {
             display: grid;
@@ -557,7 +587,6 @@
         .flex-between { display: flex; justify-content: space-between; align-items: center; }
         .gap-2 { gap: 4px; }
         .w-full { width: 100%; }
-        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -565,13 +594,13 @@
 <div class="app">
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-brand">
-            <h1><i class="fas fa-leaf"></i> EcoMaintain</h1>
-            <div class="version">Cultural v4.0</div>
+            <h1><i class="fas fa-clipboard-check"></i> InspectPro</h1>
+            <div class="version">Site Inspection v4.0</div>
         </div>
         <div class="sidebar-nav">
             <button class="nav-item active" data-view="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
             <button class="nav-item" data-view="inspections"><i class="fas fa-clipboard-list"></i> Inspections <span class="badge" id="inspCount">0</span></button>
-            <button class="nav-item" data-view="new"><i class="fas fa-plus-circle"></i> New Assessment</button>
+            <button class="nav-item" data-view="new"><i class="fas fa-plus-circle"></i> New Inspection</button>
             <button class="nav-item" data-view="mapview"><i class="fas fa-map"></i> Map View</button>
             <button class="nav-item" data-view="drafts"><i class="fas fa-save"></i> Drafts <span class="badge" id="draftCount">0</span></button>
             <button class="nav-item" data-view="data"><i class="fas fa-database"></i> Data Manager</button>
@@ -623,7 +652,7 @@
 
     <aside class="panel" id="panel">
         <header class="panel-header">
-            <h3 id="panelTitle"><i class="fas fa-clipboard"></i> Inspection</h3>
+            <h3 id="panelTitle"><i class="fas fa-clipboard"></i> Site Inspection</h3>
             <div class="panel-actions">
                 <button id="closePanelBtn" class="btn btn-secondary btn-sm"><i class="fas fa-times"></i></button>
             </div>
@@ -664,27 +693,7 @@ const Utils = {
             img.onerror = () => resolve(dataURL);
             img.src = dataURL;
         });
-    },
-    calculateScore(data) {
-        const vh = parseFloat(data.vegHealth || 6);
-        const sr = parseFloat(data.speciesRichness || 5);
-        const wc = parseFloat(data.weedCover || 30);
-        const hq = parseFloat(data.habitatQuality || 5);
-        const dist = parseFloat(data.disturbance || 3);
-        const regen = parseFloat(data.regeneration || 5);
-        const score = Utils.clamp((vh*0.25)+(sr*0.2)+((100-wc)/10*0.2)+(hq*0.15)+((10-dist)*0.1)+(regen*0.1),0,10);
-        let riskRating, priority, colour, icon;
-        if (score < 3) { riskRating='Critical'; priority='Immediate Intervention'; colour='#dc2626'; icon='fa-exclamation-triangle'; }
-        else if (score < 5) { riskRating='High Risk'; priority='Urgent Management'; colour='#f59e0b'; icon='fa-exclamation-circle'; }
-        else if (score < 7) { riskRating='Medium Risk'; priority='Short-term Plan'; colour='#f59e0b'; icon='fa-minus-circle'; }
-        else if (score < 8.5) { riskRating='Low Risk'; priority='Regular Monitoring'; colour='#3b82f6'; icon='fa-check-circle'; }
-        else { riskRating='Excellent'; priority='Maintenance Only'; colour='#10b981'; icon='fa-star'; }
-        return { conditionScore: Utils.round(score,1), riskRating, priority, colour, icon, significance: score>7 ? 'High Conservation Value' : (score>5 ? 'Moderate Conservation Value' : 'Low Conservation Value') };
-    },
-    getRatingClass(score) { if (score>=8) return 'excellent'; if (score>=6.5) return 'good'; if (score>=4.5) return 'moderate'; return 'poor'; },
-    getVegetationTypes() { return ['Dry Eucalypt Forest','Wet Eucalypt Forest','Rainforest','Moorland','Grassland','Coastal Heath','Saltmarsh','Alpine Vegetation','Riparian Forest','Plantation','Mixed Forest','Woodland']; },
-    getThreatLevels() { return ['Low','Medium','High','Critical']; },
-    getFeralOptions() { return ['Nil','Low','Medium','High']; }
+    }
 };
 
 const Toast = {
@@ -708,8 +717,8 @@ const Toast = {
 // ============================================================
 class Database {
     constructor() { this.data = { inspections:[], drafts:[] }; this._loadFromStorage(); }
-    _loadFromStorage() { try { const saved = localStorage.getItem('EcoMaintenanceData'); if (saved) this.data = JSON.parse(saved); } catch {} }
-    _saveToStorage() { try { localStorage.setItem('EcoMaintenanceData', JSON.stringify(this.data)); } catch {} }
+    _loadFromStorage() { try { const saved = localStorage.getItem('InspectionData'); if (saved) this.data = JSON.parse(saved); } catch {} }
+    _saveToStorage() { try { localStorage.setItem('InspectionData', JSON.stringify(this.data)); } catch {} }
     async save(item, isDraft=false) {
         const store = isDraft ? 'drafts' : 'inspections';
         const existing = this.data[store].findIndex(i => i.id === item.id);
@@ -756,6 +765,12 @@ class App {
         this.currentLayer = 'streets';
         this.layers = {};
         this.searchMarker = null;
+        this.checklistState = {
+            general: { siteLocation: false, accessibility: false, siteConditions: false, infrastructure: false },
+            environmental: { protectedSpecies: false, environmentalImpacts: false, compliance: false, conservation: false },
+            workPractices: { workPractices: false, healthSafety: false, risksHazards: false, controlMeasures: false },
+            equipment: { equipmentInspected: false, safeCondition: false, maintenanceRecords: false, industryStandards: false }
+        };
     }
 
     init() {
@@ -766,7 +781,7 @@ class App {
         this.bindEvents();
         this.showDashboard();
         this.initialized = true;
-        Toast.success('EcoMaintenance Cultural Heritage ready');
+        Toast.success('Site Inspection Tool Ready');
     }
 
     initMap() {
@@ -951,37 +966,116 @@ class App {
         } catch {}
     }
 
+    // ============================================================
+    // CHECKLIST HELPERS
+    // ============================================================
+    getChecklistData() {
+        const getCheck = (id) => document.getElementById(id)?.checked || false;
+        return {
+            general: {
+                siteLocation: getCheck('chk_siteLocation'),
+                accessibility: getCheck('chk_accessibility'),
+                siteConditions: getCheck('chk_siteConditions'),
+                infrastructure: getCheck('chk_infrastructure')
+            },
+            environmental: {
+                protectedSpecies: getCheck('chk_protectedSpecies'),
+                environmentalImpacts: getCheck('chk_environmentalImpacts'),
+                compliance: getCheck('chk_compliance'),
+                conservation: getCheck('chk_conservation')
+            },
+            workPractices: {
+                workPractices: getCheck('chk_workPractices'),
+                healthSafety: getCheck('chk_healthSafety'),
+                risksHazards: getCheck('chk_risksHazards'),
+                controlMeasures: getCheck('chk_controlMeasures')
+            },
+            equipment: {
+                equipmentInspected: getCheck('chk_equipmentInspected'),
+                safeCondition: getCheck('chk_safeCondition'),
+                maintenanceRecords: getCheck('chk_maintenanceRecords'),
+                industryStandards: getCheck('chk_industryStandards')
+            }
+        };
+    }
+
+    getChecklistCount() {
+        const data = this.getChecklistData();
+        let total = 0, done = 0;
+        Object.values(data).forEach(section => {
+            Object.values(section).forEach(val => {
+                total++;
+                if (val) done++;
+            });
+        });
+        return { total, done };
+    }
+
+    // ============================================================
+    // FORM COLLECTION
+    // ============================================================
     collectForm() {
         const get = (id) => document.getElementById(id)?.value || '';
         const getNum = (id) => parseFloat(document.getElementById(id)?.value) || 0;
+        const checklist = this.getChecklistData();
+
         return {
             id: this.currentId || Utils.uuid(),
             status: this.isDraft ? 'draft' : 'finalised',
+            // Site Info
             siteName: get('siteName'),
             inspector: get('inspector'),
             organization: get('organization'),
             dateTime: get('dateTime') || new Date().toISOString().slice(0,16),
             coords: `${this.currentLat.toFixed(6)}, ${this.currentLng.toFixed(6)}`,
+            // General Site Conditions
+            siteLocation: checklist.general.siteLocation,
+            accessibility: checklist.general.accessibility,
+            siteConditions: checklist.general.siteConditions,
+            infrastructure: checklist.general.infrastructure,
+            siteConditionsNotes: get('siteConditionsNotes'),
+            // Environmental
+            protectedSpecies: checklist.environmental.protectedSpecies,
+            environmentalImpacts: checklist.environmental.environmentalImpacts,
+            compliance: checklist.environmental.compliance,
+            conservation: checklist.environmental.conservation,
+            environmentalNotes: get('environmentalNotes'),
+            // Work Practices
+            workPractices: checklist.workPractices.workPractices,
+            healthSafety: checklist.workPractices.healthSafety,
+            risksHazards: checklist.workPractices.risksHazards,
+            controlMeasures: checklist.workPractices.controlMeasures,
+            workPracticesNotes: get('workPracticesNotes'),
+            // Equipment
+            equipmentInspected: checklist.equipment.equipmentInspected,
+            safeCondition: checklist.equipment.safeCondition,
+            maintenanceRecords: checklist.equipment.maintenanceRecords,
+            industryStandards: checklist.equipment.industryStandards,
+            equipmentNotes: get('equipmentNotes'),
+            // Ecological Health
             vegetationType: get('vegetationType'),
-            tenure: get('tenure'),
             vegHealth: getNum('vegHealth'),
             speciesRichness: getNum('speciesRichness'),
             weedCover: getNum('weedCover'),
             habitatQuality: getNum('habitatQuality'),
             disturbance: getNum('disturbance'),
             regeneration: getNum('regeneration'),
+            // Threats
             weedsList: get('weedsList'),
             feralAnimals: get('feralAnimals'),
             fireHistory: get('fireHistory'),
             threatLevel: get('threatLevel'),
+            // Observations & Recommendations
             observations: get('observations'),
             recommendations: get('recommendations'),
-            weather: get('weather'),
-            soilCondition: get('soilCondition'),
-            // Cultural heritage fields
+            // Aboriginal Heritage
             aboriginalHeritage: get('aboriginalHeritage'),
             culturalSites: get('culturalSites'),
             heritageSignificance: get('heritageSignificance'),
+            // Weather & Soil
+            weather: get('weather'),
+            soilCondition: get('soilCondition'),
+            // Photos
             photos: this.currentPhotos,
             geometry: this.getGeometry(),
             waypoints: this.getWaypoints(),
@@ -989,24 +1083,32 @@ class App {
         };
     }
 
+    // ============================================================
+    // RENDER FORM WITH FULL CHECKLIST
+    // ============================================================
     renderForm(data = null) {
         const d = data || {};
-        const eco = Utils.calculateScore(d);
-        const vegTypes = Utils.getVegetationTypes();
-        const threats = Utils.getThreatLevels();
-        const feral = Utils.getFeralOptions();
+        const vegTypes = ['Dry Eucalypt Forest','Wet Eucalypt Forest','Rainforest','Moorland','Grassland','Coastal Heath','Saltmarsh','Alpine Vegetation','Riparian Forest','Plantation','Mixed Forest','Woodland'];
+        const threats = ['Low','Medium','High','Critical'];
+        const feral = ['Nil','Low','Medium','High'];
         const vegOpts = vegTypes.map(v => `<option ${d.vegetationType === v ? 'selected' : ''}>${v}</option>`).join('');
         const threatOpts = threats.map(t => `<option ${d.threatLevel === t ? 'selected' : ''}>${t}</option>`).join('');
         const feralOpts = feral.map(f => `<option ${d.feralAnimals === f ? 'selected' : ''}>${f}</option>`).join('');
         const photoCount = this.currentPhotos.length;
+        const heritageOpts = ['High – known cultural site','Moderate – potential heritage','Low – minimal evidence','Not Assessed'];
+        const heritageOptions = heritageOpts.map(h => `<option ${d.heritageSignificance === h ? 'selected' : ''}>${h}</option>`).join('');
+
+        const chk = (id, val) => `<input type="checkbox" id="${id}" ${val ? 'checked' : ''}>`;
+        const chkLabel = (id, label, val) => `<label>${chk(id, val)} ${label}</label>`;
 
         return `
             <form id="inspectionForm">
+                <!-- Header -->
                 <div class="form-section">
-                    <button type="button" class="section-header"><span><i class="fas fa-info-circle"></i> Site Information</span><i class="fas fa-chevron-down"></i></button>
+                    <button type="button" class="section-header"><span><i class="fas fa-info-circle"></i> Inspection Details</span><i class="fas fa-chevron-down"></i></button>
                     <div class="section-content">
                         <div class="form-row">
-                            <div class="form-group"><label>ID</label><input id="inspId" value="${d.id || ('ECO-'+Date.now())}" readonly style="background:var(--gray-100);font-family:monospace;font-size:0.65rem;"></div>
+                            <div class="form-group"><label>ID</label><input id="inspId" value="${d.id || ('INS-'+Date.now())}" readonly style="background:var(--gray-100);font-family:monospace;font-size:0.65rem;"></div>
                             <div class="form-group"><label>Status</label><input value="${this.isDraft ? 'DRAFT' : 'NEW'}" style="font-weight:700;color:${this.isDraft ? 'var(--warning)' : 'var(--primary)'};background:var(--gray-100);" readonly></div>
                         </div>
                         <div class="form-group"><label>Site Name <span class="required">*</span></label><input id="siteName" required value="${Utils.escapeHtml(d.siteName||'')}" placeholder="e.g., Huon Valley Conservation Area"></div>
@@ -1019,29 +1121,72 @@ class App {
                             <div class="form-group"><label>Vegetation Type</label><select id="vegetationType">${vegOpts}</select></div>
                         </div>
                         <div class="form-row">
-                            <div class="form-group"><label>Tenure</label><input id="tenure" value="${Utils.escapeHtml(d.tenure||'')}" placeholder="e.g., Private, Parks"></div>
-                            <div class="form-group"><label>Weather</label><input id="weather" value="${Utils.escapeHtml(d.weather||'')}" placeholder="Temp, wind, precipitation"></div>
+                            <div class="form-group"><label>Weather Conditions</label><input id="weather" value="${Utils.escapeHtml(d.weather||'')}" placeholder="Temp, wind, precipitation"></div>
+                            <div class="form-group"><label>Soil Condition</label><input id="soilCondition" value="${Utils.escapeHtml(d.soilCondition||'')}" placeholder="Soil type, moisture, erosion"></div>
                         </div>
-                        <div class="form-group"><label>Soil Condition</label><textarea id="soilCondition" rows="2" placeholder="Soil type, moisture, erosion">${Utils.escapeHtml(d.soilCondition||'')}</textarea></div>
                     </div>
                 </div>
 
+                <!-- CHECKLIST: General Site Conditions -->
+                <div class="form-section" style="border-left:4px solid #3b82f6;">
+                    <button type="button" class="section-header" style="color:#3b82f6;"><span><i class="fas fa-map-pin"></i> General Site Conditions</span><i class="fas fa-chevron-down"></i></button>
+                    <div class="section-content">
+                        <div class="checkbox-group">
+                            ${chkLabel('chk_siteLocation', '✓ Verified site location and boundaries', d.siteLocation)}
+                            ${chkLabel('chk_accessibility', '✓ Assessed accessibility and entry points', d.accessibility)}
+                            ${chkLabel('chk_siteConditions', '✓ Evaluated site conditions (topography, soil, vegetation, drainage)', d.siteConditions)}
+                            ${chkLabel('chk_infrastructure', '✓ Identified existing infrastructure or features impacting inspection', d.infrastructure)}
+                        </div>
+                        <div class="form-group"><label>Additional Notes</label><textarea id="siteConditionsNotes" rows="1" placeholder="Observations about site conditions">${Utils.escapeHtml(d.siteConditionsNotes||'')}</textarea></div>
+                    </div>
+                </div>
+
+                <!-- CHECKLIST: Environmental Considerations -->
+                <div class="form-section" style="border-left:4px solid #10b981;">
+                    <button type="button" class="section-header" style="color:#10b981;"><span><i class="fas fa-leaf"></i> Environmental Considerations</span><i class="fas fa-chevron-down"></i></button>
+                    <div class="section-content">
+                        <div class="checkbox-group">
+                            ${chkLabel('chk_protectedSpecies', '✓ Assessed presence of protected flora or fauna species', d.protectedSpecies)}
+                            ${chkLabel('chk_environmentalImpacts', '✓ Evaluated potential impacts on environment (erosion, habitat destruction, contamination)', d.environmentalImpacts)}
+                            ${chkLabel('chk_compliance', '✓ Verified compliance with environmental legislation and regulations', d.compliance)}
+                            ${chkLabel('chk_conservation', '✓ Noted areas of conservation significance or ecological value', d.conservation)}
+                        </div>
+                        <div class="form-group"><label>Environmental Notes</label><textarea id="environmentalNotes" rows="1" placeholder="Key environmental observations">${Utils.escapeHtml(d.environmentalNotes||'')}</textarea></div>
+                    </div>
+                </div>
+
+                <!-- CHECKLIST: Work Practices and Procedures -->
+                <div class="form-section" style="border-left:4px solid #f59e0b;">
+                    <button type="button" class="section-header" style="color:#f59e0b;"><span><i class="fas fa-hard-hat"></i> Work Practices & Procedures</span><i class="fas fa-chevron-down"></i></button>
+                    <div class="section-content">
+                        <div class="checkbox-group">
+                            ${chkLabel('chk_workPractices', '✓ Observed and evaluated work practices and procedures', d.workPractices)}
+                            ${chkLabel('chk_healthSafety', '✓ Assessed compliance with occupational health and safety regulations', d.healthSafety)}
+                            ${chkLabel('chk_risksHazards', '✓ Identified potential risks and hazards', d.risksHazards)}
+                            ${chkLabel('chk_controlMeasures', '✓ Reviewed implementation of control measures to mitigate risks', d.controlMeasures)}
+                        </div>
+                        <div class="form-group"><label>Work Practice Notes</label><textarea id="workPracticesNotes" rows="1" placeholder="Observations on work practices">${Utils.escapeHtml(d.workPracticesNotes||'')}</textarea></div>
+                    </div>
+                </div>
+
+                <!-- CHECKLIST: Equipment and Machinery -->
+                <div class="form-section" style="border-left:4px solid #8b5cf6;">
+                    <button type="button" class="section-header" style="color:#8b5cf6;"><span><i class="fas fa-cogs"></i> Equipment & Machinery</span><i class="fas fa-chevron-down"></i></button>
+                    <div class="section-content">
+                        <div class="checkbox-group">
+                            ${chkLabel('chk_equipmentInspected', '✓ Inspected equipment and machinery used on-site', d.equipmentInspected)}
+                            ${chkLabel('chk_safeCondition', '✓ Ensured equipment is in safe working condition', d.safeCondition)}
+                            ${chkLabel('chk_maintenanceRecords', '✓ Checked maintenance and service records', d.maintenanceRecords)}
+                            ${chkLabel('chk_industryStandards', '✓ Verified compliance with relevant industry standards', d.industryStandards)}
+                        </div>
+                        <div class="form-group"><label>Equipment Notes</label><textarea id="equipmentNotes" rows="1" placeholder="Equipment observations">${Utils.escapeHtml(d.equipmentNotes||'')}</textarea></div>
+                    </div>
+                </div>
+
+                <!-- Ecological Health -->
                 <div class="form-section">
                     <button type="button" class="section-header"><span><i class="fas fa-chart-line"></i> Ecological Health</span><i class="fas fa-chevron-down"></i></button>
                     <div class="section-content">
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <span style="font-weight:700;">Condition Score</span>
-                            <span style="font-weight:700;font-size:1.2rem;display:flex;align-items:center;gap:4px;" id="scoreDisplay">
-                                ${eco.conditionScore}/10 <i class="fas ${eco.icon}" style="color:${eco.colour};font-size:0.9rem;"></i>
-                            </span>
-                        </div>
-                        <div class="health-meter"><div class="health-fill" style="width:${eco.conditionScore*10}%;background:${eco.colour};"></div></div>
-                        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
-                            <span class="rating-badge ${Utils.getRatingClass(eco.conditionScore)}"><i class="fas ${eco.icon}"></i> ${eco.riskRating}</span>
-                            <span class="text-muted text-sm">${eco.significance}</span>
-                            <span class="text-muted text-sm">Priority: ${eco.priority}</span>
-                        </div>
-                        <hr style="margin:6px 0;border-color:var(--gray-200);">
                         <div class="form-group"><label>Vegetation Health (0-10)</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" id="vegHealth" min="0" max="10" step="0.5" value="${d.vegHealth||6}" style="flex:1;"><span id="vhVal" class="text-muted text-sm" style="min-width:24px;">${d.vegHealth||6}</span></div></div>
                         <div class="form-row">
                             <div class="form-group"><label>Species Richness (0-10)</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" id="speciesRichness" min="0" max="10" step="0.5" value="${d.speciesRichness||5}" style="flex:1;"><span id="srVal" class="text-muted text-sm" style="min-width:24px;">${d.speciesRichness||5}</span></div></div>
@@ -1055,32 +1200,26 @@ class App {
                     </div>
                 </div>
 
+                <!-- Species & Threats -->
                 <div class="form-section">
                     <button type="button" class="section-header"><span><i class="fas fa-paw"></i> Species & Threats</span><i class="fas fa-chevron-down"></i></button>
                     <div class="section-content">
-                        <div class="form-group"><label>Declared Weeds</label><input id="weedsList" value="${Utils.escapeHtml(d.weedsList||'')}" placeholder="e.g., Gorse, Blackberry"></div>
+                        <div class="form-group"><label>Declared Weeds</label><input id="weedsList" value="${Utils.escapeHtml(d.weedsList||'')}" placeholder="e.g., Gorse, Blackberry, Serrated Tussock"></div>
                         <div class="form-row">
                             <div class="form-group"><label>Feral Animals</label><select id="feralAnimals">${feralOpts}</select></div>
                             <div class="form-group"><label>Threat Level</label><select id="threatLevel">${threatOpts}</select></div>
                         </div>
                         <div class="form-group"><label>Fire History</label><input id="fireHistory" value="${Utils.escapeHtml(d.fireHistory||'')}" placeholder="Years since last fire"></div>
-                        <div class="form-group"><label>Observations</label><textarea id="observations" rows="2" placeholder="Detailed observations">${Utils.escapeHtml(d.observations||'')}</textarea></div>
-                        <div class="form-group"><label>Recommendations</label><textarea id="recommendations" rows="2" placeholder="Management actions">${Utils.escapeHtml(d.recommendations||'')}</textarea></div>
                     </div>
                 </div>
 
-                <!-- ABORIGINAL HERITAGE SECTION (Integration of template) -->
-                <div class="form-section" style="border-left: 4px solid #d4a843;">
+                <!-- Aboriginal Heritage -->
+                <div class="form-section" style="border-left:4px solid #d4a843;">
                     <button type="button" class="section-header" style="color:#8b6b2a;"><span><i class="fas fa-hand-peace"></i> Aboriginal Heritage</span><i class="fas fa-chevron-down"></i></button>
                     <div class="section-content">
                         <div class="form-group">
-                            <label>Aboriginal Heritage Significance</label>
-                            <select id="heritageSignificance">
-                                <option value="High" ${d.heritageSignificance === 'High' ? 'selected' : ''}>High – known cultural site</option>
-                                <option value="Moderate" ${d.heritageSignificance === 'Moderate' ? 'selected' : ''}>Moderate – potential heritage</option>
-                                <option value="Low" ${d.heritageSignificance === 'Low' ? 'selected' : ''}>Low – minimal evidence</option>
-                                <option value="Not Assessed" ${!d.heritageSignificance || d.heritageSignificance === 'Not Assessed' ? 'selected' : ''}>Not Assessed</option>
-                            </select>
+                            <label>Heritage Significance</label>
+                            <select id="heritageSignificance">${heritageOptions}</select>
                         </div>
                         <div class="form-group">
                             <label>Observed Cultural Sites / Artefacts</label>
@@ -1090,17 +1229,27 @@ class App {
                             <label>Heritage Management Notes</label>
                             <textarea id="aboriginalHeritage" rows="2" placeholder="Recommendations for cultural heritage protection, consultation requirements">${Utils.escapeHtml(d.aboriginalHeritage||'')}</textarea>
                         </div>
-                        <div class="text-muted text-xs" style="margin-top:4px;"><i class="fas fa-info-circle"></i> Refer to the Aboriginal Heritage Act 1975 (Tas) for regulatory requirements.</div>
+                        <div class="text-muted text-xs"><i class="fas fa-info-circle"></i> Refer to the Aboriginal Heritage Act 1975 (Tas) for regulatory requirements.</div>
                     </div>
                 </div>
 
+                <!-- Observations & Recommendations -->
+                <div class="form-section">
+                    <button type="button" class="section-header"><span><i class="fas fa-pen"></i> Summary & Recommendations</span><i class="fas fa-chevron-down"></i></button>
+                    <div class="section-content">
+                        <div class="form-group"><label>Observations</label><textarea id="observations" rows="3" placeholder="Summarize your observations, findings, and any concerns">${Utils.escapeHtml(d.observations||'')}</textarea></div>
+                        <div class="form-group"><label>Recommendations</label><textarea id="recommendations" rows="3" placeholder="Potential improvements, corrective actions, management recommendations">${Utils.escapeHtml(d.recommendations||'')}</textarea></div>
+                    </div>
+                </div>
+
+                <!-- Photos -->
                 <div class="form-section">
                     <button type="button" class="section-header"><span><i class="fas fa-camera"></i> Photos (${photoCount}${photoCount > 0 ? ' / 20' : ''})</span><i class="fas fa-chevron-down"></i></button>
                     <div class="section-content">
                         <div class="photo-upload-area" id="photoDropZone"><i class="fas fa-cloud-upload-alt"></i><p>Click or drag photos</p><div class="photo-count">${photoCount > 0 ? `${photoCount} photos` : 'Max 20'}</div></div>
                         <input type="file" id="photoInput" accept="image/*" multiple style="display:none;">
                         <div id="photoGallery" class="photo-grid"></div>
-                        <small class="text-muted text-xs" style="display:block;margin-top:4px;"><i class="fas fa-info-circle"></i> Click a photo to set as cover.</small>
+                        <small class="text-muted text-xs"><i class="fas fa-info-circle"></i> Click a photo to set as cover.</small>
                     </div>
                 </div>
 
@@ -1137,17 +1286,31 @@ class App {
             const el = document.getElementById(id);
             if (el) {
                 el.oninput = () => {
-                    const data = this.collectForm();
-                    const eco = Utils.calculateScore(data);
-                    const fill = document.querySelector('.health-fill');
-                    const display = document.getElementById('scoreDisplay');
-                    if (fill) { fill.style.width = `${eco.conditionScore*10}%`; fill.style.background = eco.colour; }
-                    if (display) { display.innerHTML = `${eco.conditionScore}/10 <i class="fas ${eco.icon}" style="color:${eco.colour};font-size:0.9rem;"></i>`; }
                     const valSpan = document.getElementById(id + 'Val');
                     if (valSpan) valSpan.textContent = el.value;
                 };
             }
         });
+
+        // Update checklist count display
+        this.updateChecklistDisplay();
+        document.querySelectorAll('.checkbox-group input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', () => this.updateChecklistDisplay());
+        });
+    }
+
+    updateChecklistDisplay() {
+        const { total, done } = this.getChecklistCount();
+        const summary = document.getElementById('checklistSummary');
+        if (summary) {
+            summary.innerHTML = `<span class="done">✓ ${done}/${total} completed</span> <span class="pending">${total - done} remaining</span>`;
+        }
+        const progress = document.getElementById('checklistProgress');
+        if (progress) {
+            const pct = total > 0 ? (done / total) * 100 : 0;
+            progress.style.width = pct + '%';
+            progress.style.background = pct >= 80 ? 'var(--success)' : pct >= 50 ? 'var(--warning)' : 'var(--danger)';
+        }
     }
 
     async handlePhotos(files) {
@@ -1206,12 +1369,15 @@ class App {
         });
     }
 
+    // ============================================================
+    // CRUD OPERATIONS
+    // ============================================================
     async newInspection() {
         this.currentId = Utils.uuid();
         this.currentPhotos = [];
         this.isDraft = false;
         this.clearMap();
-        this.setPanel(this.renderForm({ id: this.currentId }), 'New Assessment');
+        this.setPanel(this.renderForm({ id: this.currentId }), 'New Site Inspection');
         this.bindForm();
     }
 
@@ -1258,7 +1424,6 @@ class App {
         const data = this.collectForm();
         if (!data.siteName) { Toast.warning('Site name required'); return; }
         data.status = 'finalised';
-        data.ecologicalScore = Utils.calculateScore(data);
         await this.db.save(data, false);
         await this.db.delete(data.id, true);
         await this.generateReport(data);
@@ -1267,13 +1432,15 @@ class App {
         this.showInspections();
     }
 
+    // ============================================================
+    // REPORT GENERATION
+    // ============================================================
     async generateReport(inspection) {
         try {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
             const pageWidth = 210, pageHeight = 297, margin = 18;
             let y = margin;
-            const eco = inspection.ecologicalScore || Utils.calculateScore(inspection);
             const colour = '#1a5f4a';
 
             const addText = (text, size=10, color='#333') => {
@@ -1310,10 +1477,10 @@ class App {
             // Cover
             doc.setFillColor(colour); doc.rect(0,0,pageWidth,6,'F');
             y = 30;
-            doc.setFontSize(32); doc.setTextColor(colour);
-            doc.text('CULTURAL HERITAGE', margin, y);
+            doc.setFontSize(28); doc.setTextColor(colour);
+            doc.text('SITE INSPECTION', margin, y);
             y += 14;
-            doc.text('& ECOLOGICAL ASSESSMENT', margin, y);
+            doc.text('REPORT', margin, y);
             y += 12;
             drawLine();
             y += 6;
@@ -1321,14 +1488,13 @@ class App {
             doc.text(Utils.cleanText(inspection.siteName || 'Site Assessment'), margin, y);
             y += 12;
             doc.setFontSize(11); doc.setTextColor('#555');
-            doc.text(`Prepared for: ${Utils.cleanText(inspection.organization || 'Environmental Client')}`, margin, y);
+            doc.text(`Inspector: ${Utils.cleanText(inspection.inspector || 'Not specified')}`, margin, y);
             y += 6;
             doc.text(`Date: ${Utils.formatDate(inspection.dateTime)}`, margin, y);
             y += 6;
             doc.text(`Report ID: ${inspection.id}`, margin, y);
-            y += 6;
-            doc.text(`Author: ${Utils.cleanText(inspection.inspector || 'Consultant')}`, margin, y);
             y += 10;
+
             if (inspection.photos && inspection.photos.length > 0) {
                 const hero = inspection.photos.find(p => p.isHero) || inspection.photos[0];
                 try {
@@ -1349,61 +1515,59 @@ class App {
             }
             doc.setFillColor(colour); doc.rect(0, pageHeight-6, pageWidth, 3, 'F');
             doc.setFontSize(7); doc.setTextColor('#999');
-            doc.text('© EcoMaintenance Cultural Heritage v4.0', margin, pageHeight-3);
-            doc.text('Cultural & Ecological Assessment', pageWidth/2, pageHeight-3, { align:'center' });
+            doc.text('© Site Inspection Tool v4.0', margin, pageHeight-3);
+            doc.text('Site Inspection Report', pageWidth/2, pageHeight-3, { align:'center' });
             doc.text('Page 1', pageWidth - margin, pageHeight-3, { align:'right' });
 
-            // Executive Summary
+            // Checklist Summary
             doc.addPage(); y = margin + 5; addFooter(doc, inspection, pageWidth, pageHeight, margin);
-            addTitle('EXECUTIVE SUMMARY', 22); drawLine(); y += 4;
-            doc.setFontSize(14); doc.setTextColor(colour);
-            doc.text(`Overall Condition Score: ${eco.conditionScore}/10`, margin, y);
-            y += 8;
-            doc.setFontSize(11); doc.setTextColor(eco.colour);
-            doc.text(`Risk Rating: ${eco.riskRating}`, margin, y);
-            y += 6; doc.setTextColor('#333');
-            doc.text(`Management Priority: ${eco.priority}`, margin, y);
-            y += 6;
-            doc.text(`Conservation Significance: ${eco.significance}`, margin, y);
-            y += 10;
-            addText(`This assessment includes Aboriginal heritage considerations at "${Utils.cleanText(inspection.siteName)}".`, 10);
-            y += 4;
-            doc.setFontSize(11); doc.setTextColor(colour);
-            doc.text('Key Findings:', margin, y);
-            y += 5; doc.setFontSize(9); doc.setTextColor('#444');
-            const findings = [
-                `• Vegetation Health: ${inspection.vegHealth || 6}/10`,
-                `• Species Richness: ${inspection.speciesRichness || 5}`,
-                `• Weed Cover: ${inspection.weedCover || 30}%`,
-                `• Heritage Significance: ${inspection.heritageSignificance || 'Not Assessed'}`
-            ];
-            findings.forEach(f => { doc.text(f, margin + 4, y); y += 5; });
-            y += 6;
+            addTitle('CHECKLIST SUMMARY', 18); drawLine(); y += 4;
 
-            // Detailed Assessment
-            if (y > pageHeight - 60) { doc.addPage(); y = margin + 5; addFooter(doc,inspection,pageWidth,pageHeight,margin); }
-            addTitle('ASSESSMENT DETAILS', 16); drawLine(); y += 4;
-            const tableData = [
-                ['Vegetation Health', `${inspection.vegHealth || 6}/10`, ''],
-                ['Species Richness', `${inspection.speciesRichness || 5}/10`, ''],
-                ['Regeneration', `${inspection.regeneration || 5}/10`, ''],
-                ['Weed Cover', `${inspection.weedCover || 30}%`, ''],
-                ['Habitat Quality', `${inspection.habitatQuality || 5}/10`, ''],
-                ['Disturbance', `${inspection.disturbance || 3}/10`, '']
+            const sections = [
+                { title: 'General Site Conditions', items: [
+                    ['Verified site location and boundaries', inspection.siteLocation],
+                    ['Assessed accessibility and entry points', inspection.accessibility],
+                    ['Evaluated site conditions (topography, soil, vegetation, drainage)', inspection.siteConditions],
+                    ['Identified existing infrastructure or features', inspection.infrastructure]
+                ]},
+                { title: 'Environmental Considerations', items: [
+                    ['Assessed presence of protected flora or fauna', inspection.protectedSpecies],
+                    ['Evaluated potential environmental impacts', inspection.environmentalImpacts],
+                    ['Verified compliance with environmental regulations', inspection.compliance],
+                    ['Noted areas of conservation significance', inspection.conservation]
+                ]},
+                { title: 'Work Practices & Procedures', items: [
+                    ['Observed and evaluated work practices', inspection.workPractices],
+                    ['Assessed compliance with health and safety regulations', inspection.healthSafety],
+                    ['Identified potential risks and hazards', inspection.risksHazards],
+                    ['Reviewed implementation of control measures', inspection.controlMeasures]
+                ]},
+                { title: 'Equipment & Machinery', items: [
+                    ['Inspected equipment and machinery', inspection.equipmentInspected],
+                    ['Ensured equipment in safe working condition', inspection.safeCondition],
+                    ['Checked maintenance and service records', inspection.maintenanceRecords],
+                    ['Verified compliance with industry standards', inspection.industryStandards]
+                ]}
             ];
-            doc.autoTable({
-                startY: y, head: [['Parameter', 'Value', '']],
-                body: tableData,
-                theme: 'striped',
-                headStyles: { fillColor: colour, textColor: '#fff', fontSize: 9 },
-                bodyStyles: { fontSize: 8 },
-                columnStyles: { 0: { cellWidth: 60 }, 1: { cellWidth: 40 }, 2: { cellWidth: 70 } },
-                margin: { left: margin, right: margin }
+
+            sections.forEach(section => {
+                if (y > pageHeight - 50) { doc.addPage(); y = margin + 5; addFooter(doc, inspection, pageWidth, pageHeight, margin); }
+                doc.setFontSize(12); doc.setTextColor(colour);
+                doc.text(section.title, margin, y);
+                y += 5;
+                doc.setFontSize(8); doc.setTextColor('#333');
+                section.items.forEach(([label, done]) => {
+                    const status = done ? '✓' : '✗';
+                    const color = done ? '#10b981' : '#dc2626';
+                    doc.setTextColor(color);
+                    doc.text(`${status}  ${label}`, margin + 4, y);
+                    y += 5;
+                });
+                y += 4;
             });
-            y = doc.lastAutoTable.finalY + 8;
 
-            // Aboriginal Heritage Section
-            if (y > pageHeight - 50) { doc.addPage(); y = margin + 5; addFooter(doc,inspection,pageWidth,pageHeight,margin); }
+            // Aboriginal Heritage
+            if (y > pageHeight - 40) { doc.addPage(); y = margin + 5; addFooter(doc, inspection, pageWidth, pageHeight, margin); }
             addTitle('ABORIGINAL HERITAGE', 16); drawLine(); y += 4;
             doc.setFontSize(10); doc.setTextColor('#333');
             doc.text(`Heritage Significance: ${inspection.heritageSignificance || 'Not Assessed'}`, margin, y);
@@ -1415,20 +1579,19 @@ class App {
             doc.text('Heritage Management Notes:', margin, y);
             y += 4;
             addText(inspection.aboriginalHeritage || 'No heritage management notes.', 9);
-            y += 6;
 
             // Observations & Recommendations
-            if (y > pageHeight - 40) { doc.addPage(); y = margin + 5; addFooter(doc,inspection,pageWidth,pageHeight,margin); }
+            if (y > pageHeight - 40) { doc.addPage(); y = margin + 5; addFooter(doc, inspection, pageWidth, pageHeight, margin); }
             addTitle('OBSERVATIONS', 14); drawLine(); y += 4;
             addText(inspection.observations || 'No observations recorded.', 10);
             y += 4;
-            if (y > pageHeight - 40) { doc.addPage(); y = margin + 5; addFooter(doc,inspection,pageWidth,pageHeight,margin); }
+            if (y > pageHeight - 40) { doc.addPage(); y = margin + 5; addFooter(doc, inspection, pageWidth, pageHeight, margin); }
             addTitle('RECOMMENDATIONS', 14); drawLine(); y += 4;
             addText(inspection.recommendations || 'No specific recommendations recorded.', 10);
 
             // Photos
             if (inspection.photos && inspection.photos.length > 0) {
-                doc.addPage(); y = margin + 5; addFooter(doc,inspection,pageWidth,pageHeight,margin);
+                doc.addPage(); y = margin + 5; addFooter(doc, inspection, pageWidth, pageHeight, margin);
                 addTitle('PHOTO DOCUMENTATION', 18); drawLine(); y += 6;
                 const photos = inspection.photos.slice(0, 15);
                 const photoSize = 50, gap = 5;
@@ -1439,7 +1602,7 @@ class App {
                     const px = margin + col * (photoSize + gap);
                     const py = y + row * (photoSize + gap + 8);
                     if (py + photoSize + 10 > pageHeight - margin - 15) {
-                        doc.addPage(); y = margin + 5; addFooter(doc,inspection,pageWidth,pageHeight,margin);
+                        doc.addPage(); y = margin + 5; addFooter(doc, inspection, pageWidth, pageHeight, margin);
                         addTitle('PHOTO DOCUMENTATION (continued)', 14); drawLine(); y += 6;
                         row = 0; col = 0;
                     }
@@ -1461,8 +1624,8 @@ class App {
                 }
             }
 
-            doc.save(`EcoMaintenance_Cultural_${inspection.id}.pdf`);
-            Toast.success('Report generated with Aboriginal Heritage');
+            doc.save(`SiteInspection_${inspection.id}.pdf`);
+            Toast.success('Report generated successfully');
         } catch (e) { console.error(e); Toast.error('Report error: ' + e.message); }
     }
 
@@ -1473,26 +1636,32 @@ class App {
         const insp = await this.db.getAll('inspections');
         const drafts = await this.db.getAll('drafts');
         const total = insp.length;
-        const avg = total > 0 ? insp.reduce((s, i) => s + (i.ecologicalScore?.conditionScore || 0), 0) / total : 0;
-        const high = insp.filter(i => (i.ecologicalScore?.conditionScore || 0) >= 7).length;
         const heritageCount = insp.filter(i => i.heritageSignificance && i.heritageSignificance !== 'Not Assessed').length;
 
         const html = `
-            <div class="dashboard-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px;">
-                <div class="stat-card"><div class="stat-value">${total}</div><div class="stat-label">Reports</div></div>
-                <div class="stat-card"><div class="stat-value">${avg > 0 ? avg.toFixed(1) : '—'}</div><div class="stat-label">Avg Score</div></div>
-                <div class="stat-card"><div class="stat-value">${high}</div><div class="stat-label">High Value</div></div>
-                <div class="stat-card"><div class="stat-value">${heritageCount}</div><div class="stat-label">Heritage Sites</div></div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px;">
+                <div class="stat-card" style="background:white;padding:12px;border-radius:var(--radius);border:1px solid var(--gray-200);">
+                    <div style="font-size:1.4rem;font-weight:700;color:var(--gray-800);">${total}</div>
+                    <div style="font-size:0.6rem;text-transform:uppercase;color:var(--gray-500);">Total Inspections</div>
+                </div>
+                <div class="stat-card" style="background:white;padding:12px;border-radius:var(--radius);border:1px solid var(--gray-200);">
+                    <div style="font-size:1.4rem;font-weight:700;color:var(--gray-800);">${drafts.length}</div>
+                    <div style="font-size:0.6rem;text-transform:uppercase;color:var(--gray-500);">Drafts</div>
+                </div>
+                <div class="stat-card" style="background:white;padding:12px;border-radius:var(--radius);border:1px solid var(--gray-200);">
+                    <div style="font-size:1.4rem;font-weight:700;color:var(--gray-800);">${heritageCount}</div>
+                    <div style="font-size:0.6rem;text-transform:uppercase;color:var(--gray-500);">Heritage Sites</div>
+                </div>
             </div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
-                <button class="btn btn-primary" onclick="app.newInspection()"><i class="fas fa-plus"></i> New Assessment</button>
+                <button class="btn btn-primary" onclick="app.newInspection()"><i class="fas fa-plus"></i> New Inspection</button>
                 <button class="btn btn-secondary" onclick="app.showInspections()"><i class="fas fa-folder-open"></i> View Reports</button>
             </div>
             <div style="padding:6px 10px;background:var(--gray-50);border-radius:var(--radius-sm);border:1px solid var(--gray-200);">
                 <div class="flex-between text-xs text-muted">
-                    <span><i class="fas fa-code-branch"></i> Cultural v4.0</span>
-                    <span><i class="fas fa-hand-peace"></i> ${heritageCount} heritage assessments</span>
-                    <span><i class="fas fa-camera"></i> ${insp.reduce((s,i) => s + (i.photos?.length||0), 0)} photos</span>
+                    <span><i class="fas fa-code-branch"></i> v4.0</span>
+                    <span><i class="fas fa-check-double"></i> Full Checklist</span>
+                    <span><i class="fas fa-hand-peace"></i> Aboriginal Heritage</span>
                 </div>
             </div>
         `;
@@ -1502,31 +1671,27 @@ class App {
     async showInspections() {
         const inspections = await this.db.getAll('inspections');
         if (inspections.length === 0) {
-            this.setPanel(`<div class="text-center" style="padding:30px;"><i class="fas fa-folder-open" style="font-size:36px;opacity:0.3;"></i><h3>No Reports</h3><button class="btn btn-primary mt-3" onclick="app.newInspection()">Start New</button></div>`, 'Inspections');
+            this.setPanel(`<div class="text-center" style="padding:30px;"><i class="fas fa-folder-open" style="font-size:36px;opacity:0.3;"></i><h3>No Inspections</h3><button class="btn btn-primary mt-3" onclick="app.newInspection()">Start New</button></div>`, 'Inspections');
             return;
         }
         inspections.sort((a,b) => new Date(b.dateTime) - new Date(a.dateTime));
-        let html = `<div class="flex-between mb-2"><span><strong>${inspections.length}</strong> reports</span><button class="btn btn-primary btn-sm" onclick="app.newInspection()"><i class="fas fa-plus"></i> New</button></div>`;
+        let html = `<div class="flex-between mb-2"><span><strong>${inspections.length}</strong> inspections</span><button class="btn btn-primary btn-sm" onclick="app.newInspection()"><i class="fas fa-plus"></i> New</button></div>`;
         inspections.forEach(ins => {
-            const eco = ins.ecologicalScore || Utils.calculateScore(ins);
-            const cls = Utils.getRatingClass(eco.conditionScore);
             const heritage = ins.heritageSignificance || 'Not Assessed';
             html += `
-                <div class="inspection-card" style="border-left-color:${eco.colour};">
+                <div class="inspection-card" style="border-left-color:var(--primary);">
                     <div class="card-title">${Utils.escapeHtml(ins.siteName || 'Unnamed')}</div>
                     <div class="card-meta"><span><i class="fas fa-calendar"></i> ${Utils.formatDate(ins.dateTime)}</span><span><i class="fas fa-user"></i> ${ins.inspector || 'Unknown'}</span></div>
                     <div class="flex gap-2" style="margin:4px 0;">
-                        <span class="rating-badge ${cls}"><i class="fas ${eco.icon}"></i> ${eco.conditionScore}/10</span>
-                        <span class="text-muted text-sm">${eco.riskRating}</span>
                         <span class="text-muted text-sm"><i class="fas fa-hand-peace"></i> ${heritage}</span>
+                        <span class="text-muted text-sm"><i class="fas fa-camera"></i> ${ins.photos?.length || 0} photos</span>
                     </div>
-                    <div class="health-meter"><div class="health-fill" style="width:${eco.conditionScore*10}%;background:${eco.colour};"></div></div>
                     <div class="card-actions">
                         <button class="btn btn-secondary btn-sm view-insp" data-id="${ins.id}"><i class="fas fa-eye"></i> View</button>
                         <button class="btn btn-primary btn-sm pdf-insp" data-id="${ins.id}"><i class="fas fa-file-pdf"></i> Report</button>
                         <button class="btn btn-danger btn-sm del-insp" data-id="${ins.id}"><i class="fas fa-trash"></i></button>
                     </div>
-                    <div class="card-badge" style="background:${eco.colour}20;color:${eco.colour};">${eco.riskRating}</div>
+                    <div class="card-badge" style="background:var(--primary)20;color:var(--primary);">Final</div>
                 </div>
             `;
         });
@@ -1568,9 +1733,18 @@ class App {
         const html = `
             <div style="max-width:420px;margin:0 auto;">
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
-                    <div class="stat-card text-center"><div class="stat-value">${insp}</div><div class="stat-label">Reports</div></div>
-                    <div class="stat-card text-center"><div class="stat-value">${drafts}</div><div class="stat-label">Drafts</div></div>
-                    <div class="stat-card text-center"><div class="stat-value">${(await this.db.getAll('inspections')).reduce((s,i) => s + (i.photos?.length||0), 0)}</div><div class="stat-label">Photos</div></div>
+                    <div class="stat-card" style="background:white;padding:12px;border-radius:var(--radius);border:1px solid var(--gray-200);text-align:center;">
+                        <div style="font-size:1.4rem;font-weight:700;">${insp}</div>
+                        <div style="font-size:0.6rem;text-transform:uppercase;color:var(--gray-500);">Reports</div>
+                    </div>
+                    <div class="stat-card" style="background:white;padding:12px;border-radius:var(--radius);border:1px solid var(--gray-200);text-align:center;">
+                        <div style="font-size:1.4rem;font-weight:700;">${drafts}</div>
+                        <div style="font-size:0.6rem;text-transform:uppercase;color:var(--gray-500);">Drafts</div>
+                    </div>
+                    <div class="stat-card" style="background:white;padding:12px;border-radius:var(--radius);border:1px solid var(--gray-200);text-align:center;">
+                        <div style="font-size:1.4rem;font-weight:700;">${(await this.db.getAll('inspections')).reduce((s,i) => s + (i.photos?.length||0), 0)}</div>
+                        <div style="font-size:0.6rem;text-transform:uppercase;color:var(--gray-500);">Photos</div>
+                    </div>
                 </div>
                 <button class="btn btn-primary w-full mb-2" onclick="app.exportCSV()"><i class="fas fa-file-excel"></i> Export Excel</button>
                 <button class="btn btn-secondary w-full mb-2" onclick="app.exportJSON()"><i class="fas fa-code"></i> Export JSON</button>
@@ -1578,9 +1752,6 @@ class App {
                 <button class="btn btn-secondary w-full mb-4" onclick="app.importJSON()"><i class="fas fa-upload"></i> Import JSON</button>
                 <hr style="margin:10px 0;border-color:var(--gray-200);">
                 <button class="btn btn-danger w-full" onclick="app.clearAll()"><i class="fas fa-trash"></i> Clear All Data</button>
-                <div style="margin-top:10px;padding:6px 10px;background:var(--gray-50);border-radius:var(--radius-sm);border:1px solid var(--gray-200);">
-                    <div class="text-xs text-muted"><span><strong>Storage:</strong> localStorage</span><span style="margin-left:12px;"><strong>Version:</strong> Cultural 4.0</span></div>
-                </div>
             </div>
         `;
         this.setPanel(html, 'Data Manager');
@@ -1591,23 +1762,39 @@ class App {
         if (!insp.length) { Toast.warning('No data'); return; }
         const data = insp.map(i => ({
             'ID': i.id, 'Site': i.siteName, 'Inspector': i.inspector, 'Date': i.dateTime,
-            'Score': i.ecologicalScore?.conditionScore || '', 'Risk': i.ecologicalScore?.riskRating || '',
-            'Heritage Significance': i.heritageSignificance || '', 'Cultural Sites': i.culturalSites || '',
+            'Location Verified': i.siteLocation ? 'Yes' : 'No',
+            'Accessibility': i.accessibility ? 'Yes' : 'No',
+            'Site Conditions': i.siteConditions ? 'Yes' : 'No',
+            'Infrastructure': i.infrastructure ? 'Yes' : 'No',
+            'Protected Species': i.protectedSpecies ? 'Yes' : 'No',
+            'Env Impacts': i.environmentalImpacts ? 'Yes' : 'No',
+            'Compliance': i.compliance ? 'Yes' : 'No',
+            'Conservation': i.conservation ? 'Yes' : 'No',
+            'Work Practices': i.workPractices ? 'Yes' : 'No',
+            'Health & Safety': i.healthSafety ? 'Yes' : 'No',
+            'Risks': i.risksHazards ? 'Yes' : 'No',
+            'Control Measures': i.controlMeasures ? 'Yes' : 'No',
+            'Equipment Inspected': i.equipmentInspected ? 'Yes' : 'No',
+            'Safe Condition': i.safeCondition ? 'Yes' : 'No',
+            'Maintenance': i.maintenanceRecords ? 'Yes' : 'No',
+            'Industry Standards': i.industryStandards ? 'Yes' : 'No',
+            'Heritage Significance': i.heritageSignificance || '',
+            'Cultural Sites': i.culturalSites || '',
             'Photos': i.photos?.length || 0
         }));
         const ws = XLSX.utils.json_to_sheet(data);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Inspections');
-        XLSX.writeFile(wb, `EcoMaintenance_Cultural_${new Date().toISOString().slice(0,10)}.xlsx`);
+        XLSX.writeFile(wb, `SiteInspection_${new Date().toISOString().slice(0,10)}.xlsx`);
         Toast.success('Excel exported');
     }
 
     async exportJSON() {
         const insp = await this.db.getAll('inspections');
         const drafts = await this.db.getAll('drafts');
-        const data = { exportDate: new Date().toISOString(), version: 'Cultural 4.0', inspections: insp, drafts: drafts };
+        const data = { exportDate: new Date().toISOString(), version: 'Site Inspection 4.0', inspections: insp, drafts: drafts };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `EcoMaintenance_Data_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(a.href);
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `SiteInspection_Data_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(a.href);
         Toast.success('JSON exported');
     }
 
