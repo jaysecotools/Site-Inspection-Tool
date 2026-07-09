@@ -1,72 +1,71 @@
-I see the issue now. The problem is in the renderForm method where the checkbox labels include a "✓" character at the beginning. When these labels are saved and then rendered in the PDF, that checkmark is being interpreted as a special character.
-
-Here's the fix - replace the chkLabel function in the renderForm method with this cleaned version:
-
-Replace this:
-
-```javascript
-const chkLabel = (id, label, val) => `<label>${chk(id, val)} ${label}</label>`;
-```
-
-With this:
-
-```javascript
-const chkLabel = (id, label, val) => {
-    // Remove the ✓ prefix and clean the label for storage
-    const cleanLabel = label.replace(/^✓\s*/, '').trim();
-    return `<label>${chk(id, val)} ${cleanLabel}</label>`;
-};
-```
-
-And also update the collectForm method to store the checklist labels as clean text without the ✓ prefix. Replace the getChecklistData method with this:
-
-```javascript
-getChecklistData() {
-    const getCheck = (id) => document.getElementById(id)?.checked || false;
-    // Clean label text for storage
-    const cleanLabel = (str) => {
-        if (!str) return '';
-        return str.replace(/^✓\s*/, '').replace(/[^\w\s.,!?\-()'"]/g, ' ').trim();
-    };
-    
-    return {
-        general: {
-            siteLocation: getCheck('chk_siteLocation'),
-            accessibility: getCheck('chk_accessibility'),
-            siteConditions: getCheck('chk_siteConditions'),
-            infrastructure: getCheck('chk_infrastructure')
-        },
-        environmental: {
-            protectedSpecies: getCheck('chk_protectedSpecies'),
-            environmentalImpacts: getCheck('chk_environmentalImpacts'),
-            compliance: getCheck('chk_compliance'),
-            conservation: getCheck('chk_conservation')
-        },
-        workPractices: {
-            workPractices: getCheck('chk_workPractices'),
-            healthSafety: getCheck('chk_healthSafety'),
-            risksHazards: getCheck('chk_risksHazards'),
-            controlMeasures: getCheck('chk_controlMeasures')
-        },
-        equipment: {
-            equipmentInspected: getCheck('chk_equipmentInspected'),
-            safeCondition: getCheck('chk_safeCondition'),
-            maintenanceRecords: getCheck('chk_maintenanceRecords'),
-            industryStandards: getCheck('chk_industryStandards')
-        }
-    };
+// --- CHECKLIST SUMMARY (COMPLETELY CLEANED VERSION) ---
+if (y > pageHeight - 60) {
+    doc.addPage();
+    y = margin + 5;
+    addFooter(doc, inspection, pageWidth, pageHeight, margin);
 }
-```
+addTitle('CHECKLIST SUMMARY', 16);
+drawLine();
+y += 4;
 
-And finally, in the collectForm method, make sure the checklist labels are cleaned when saving. Add this helper at the top of collectForm:
+// Use clean plain text strings - NO special characters or HTML
+const sections = [
+    { 
+        title: 'General Site Conditions', 
+        items: [
+            ['Verified site location and boundaries', inspection.siteLocation],
+            ['Assessed accessibility and entry points', inspection.accessibility],
+            ['Evaluated site conditions (topography, soil, vegetation, drainage)', inspection.siteConditions],
+            ['Identified existing infrastructure or features', inspection.infrastructure]
+        ]
+    },
+    { 
+        title: 'Environmental Considerations', 
+        items: [
+            ['Assessed presence of protected flora or fauna', inspection.protectedSpecies],
+            ['Evaluated potential environmental impacts', inspection.environmentalImpacts],
+            ['Verified compliance with environmental regulations', inspection.compliance],
+            ['Noted areas of conservation significance', inspection.conservation]
+        ]
+    },
+    { 
+        title: 'Work Practices and Procedures', 
+        items: [
+            ['Observed and evaluated work practices', inspection.workPractices],
+            ['Assessed compliance with health and safety regulations', inspection.healthSafety],
+            ['Identified potential risks and hazards', inspection.risksHazards],
+            ['Reviewed implementation of control measures', inspection.controlMeasures]
+        ]
+    },
+    { 
+        title: 'Equipment and Machinery', 
+        items: [
+            ['Inspected equipment and machinery', inspection.equipmentInspected],
+            ['Ensured equipment in safe working condition', inspection.safeCondition],
+            ['Checked maintenance and service records', inspection.maintenanceRecords],
+            ['Verified compliance with industry standards', inspection.industryStandards]
+        ]
+    }
+];
 
-```javascript
-const cleanLabelForStorage = (str) => {
-    if (!str) return '';
-    return str.replace(/^✓\s*/, '').replace(/[^\w\s.,!?\-()'"]/g, ' ').trim();
-};
-```
-
-And when storing the checklist items, use the stored labels directly from a pre-defined clean list. The issue is that the checklist items are being saved with the "✓" character in them, and when generating the PDF, those characters are causing encoding issues.
-
-The root cause is that in renderForm, the labels include "✓" as a visual indicator, but that same text gets saved to the database and then rendered in the PDF where it appears as garbled characters. By removing the "✓" from the stored labels and only using it as a visual status indicator in the PDF, the problem should be resolved.
+sections.forEach(section => {
+    if (y > pageHeight - 50) { 
+        doc.addPage(); 
+        y = margin + 5; 
+        addFooter(doc, inspection, pageWidth, pageHeight, margin); 
+    }
+    doc.setFontSize(11); 
+    doc.setTextColor(colour);
+    doc.text(section.title, margin, y);
+    y += 5;
+    doc.setFontSize(8); 
+    section.items.forEach(([label, done]) => {
+        const status = done ? '\u2713' : '\u2717'; // Unicode checkmark and cross
+        const color = done ? '#10b981' : '#dc2626';
+        doc.setTextColor(color);
+        // Use the label as-is - it's already clean plain text
+        doc.text(`${status}  ${label}`, margin + 4, y);
+        y += 5;
+    });
+    y += 4;
+});
