@@ -1,6 +1,3 @@
-// ================================================================
-// REPORT GENERATION - FIXED VERSION
-// ================================================================
 async generateReport(inspection) {
     if (this.isGenerating) {
         Toast.warning('Report generation already in progress');
@@ -17,94 +14,75 @@ async generateReport(inspection) {
     try {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
-        const pageWidth = 210;
-        const pageHeight = 297;
-        const margin = 18;
+        const pageWidth = 210, pageHeight = 297, margin = 18;
         let y = margin;
-        
         const eco = inspection.ecologicalScore || Utils.calculateScore(inspection);
         const colour = '#1a5f4a';
         
-        // SIMPLE text cleaner - just removes HTML tags and decodes entities
-        const clean = (text) => {
+        // FIX 1: Simple text cleaner - decodes HTML entities properly
+        const cleanText = (text) => {
             if (!text) return '';
-            let s = String(text);
-            // Decode HTML entities
-            s = s.replace(/&amp;/g, '&')
-                 .replace(/&lt;/g, '<')
-                 .replace(/&gt;/g, '>')
-                 .replace(/&quot;/g, '"')
-                 .replace(/&#039;/g, "'")
-                 .replace(/&nbsp;/g, ' ');
+            let clean = String(text);
+            // Decode HTML entities (this fixes the &amp; issue)
+            clean = clean.replace(/&amp;/g, '&')
+                         .replace(/&lt;/g, '<')
+                         .replace(/&gt;/g, '>')
+                         .replace(/&quot;/g, '"')
+                         .replace(/&#039;/g, "'")
+                         .replace(/&nbsp;/g, ' ');
             // Remove HTML tags
-            s = s.replace(/<[^>]*>/g, '');
-            // Normalize spaces
-            s = s.replace(/\s+/g, ' ').trim();
-            return s;
+            clean = clean.replace(/<[^>]*>/g, '');
+            // Remove multiple spaces
+            clean = clean.replace(/\s+/g, ' ');
+            clean = clean.trim();
+            return clean;
         };
         
-        // Add text with proper wrapping
-        const addText = (text, fontSize = 10, color = '#333333') => {
+        // Helper: Add text with auto-page breaks
+        const addText = (text, size = 10, color = '#333') => {
             if (!text) return;
-            const cleaned = clean(text);
-            if (!cleaned) return;
-            
-            doc.setFontSize(fontSize);
+            const clean = cleanText(text);
+            if (!clean) return;
+            doc.setFontSize(size);
             doc.setTextColor(color);
-            
-            // Split text to fit within page width
-            const lines = doc.splitTextToSize(cleaned, pageWidth - (margin * 2));
-            const lineHeight = fontSize * 0.45;
-            
-            // Check if we need a new page
-            if (y + (lines.length * lineHeight) > pageHeight - margin - 10) {
+            const lines = doc.splitTextToSize(clean, pageWidth - 2 * margin);
+            const lineHeight = size * 0.45;
+            const totalHeight = lines.length * lineHeight + 1.5;
+            if (y + totalHeight > pageHeight - margin - 8) {
                 doc.addPage();
                 y = margin + 5;
                 addFooter();
             }
-            
             doc.text(lines, margin, y);
-            y += lines.length * lineHeight + 2;
+            y += totalHeight;
         };
         
-        // Add title
-        const addTitle = (text, fontSize = 18, color = colour) => {
-            const cleaned = clean(text);
-            if (!cleaned) return;
-            
-            if (y > pageHeight - 30) {
-                doc.addPage();
-                y = margin + 5;
-                addFooter();
-            }
-            
-            doc.setFontSize(fontSize);
+        // Helper: Add title
+        const addTitle = (text, size = 18, color = colour) => {
+            const clean = cleanText(text);
+            if (!clean) return;
+            doc.setFontSize(size);
             doc.setTextColor(color);
-            doc.text(cleaned, margin, y);
-            y += fontSize * 0.4 + 2;
+            doc.text(clean, margin, y);
+            y += size * 0.4 + 2;
         };
         
-        // Draw line
+        // Helper: Draw line
         const drawLine = () => {
-            if (y > pageHeight - 15) {
-                doc.addPage();
-                y = margin + 5;
-                addFooter();
-            }
             doc.setDrawColor(colour);
             doc.setLineWidth(0.5);
             doc.line(margin, y, pageWidth - margin, y);
             y += 5;
         };
         
-        // Add footer
+        // Helper: Add footer
         const addFooter = () => {
             doc.setDrawColor(colour);
             doc.setLineWidth(0.3);
             doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
             doc.setFontSize(7);
-            doc.setTextColor('#999999');
-            const id = clean(inspection.id || 'N/A');
+            doc.setTextColor('#aaa');
+            const id = cleanText(inspection.id || 'N/A');
             doc.text(id, margin, pageHeight - 5);
             const date = Utils.formatDate(inspection.dateTime);
             doc.text(date, pageWidth - margin, pageHeight - 5, { align: 'right' });
@@ -129,23 +107,23 @@ async generateReport(inspection) {
         y += 6;
         
         doc.setFontSize(20);
-        doc.setTextColor('#222222');
-        const siteName = clean(inspection.siteName || 'Site Assessment');
+        doc.setTextColor('#222');
+        const siteName = cleanText(inspection.siteName || 'Site Assessment');
         doc.text(siteName, margin, y);
         y += 12;
         
         doc.setFontSize(11);
-        doc.setTextColor('#555555');
-        const org = clean(inspection.organization || 'Environmental Client');
+        doc.setTextColor('#555');
+        const org = cleanText(inspection.organization || 'Environmental Client');
         doc.text(`Prepared for: ${org}`, margin, y);
         y += 6;
         const date = Utils.formatDate(inspection.dateTime);
         doc.text(`Date: ${date}`, margin, y);
         y += 6;
-        const id = clean(inspection.id || 'N/A');
+        const id = cleanText(inspection.id || 'N/A');
         doc.text(`Report ID: ${id}`, margin, y);
         y += 6;
-        const author = clean(inspection.inspector || 'Environmental Consultant');
+        const author = cleanText(inspection.inspector || 'Environmental Consultant');
         doc.text(`Author: ${author}`, margin, y);
         y += 10;
         
@@ -161,7 +139,7 @@ async generateReport(inspection) {
                 });
                 
                 if (imgData) {
-                    const maxImgWidth = pageWidth - (margin * 2) - 20;
+                    const maxImgWidth = pageWidth - 2 * margin - 20;
                     const maxImgHeight = 70;
                     let imgWidth = maxImgWidth;
                     let imgHeight = (imgData.height / imgData.width) * maxImgWidth;
@@ -173,8 +151,8 @@ async generateReport(inspection) {
                     doc.addImage(hero.dataURL, 'JPEG', xOffset, y, imgWidth, imgHeight);
                     y += imgHeight + 8;
                     doc.setFontSize(7);
-                    doc.setTextColor('#999999');
-                    const caption = clean(inspection.siteName || 'Site Photo');
+                    doc.setTextColor('#999');
+                    const caption = cleanText(inspection.siteName || 'Site Photo');
                     doc.text(`Cover Photo: ${caption}`, margin + 10, y);
                     y += 6;
                 }
@@ -184,7 +162,7 @@ async generateReport(inspection) {
         doc.setFillColor(colour);
         doc.rect(0, pageHeight - 6, pageWidth, 3, 'F');
         doc.setFontSize(7);
-        doc.setTextColor('#999999');
+        doc.setTextColor('#999');
         doc.text('© EcoMaintenance Professional v4.0', margin, pageHeight - 3);
         doc.text('Environmental Assessment Report', pageWidth / 2, pageHeight - 3, { align: 'center' });
         doc.text('Page 1', pageWidth - margin, pageHeight - 3, { align: 'right' });
@@ -208,13 +186,14 @@ async generateReport(inspection) {
         doc.setTextColor(eco.colour);
         doc.text(`Risk Rating: ${eco.riskRating}`, margin, y);
         y += 6;
-        doc.setTextColor('#333333');
+        doc.setTextColor('#333');
         doc.text(`Management Priority: ${eco.priority}`, margin, y);
         y += 6;
         doc.text(`Conservation Significance: ${eco.significance}`, margin, y);
         y += 10;
         
-        addText(`This report presents findings of an ecological assessment at "${clean(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`, 10);
+        const summaryText = `This report presents findings of an ecological assessment at "${cleanText(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`;
+        addText(summaryText, 10);
         y += 4;
         
         doc.setFontSize(11);
@@ -222,7 +201,7 @@ async generateReport(inspection) {
         doc.text('Key Findings:', margin, y);
         y += 5;
         doc.setFontSize(9);
-        doc.setTextColor('#444444');
+        doc.setTextColor('#444');
         const findings = [
             `Vegetation Health: ${inspection.vegHealth || 6}/10`,
             `Species Richness: ${inspection.speciesRichness || 5} species recorded`,
@@ -274,7 +253,7 @@ async generateReport(inspection) {
         let completed = checklistItems.filter(item => item.value === true || item.value === 'true' || item.value === 1).length;
         
         doc.setFontSize(9);
-        doc.setTextColor('#555555');
+        doc.setTextColor('#555');
         doc.text(`Completion: ${completed}/${total} items (${Math.round((completed/total)*100)}%)`, margin, y);
         y += 6;
         
@@ -285,7 +264,7 @@ async generateReport(inspection) {
                 y = margin + 5;
                 addFooter();
                 doc.setFontSize(9);
-                doc.setTextColor('#555555');
+                doc.setTextColor('#555');
                 doc.text(`Completion: ${completed}/${total} items (${Math.round((completed/total)*100)}%)`, margin, y);
                 y += 6;
             }
@@ -301,17 +280,18 @@ async generateReport(inspection) {
             const isChecked = (item.value === true || item.value === 'true' || item.value === 1);
             const symbol = isChecked ? '✓' : '✗';
             const color = isChecked ? '#10b981' : '#dc2626';
-            const label = clean(item.label);
             
+            // FIX 3: Clean the label before displaying
+            const cleanLabel = cleanText(item.label);
             doc.setFontSize(8);
             doc.setTextColor(color);
-            doc.text(`${symbol}  ${label}`, margin + 4, y);
+            doc.text(`${symbol}  ${cleanLabel}`, margin + 4, y);
             y += 5;
         });
         y += 3;
         
         // ============================================================
-        // SITE INFORMATION DETAILS - FIXED: Dark text, proper wrapping
+        // SITE INFORMATION DETAILS - FIX 2: Darker text
         // ============================================================
         if (y > pageHeight - 50) {
             doc.addPage();
@@ -323,18 +303,18 @@ async generateReport(inspection) {
         y += 4;
         
         doc.setFontSize(9);
-        doc.setTextColor('#333333'); // DARK TEXT - NOT GREY
+        doc.setTextColor('#222'); // Darker text for better visibility
         
         const siteInfo = [
-            ['Site Name:', clean(inspection.siteName || 'Not specified')],
-            ['Inspector:', clean(inspection.inspector || 'Not specified')],
-            ['Organization:', clean(inspection.organization || 'Not specified')],
+            ['Site Name:', cleanText(inspection.siteName || 'Not specified')],
+            ['Inspector:', cleanText(inspection.inspector || 'Not specified')],
+            ['Organization:', cleanText(inspection.organization || 'Not specified')],
             ['Date/Time:', Utils.formatDate(inspection.dateTime)],
-            ['Coordinates:', clean(inspection.coords || 'Not recorded')],
-            ['Vegetation Type:', clean(inspection.vegetationType || 'Not specified')],
-            ['Tenure:', clean(inspection.tenure || 'Not specified')],
-            ['Weather:', clean(inspection.weather || 'Not recorded')],
-            ['Soil Condition:', clean(inspection.soilCondition || 'Not recorded')]
+            ['Coordinates:', cleanText(inspection.coords || 'Not recorded')],
+            ['Vegetation Type:', cleanText(inspection.vegetationType || 'Not specified')],
+            ['Tenure:', cleanText(inspection.tenure || 'Not specified')],
+            ['Weather:', cleanText(inspection.weather || 'Not recorded')],
+            ['Soil Condition:', cleanText(inspection.soilCondition || 'Not recorded')]
         ];
         
         siteInfo.forEach(([label, value]) => {
@@ -344,14 +324,8 @@ async generateReport(inspection) {
                 addFooter();
                 doc.setFontSize(9);
             }
-            // Use splitTextToSize for the value to prevent overflow
-            const labelText = label;
-            const valueText = value;
-            const maxWidth = pageWidth - margin - 40;
-            const wrappedValue = doc.splitTextToSize(valueText, maxWidth);
-            doc.text(labelText, margin, y);
-            doc.text(wrappedValue, margin + 35, y);
-            y += (wrappedValue.length * 4) + 3;
+            doc.text(`${label} ${value}`, margin, y);
+            y += 5;
         });
         y += 3;
         
@@ -368,12 +342,12 @@ async generateReport(inspection) {
         y += 4;
         
         doc.setFontSize(9);
-        doc.setTextColor('#333333');
+        doc.setTextColor('#222');
         const threats = [
-            ['Declared Weeds Present:', clean(inspection.weedsList || 'None recorded')],
-            ['Feral Animals:', clean(inspection.feralAnimals || 'Not assessed')],
-            ['Fire History:', clean(inspection.fireHistory || 'Not recorded')],
-            ['Overall Threat Level:', clean(inspection.threatLevel || 'Not assessed')]
+            ['Declared Weeds Present:', cleanText(inspection.weedsList || 'None recorded')],
+            ['Feral Animals:', cleanText(inspection.feralAnimals || 'Not assessed')],
+            ['Fire History:', cleanText(inspection.fireHistory || 'Not recorded')],
+            ['Overall Threat Level:', cleanText(inspection.threatLevel || 'Not assessed')]
         ];
         
         threats.forEach(([label, value]) => {
@@ -383,11 +357,8 @@ async generateReport(inspection) {
                 addFooter();
                 doc.setFontSize(9);
             }
-            const maxWidth = pageWidth - margin - 40;
-            const wrappedValue = doc.splitTextToSize(value, maxWidth);
-            doc.text(label, margin, y);
-            doc.text(wrappedValue, margin + 35, y);
-            y += (wrappedValue.length * 4) + 3;
+            doc.text(`${label} ${value}`, margin, y);
+            y += 5;
         });
         y += 3;
         
@@ -404,20 +375,20 @@ async generateReport(inspection) {
         y += 4;
         
         doc.setFontSize(10);
-        doc.setTextColor('#333333');
-        const heritageSig = clean(inspection.heritageSignificance || 'Not Assessed');
+        doc.setTextColor('#222');
+        const heritageSig = cleanText(inspection.heritageSignificance || 'Not Assessed');
         doc.text(`Heritage Significance: ${heritageSig}`, margin, y);
         y += 6;
         
         doc.text('Cultural Sites / Artefacts:', margin, y);
         y += 4;
-        const culturalSites = clean(inspection.culturalSites || 'No cultural sites recorded.');
+        const culturalSites = cleanText(inspection.culturalSites || 'No cultural sites recorded.');
         addText(culturalSites, 9);
         y += 4;
         
         doc.text('Heritage Management Notes:', margin, y);
         y += 4;
-        const heritageNotes = clean(inspection.aboriginalHeritage || 'No heritage management notes.');
+        const heritageNotes = cleanText(inspection.aboriginalHeritage || 'No heritage management notes.');
         addText(heritageNotes, 9);
         y += 6;
         
@@ -432,7 +403,7 @@ async generateReport(inspection) {
         addTitle('OBSERVATIONS', 14);
         drawLine();
         y += 4;
-        const observations = clean(inspection.observations || 'No observations recorded.');
+        const observations = cleanText(inspection.observations || 'No observations recorded.');
         addText(observations, 10);
         y += 4;
         
@@ -447,7 +418,7 @@ async generateReport(inspection) {
         addTitle('RECOMMENDATIONS', 14);
         drawLine();
         y += 4;
-        const recommendations = clean(inspection.recommendations || 'No specific recommendations recorded.');
+        const recommendations = cleanText(inspection.recommendations || 'No specific recommendations recorded.');
         addText(recommendations, 10);
         y += 4;
         
@@ -464,7 +435,7 @@ async generateReport(inspection) {
         y += 4;
         
         doc.setFontSize(9);
-        doc.setTextColor('#333333');
+        doc.setTextColor('#222');
         const metrics = [
             ['Vegetation Health:', `${inspection.vegHealth || 6}/10`],
             ['Species Richness:', `${inspection.speciesRichness || 5}/10`],
@@ -515,7 +486,7 @@ async generateReport(inspection) {
                     doc.text(note.title, margin, y);
                     y += 4;
                     doc.setFontSize(9);
-                    doc.setTextColor('#333333');
+                    doc.setTextColor('#222');
                     addText(note.text, 9);
                     y += 2;
                 }
@@ -536,7 +507,7 @@ async generateReport(inspection) {
             const photos = inspection.photos.slice(0, 15);
             const photoSize = 50;
             const gap = 5;
-            const maxCols = Math.floor(((pageWidth - (margin * 2)) + gap) / (photoSize + gap));
+            const maxCols = Math.floor((pageWidth - 2 * margin + gap) / (photoSize + gap));
             let row = 0, col = 0;
             
             for (let i = 0; i < photos.length; i++) {
@@ -580,13 +551,13 @@ async generateReport(inspection) {
                     const yOffset = py + (photoSize * 0.75 - imgHeight) / 2;
                     doc.addImage(p.dataURL, 'JPEG', xOffset, yOffset, imgWidth, imgHeight);
                     doc.setFontSize(6);
-                    doc.setTextColor('#666666');
+                    doc.setTextColor('#666');
                     doc.text(`Photo ${i+1}`, px + 2, py + photoSize * 0.75 + 4);
                 } catch (e) {
                     doc.setFillColor('#f0f0f0');
                     doc.roundedRect(px, py, photoSize, photoSize * 0.75, 2, 2, 'F');
                     doc.setFontSize(8);
-                    doc.setTextColor('#999999');
+                    doc.setTextColor('#999');
                     doc.text(`Photo ${i+1}`, px + photoSize/2 - 10, py + photoSize * 0.375);
                 }
                 
