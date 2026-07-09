@@ -1,5 +1,5 @@
 // ================================================================
-// REPORT GENERATION - THE REAL FIX
+// REPORT GENERATION - THE REAL FIX FOR & CHARACTERS
 // ================================================================
 async generateReport(inspection) {
     if (this.isGenerating) {
@@ -26,33 +26,12 @@ async generateReport(inspection) {
         const eco = inspection.ecologicalScore || Utils.calculateScore(inspection);
         const colour = '#1a5f4a';
         
-        // ULTRA SIMPLE CLEAN - just remove non-printable and normalize spaces
-        const simpleClean = (text) => {
+        // CRITICAL FIX: Remove ALL & characters and HTML entities
+        const cleanForPDF = (text) => {
             if (!text) return '';
             let s = String(text);
-            // Remove ALL non-printable characters EXCEPT space (32)
-            s = s.replace(/[\x00-\x1F\x7F-\x9F]/g, '');
-            // Remove zero-width spaces and other invisible Unicode
-            s = s.replace(/[\u200B-\u200D\uFEFF]/g, '');
-            // Decode common HTML entities
-            s = s.replace(/&amp;/g, '&')
-                 .replace(/&lt;/g, '<')
-                 .replace(/&gt;/g, '>')
-                 .replace(/&quot;/g, '"')
-                 .replace(/&#039;/g, "'")
-                 .replace(/&nbsp;/g, ' ');
-            // Remove any remaining HTML tags
-            s = s.replace(/<[^>]*>/g, '');
-            // Normalize spaces (but keep single spaces between words)
-            s = s.replace(/\s{2,}/g, ' ');
-            return s.trim();
-        };
-        
-        // CRITICAL FIX: This function completely rebuilds the string to remove hidden characters
-        const rebuildString = (text) => {
-            if (!text) return '';
-            let s = String(text);
-            // First, decode HTML entities
+            
+            // First, decode any existing HTML entities to their character equivalents
             s = s.replace(/&amp;/g, '&')
                  .replace(/&lt;/g, '<')
                  .replace(/&gt;/g, '>')
@@ -68,75 +47,47 @@ async generateReport(inspection) {
             // Remove HTML tags
             s = s.replace(/<[^>]*>/g, '');
             
-            // CRITICAL: Remove ALL non-ASCII characters and rebuild
-            // This strips out zero-width spaces, smart quotes, etc.
-            let result = '';
-            for (let i = 0; i < s.length; i++) {
-                const char = s[i];
-                const code = char.charCodeAt(0);
-                // Keep only printable ASCII characters (space through ~)
-                if (code === 32 || (code >= 33 && code <= 126)) {
-                    result += char;
-                } else {
-                    // Replace with space
-                    result += ' ';
-                }
-            }
+            // CRITICAL: Remove ALL remaining & characters (they cause issues in jsPDF)
+            // Replace & with space to prevent HTML entity interpretation
+            s = s.replace(/&/g, ' ');
+            
+            // Remove non-printable characters but KEEP normal spaces
+            s = s.replace(/[^\x20-\x7E]/g, '');
+            
+            // Normalize multiple spaces
+            s = s.replace(/\s{2,}/g, ' ').trim();
+            
+            return s;
+        };
+        
+        // For checklist labels - ensure they're clean
+        const cleanLabel = (text) => {
+            if (!text) return '';
+            let s = String(text);
+            
+            // Remove ALL & characters (the root cause of the issue)
+            s = s.replace(/&/g, ' ');
+            
+            // Remove any HTML entities that might remain
+            s = s.replace(/&[a-zA-Z]+;/g, ' ')
+                 .replace(/&#[0-9]+;/g, ' ');
+            
+            // Remove HTML tags
+            s = s.replace(/<[^>]*>/g, '');
+            
+            // Remove non-printable characters
+            s = s.replace(/[^\x20-\x7E]/g, ' ');
             
             // Normalize spaces
-            result = result.replace(/\s{2,}/g, ' ');
-            return result.trim();
-        };
-        
-        // The label we know should work - direct string with no processing
-        const getChecklistLabel = (index) => {
-            const labels = [
-                'Verified site location and boundaries',
-                'Assessed accessibility and entry points',
-                'Evaluated site conditions',
-                'Identified existing infrastructure or features',
-                'Assessed presence of protected flora or fauna',
-                'Evaluated potential environmental impacts',
-                'Verified compliance with environmental regulations',
-                'Noted areas of conservation significance',
-                'Observed and evaluated work practices',
-                'Assessed compliance with health and safety regulations',
-                'Identified potential risks and hazards',
-                'Reviewed implementation of control measures',
-                'Inspected equipment and machinery',
-                'Ensured equipment in safe working condition',
-                'Checked maintenance and service records',
-                'Verified compliance with industry standards'
-            ];
-            return labels[index] || '';
-        };
-        
-        const getChecklistValue = (index) => {
-            const values = [
-                inspection.siteLocation,
-                inspection.accessibility,
-                inspection.siteConditions,
-                inspection.infrastructure,
-                inspection.protectedSpecies,
-                inspection.environmentalImpacts,
-                inspection.compliance,
-                inspection.conservation,
-                inspection.workPractices,
-                inspection.healthSafety,
-                inspection.risksHazards,
-                inspection.controlMeasures,
-                inspection.equipmentInspected,
-                inspection.safeCondition,
-                inspection.maintenanceRecords,
-                inspection.industryStandards
-            ];
-            return values[index] || false;
+            s = s.replace(/\s{2,}/g, ' ').trim();
+            
+            return s;
         };
         
         // Add text with wrapping
         const addText = (text, fontSize = 10, color = '#000000') => {
             if (!text) return;
-            const cleaned = simpleClean(text);
+            const cleaned = cleanForPDF(text);
             if (!cleaned) return;
             
             doc.setFontSize(fontSize);
@@ -158,7 +109,7 @@ async generateReport(inspection) {
         
         // Add title
         const addTitle = (text, fontSize = 18, color = colour) => {
-            const cleaned = simpleClean(text);
+            const cleaned = cleanForPDF(text);
             if (!cleaned) return;
             
             if (y > pageHeight - 30) {
@@ -193,7 +144,7 @@ async generateReport(inspection) {
             doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
             doc.setFontSize(7);
             doc.setTextColor('#aaa');
-            const id = simpleClean(inspection.id || 'N/A');
+            const id = cleanForPDF(inspection.id || 'N/A');
             doc.text(id, margin, pageHeight - 5);
             const date = Utils.formatDate(inspection.dateTime);
             doc.text(date, pageWidth - margin, pageHeight - 5, { align: 'right' });
@@ -219,22 +170,22 @@ async generateReport(inspection) {
         
         doc.setFontSize(20);
         doc.setTextColor('#000000');
-        const siteName = simpleClean(inspection.siteName || 'Site Assessment');
+        const siteName = cleanForPDF(inspection.siteName || 'Site Assessment');
         doc.text(siteName, margin, y);
         y += 12;
         
         doc.setFontSize(11);
         doc.setTextColor('#000000');
-        const org = simpleClean(inspection.organization || 'Environmental Client');
+        const org = cleanForPDF(inspection.organization || 'Environmental Client');
         doc.text(`Prepared for: ${org}`, margin, y);
         y += 6;
         const date = Utils.formatDate(inspection.dateTime);
         doc.text(`Date: ${date}`, margin, y);
         y += 6;
-        const id = simpleClean(inspection.id || 'N/A');
+        const id = cleanForPDF(inspection.id || 'N/A');
         doc.text(`Report ID: ${id}`, margin, y);
         y += 6;
-        const author = simpleClean(inspection.inspector || 'Environmental Consultant');
+        const author = cleanForPDF(inspection.inspector || 'Environmental Consultant');
         doc.text(`Author: ${author}`, margin, y);
         y += 10;
         
@@ -263,7 +214,7 @@ async generateReport(inspection) {
                     y += imgHeight + 8;
                     doc.setFontSize(7);
                     doc.setTextColor('#999');
-                    const caption = simpleClean(inspection.siteName || 'Site Photo');
+                    const caption = cleanForPDF(inspection.siteName || 'Site Photo');
                     doc.text(`Cover Photo: ${caption}`, margin + 10, y);
                     y += 6;
                 }
@@ -303,7 +254,7 @@ async generateReport(inspection) {
         doc.text(`Conservation Significance: ${eco.significance}`, margin, y);
         y += 10;
         
-        addText(`This report presents findings of an ecological assessment at "${simpleClean(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`, 10);
+        addText(`This report presents findings of an ecological assessment at "${cleanForPDF(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`, 10);
         y += 4;
         
         doc.setFontSize(11);
@@ -326,7 +277,7 @@ async generateReport(inspection) {
         y += 6;
         
         // ============================================================
-        // CHECKLIST SUMMARY - COMPLETELY REBUILT WITH CLEAN STRINGS
+        // CHECKLIST SUMMARY - COMPLETELY FIXED
         // ============================================================
         if (y > pageHeight - 60) {
             doc.addPage();
@@ -337,68 +288,69 @@ async generateReport(inspection) {
         drawLine();
         y += 4;
         
-        // Define checklist sections and items
-        const sections = [
-            'General Site Conditions',
-            'Environmental Considerations',
-            'Work Practices and Procedures',
-            'Equipment and Machinery'
+        // Define checklist items with clean labels
+        const checklistItems = [
+            { section: 'General Site Conditions', label: 'Verified site location and boundaries', value: inspection.siteLocation },
+            { section: 'General Site Conditions', label: 'Assessed accessibility and entry points', value: inspection.accessibility },
+            { section: 'General Site Conditions', label: 'Evaluated site conditions', value: inspection.siteConditions },
+            { section: 'General Site Conditions', label: 'Identified existing infrastructure or features', value: inspection.infrastructure },
+            
+            { section: 'Environmental Considerations', label: 'Assessed presence of protected flora or fauna', value: inspection.protectedSpecies },
+            { section: 'Environmental Considerations', label: 'Evaluated potential environmental impacts', value: inspection.environmentalImpacts },
+            { section: 'Environmental Considerations', label: 'Verified compliance with environmental regulations', value: inspection.compliance },
+            { section: 'Environmental Considerations', label: 'Noted areas of conservation significance', value: inspection.conservation },
+            
+            { section: 'Work Practices and Procedures', label: 'Observed and evaluated work practices', value: inspection.workPractices },
+            { section: 'Work Practices and Procedures', label: 'Assessed compliance with health and safety regulations', value: inspection.healthSafety },
+            { section: 'Work Practices and Procedures', label: 'Identified potential risks and hazards', value: inspection.risksHazards },
+            { section: 'Work Practices and Procedures', label: 'Reviewed implementation of control measures', value: inspection.controlMeasures },
+            
+            { section: 'Equipment and Machinery', label: 'Inspected equipment and machinery', value: inspection.equipmentInspected },
+            { section: 'Equipment and Machinery', label: 'Ensured equipment in safe working condition', value: inspection.safeCondition },
+            { section: 'Equipment and Machinery', label: 'Checked maintenance and service records', value: inspection.maintenanceRecords },
+            { section: 'Equipment and Machinery', label: 'Verified compliance with industry standards', value: inspection.industryStandards }
         ];
         
-        // Items per section (4 items each)
-        const itemsPerSection = 4;
-        let totalItems = 16;
-        let completedItems = 0;
-        
-        // First pass: count completed items
-        for (let i = 0; i < totalItems; i++) {
-            if (getChecklistValue(i) === true || getChecklistValue(i) === 'true' || getChecklistValue(i) === 1) {
-                completedItems++;
-            }
-        }
+        let total = checklistItems.length;
+        let completed = checklistItems.filter(item => item.value === true || item.value === 'true' || item.value === 1).length;
         
         doc.setFontSize(9);
         doc.setTextColor('#000000');
-        doc.text(`Completion: ${completedItems}/${totalItems} items (${Math.round((completedItems/totalItems)*100)}%)`, margin, y);
+        doc.text(`Completion: ${completed}/${total} items (${Math.round((completed/total)*100)}%)`, margin, y);
         y += 6;
         
-        // Render checklist with clean labels
         let currentSection = '';
-        for (let i = 0; i < totalItems; i++) {
+        checklistItems.forEach(item => {
             if (y > pageHeight - 25) {
                 doc.addPage();
                 y = margin + 5;
                 addFooter();
                 doc.setFontSize(9);
                 doc.setTextColor('#000000');
-                doc.text(`Completion: ${completedItems}/${totalItems} items (${Math.round((completedItems/totalItems)*100)}%)`, margin, y);
+                doc.text(`Completion: ${completed}/${total} items (${Math.round((completed/total)*100)}%)`, margin, y);
                 y += 6;
             }
             
-            const sectionIndex = Math.floor(i / itemsPerSection);
-            const sectionName = sections[sectionIndex] || '';
-            
-            if (sectionName !== currentSection) {
-                currentSection = sectionName;
+            if (item.section !== currentSection) {
+                currentSection = item.section;
                 doc.setFontSize(11);
                 doc.setTextColor(colour);
                 doc.text(currentSection, margin, y);
                 y += 5;
             }
             
-            const isChecked = (getChecklistValue(i) === true || getChecklistValue(i) === 'true' || getChecklistValue(i) === 1);
+            const isChecked = (item.value === true || item.value === 'true' || item.value === 1);
             const symbol = isChecked ? '✓' : '✗';
             const color = isChecked ? '#10b981' : '#dc2626';
             
-            // CRITICAL FIX: Use getChecklistLabel which returns a clean string
-            const label = getChecklistLabel(i);
+            // CRITICAL FIX: Clean the label by removing ALL & characters
+            const label = cleanLabel(item.label);
             
             doc.setFontSize(8);
             doc.setTextColor(color);
-            // Use a simple string that we know is clean
             doc.text(`${symbol}  ${label}`, margin + 4, y);
             y += 5;
-        }
+        });
         y += 3;
         
         // ============================================================
@@ -414,15 +366,15 @@ async generateReport(inspection) {
         y += 4;
         
         const siteInfo = [
-            ['Site Name:', simpleClean(inspection.siteName || 'Not specified')],
-            ['Inspector:', simpleClean(inspection.inspector || 'Not specified')],
-            ['Organization:', simpleClean(inspection.organization || 'Not specified')],
+            ['Site Name:', cleanForPDF(inspection.siteName || 'Not specified')],
+            ['Inspector:', cleanForPDF(inspection.inspector || 'Not specified')],
+            ['Organization:', cleanForPDF(inspection.organization || 'Not specified')],
             ['Date/Time:', Utils.formatDate(inspection.dateTime)],
-            ['Coordinates:', simpleClean(inspection.coords || 'Not recorded')],
-            ['Vegetation Type:', simpleClean(inspection.vegetationType || 'Not specified')],
-            ['Tenure:', simpleClean(inspection.tenure || 'Not specified')],
-            ['Weather:', simpleClean(inspection.weather || 'Not recorded')],
-            ['Soil Condition:', simpleClean(inspection.soilCondition || 'Not recorded')]
+            ['Coordinates:', cleanForPDF(inspection.coords || 'Not recorded')],
+            ['Vegetation Type:', cleanForPDF(inspection.vegetationType || 'Not specified')],
+            ['Tenure:', cleanForPDF(inspection.tenure || 'Not specified')],
+            ['Weather:', cleanForPDF(inspection.weather || 'Not recorded')],
+            ['Soil Condition:', cleanForPDF(inspection.soilCondition || 'Not recorded')]
         ];
         
         siteInfo.forEach(([label, value]) => {
@@ -456,10 +408,10 @@ async generateReport(inspection) {
         y += 4;
         
         const threats = [
-            ['Declared Weeds Present:', simpleClean(inspection.weedsList || 'None recorded')],
-            ['Feral Animals:', simpleClean(inspection.feralAnimals || 'Not assessed')],
-            ['Fire History:', simpleClean(inspection.fireHistory || 'Not recorded')],
-            ['Overall Threat Level:', simpleClean(inspection.threatLevel || 'Not assessed')]
+            ['Declared Weeds Present:', cleanForPDF(inspection.weedsList || 'None recorded')],
+            ['Feral Animals:', cleanForPDF(inspection.feralAnimals || 'Not assessed')],
+            ['Fire History:', cleanForPDF(inspection.fireHistory || 'Not recorded')],
+            ['Overall Threat Level:', cleanForPDF(inspection.threatLevel || 'Not assessed')]
         ];
         
         threats.forEach(([label, value]) => {
@@ -493,19 +445,19 @@ async generateReport(inspection) {
         
         doc.setFontSize(10);
         doc.setTextColor('#000000');
-        const heritageSig = simpleClean(inspection.heritageSignificance || 'Not Assessed');
+        const heritageSig = cleanForPDF(inspection.heritageSignificance || 'Not Assessed');
         doc.text(`Heritage Significance: ${heritageSig}`, margin, y);
         y += 6;
         
         doc.text('Cultural Sites / Artefacts:', margin, y);
         y += 4;
-        const culturalSites = simpleClean(inspection.culturalSites || 'No cultural sites recorded.');
+        const culturalSites = cleanForPDF(inspection.culturalSites || 'No cultural sites recorded.');
         addText(culturalSites, 9);
         y += 4;
         
         doc.text('Heritage Management Notes:', margin, y);
         y += 4;
-        const heritageNotes = simpleClean(inspection.aboriginalHeritage || 'No heritage management notes.');
+        const heritageNotes = cleanForPDF(inspection.aboriginalHeritage || 'No heritage management notes.');
         addText(heritageNotes, 9);
         y += 6;
         
@@ -520,7 +472,7 @@ async generateReport(inspection) {
         addTitle('OBSERVATIONS', 14);
         drawLine();
         y += 4;
-        const observations = simpleClean(inspection.observations || 'No observations recorded.');
+        const observations = cleanForPDF(inspection.observations || 'No observations recorded.');
         addText(observations, 10);
         y += 4;
         
@@ -535,7 +487,7 @@ async generateReport(inspection) {
         addTitle('RECOMMENDATIONS', 14);
         drawLine();
         y += 4;
-        const recommendations = simpleClean(inspection.recommendations || 'No specific recommendations recorded.');
+        const recommendations = cleanForPDF(inspection.recommendations || 'No specific recommendations recorded.');
         addText(recommendations, 10);
         y += 4;
         
