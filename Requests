@@ -1,5 +1,5 @@
 // ================================================================
-// REPORT GENERATION - FINAL FIX
+// REPORT GENERATION - COMPLETE FIXED VERSION
 // ================================================================
 async generateReport(inspection) {
     try {
@@ -10,17 +10,15 @@ async generateReport(inspection) {
         const eco = inspection.ecologicalScore || Utils.calculateScore(inspection);
         const colour = '#1a5f4a';
         
-        // CRITICAL FIX: Completely rebuild text cleaning
+        // CRITICAL FIX: Complete text cleaning
         const cleanText = (text) => {
             if (!text) return '';
-            // Convert to string
             let clean = String(text);
             // Remove HTML tags
             clean = clean.replace(/<[^>]*>/g, '');
-            // Remove all Unicode special characters including:
-            // checkmarks, crosses, bullets, emojis, zero-width spaces, non-breaking spaces
+            // Remove all Unicode special characters including zero-width spaces
             clean = clean.replace(/[\u2713\u2717\u2611\u2610\u2714\u274c\u25a0\u25cf\u2022\u25e6\uFEFF\u200B\u200C\u200D\u00A0]/g, '');
-            // Remove any non-ASCII characters
+            // Remove any non-ASCII characters (keep only printable ASCII)
             clean = clean.replace(/[^\x20-\x7E]/g, ' ');
             // Remove multiple spaces
             clean = clean.replace(/\s+/g, ' ');
@@ -209,7 +207,7 @@ async generateReport(inspection) {
         y += 6;
         
         // ============================================================
-        // CHECKLIST SUMMARY - COMPLETELY REWRITTEN
+        // CHECKLIST SUMMARY
         // ============================================================
         if (y > pageHeight - 60) {
             doc.addPage();
@@ -220,8 +218,6 @@ async generateReport(inspection) {
         drawLine();
         y += 4;
         
-        // Define checklist items with CLEAN ASCII labels (NO special characters)
-        // These are the labels as they should appear in the PDF
         const checklistItems = [
             { section: 'General Site Conditions', label: 'Verified site location and boundaries', value: inspection.siteLocation },
             { section: 'General Site Conditions', label: 'Assessed accessibility and entry points', value: inspection.accessibility },
@@ -244,20 +240,16 @@ async generateReport(inspection) {
             { section: 'Equipment and Machinery', label: 'Verified compliance with industry standards', value: inspection.industryStandards }
         ];
         
-        // Calculate progress
         let total = checklistItems.length;
         let completed = checklistItems.filter(item => item.value === true || item.value === 'true' || item.value === 1).length;
         
-        // Show progress
         doc.setFontSize(9);
         doc.setTextColor('#555');
         doc.text(`Completion: ${completed}/${total} items (${Math.round((completed/total)*100)}%)`, margin, y);
         y += 6;
         
-        // Group by section and render
         let currentSection = '';
         checklistItems.forEach(item => {
-            // Check for page break
             if (y > pageHeight - 25) {
                 doc.addPage();
                 y = margin + 5;
@@ -268,7 +260,6 @@ async generateReport(inspection) {
                 y += 6;
             }
             
-            // Show section header if changed
             if (item.section !== currentSection) {
                 currentSection = item.section;
                 doc.setFontSize(11);
@@ -277,16 +268,84 @@ async generateReport(inspection) {
                 y += 5;
             }
             
-            // Show checklist item with status
             const isChecked = (item.value === true || item.value === 'true' || item.value === 1);
-            // Use ASCII characters that jsPDF handles correctly
             const symbol = isChecked ? 'v' : 'x';
             const color = isChecked ? '#10b981' : '#dc2626';
             
             doc.setFontSize(8);
             doc.setTextColor(color);
-            // Use the clean label directly - it's already ASCII-only
             doc.text(`${symbol}  ${item.label}`, margin + 4, y);
+            y += 5;
+        });
+        y += 3;
+        
+        // ============================================================
+        // SITE INFORMATION DETAILS
+        // ============================================================
+        if (y > pageHeight - 50) {
+            doc.addPage();
+            y = margin + 5;
+            addFooter();
+        }
+        addTitle('SITE INFORMATION', 16);
+        drawLine();
+        y += 4;
+        
+        doc.setFontSize(9);
+        doc.setTextColor('#333');
+        const siteInfo = [
+            ['Site Name:', cleanText(inspection.siteName || 'Not specified')],
+            ['Inspector:', cleanText(inspection.inspector || 'Not specified')],
+            ['Organization:', cleanText(inspection.organization || 'Not specified')],
+            ['Date/Time:', Utils.formatDate(inspection.dateTime)],
+            ['Coordinates:', cleanText(inspection.coords || 'Not recorded')],
+            ['Vegetation Type:', cleanText(inspection.vegetationType || 'Not specified')],
+            ['Tenure:', cleanText(inspection.tenure || 'Not specified')],
+            ['Weather:', cleanText(inspection.weather || 'Not recorded')],
+            ['Soil Condition:', cleanText(inspection.soilCondition || 'Not recorded')]
+        ];
+        
+        siteInfo.forEach(([label, value]) => {
+            if (y > pageHeight - 20) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+                doc.setFontSize(9);
+            }
+            doc.text(`${label} ${value}`, margin, y);
+            y += 5;
+        });
+        y += 3;
+        
+        // ============================================================
+        // SPECIES AND THREATS
+        // ============================================================
+        if (y > pageHeight - 50) {
+            doc.addPage();
+            y = margin + 5;
+            addFooter();
+        }
+        addTitle('SPECIES AND THREATS', 16);
+        drawLine();
+        y += 4;
+        
+        doc.setFontSize(9);
+        doc.setTextColor('#333');
+        const threats = [
+            ['Declared Weeds Present:', cleanText(inspection.weedsList || 'None recorded')],
+            ['Feral Animals:', cleanText(inspection.feralAnimals || 'Not assessed')],
+            ['Fire History:', cleanText(inspection.fireHistory || 'Not recorded')],
+            ['Overall Threat Level:', cleanText(inspection.threatLevel || 'Not assessed')]
+        ];
+        
+        threats.forEach(([label, value]) => {
+            if (y > pageHeight - 20) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+                doc.setFontSize(9);
+            }
+            doc.text(`${label} ${value}`, margin, y);
             y += 5;
         });
         y += 3;
@@ -349,6 +408,78 @@ async generateReport(inspection) {
         y += 4;
         const recommendations = cleanText(inspection.recommendations || 'No specific recommendations recorded.');
         addText(recommendations, 10);
+        y += 4;
+        
+        // ============================================================
+        // ECOLOGICAL HEALTH DETAILS
+        // ============================================================
+        if (y > pageHeight - 50) {
+            doc.addPage();
+            y = margin + 5;
+            addFooter();
+        }
+        addTitle('ECOLOGICAL HEALTH METRICS', 14);
+        drawLine();
+        y += 4;
+        
+        doc.setFontSize(9);
+        doc.setTextColor('#333');
+        const metrics = [
+            ['Vegetation Health:', `${inspection.vegHealth || 6}/10`],
+            ['Species Richness:', `${inspection.speciesRichness || 5}/10`],
+            ['Weed Cover:', `${inspection.weedCover || 30}%`],
+            ['Habitat Quality:', `${inspection.habitatQuality || 5}/10`],
+            ['Disturbance Level:', `${inspection.disturbance || 3}/10`],
+            ['Regeneration:', `${inspection.regeneration || 5}/10`],
+            ['Overall Score:', `${eco.conditionScore}/10`]
+        ];
+        
+        metrics.forEach(([label, value]) => {
+            if (y > pageHeight - 20) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+                doc.setFontSize(9);
+            }
+            doc.text(`${label} ${value}`, margin, y);
+            y += 5;
+        });
+        y += 3;
+        
+        // ============================================================
+        // CHECKLIST NOTES
+        // ============================================================
+        const notes = [
+            { title: 'Site Conditions Notes:', text: inspection.siteConditionsNotes },
+            { title: 'Environmental Notes:', text: inspection.environmentalNotes },
+            { title: 'Work Practice Notes:', text: inspection.workPracticesNotes },
+            { title: 'Equipment Notes:', text: inspection.equipmentNotes }
+        ];
+        
+        let hasNotes = notes.some(n => n.text);
+        if (hasNotes) {
+            if (y > pageHeight - 50) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+            }
+            addTitle('ADDITIONAL NOTES', 14);
+            drawLine();
+            y += 4;
+            
+            notes.forEach(note => {
+                if (note.text) {
+                    doc.setFontSize(10);
+                    doc.setTextColor(colour);
+                    doc.text(note.title, margin, y);
+                    y += 4;
+                    doc.setFontSize(9);
+                    doc.setTextColor('#333');
+                    addText(note.text, 9);
+                    y += 2;
+                }
+            });
+        }
         
         // ============================================================
         // PHOTOS
