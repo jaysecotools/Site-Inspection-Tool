@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -863,22 +862,20 @@ const Utils = {
         return str.replace(/[^\w\s.,!?\-()'"]/g, ' ').trim();
     },
     
-    // NEW: Clean text specifically for PDF - removes HTML entities and special chars
-    cleanPdfText(str) {
+    // Simple text cleaner for PDF - just removes HTML and normalizes
+    cleanForPdf(str) {
         if (!str) return '';
         let clean = String(str);
-        // Decode HTML entities first
+        // Decode common HTML entities
         clean = clean.replace(/&amp;/g, '&')
                      .replace(/&lt;/g, '<')
                      .replace(/&gt;/g, '>')
                      .replace(/&quot;/g, '"')
                      .replace(/&#039;/g, "'")
                      .replace(/&nbsp;/g, ' ');
-        // Remove any remaining HTML tags
+        // Remove any HTML tags
         clean = clean.replace(/<[^>]*>/g, '');
-        // Remove Unicode special characters
-        clean = clean.replace(/[\u2713\u2717\u2611\u2610\u2714\u274c\u25a0\u25cf\u2022\u25e6\uFEFF\u200B\u200C\u200D]/g, '');
-        // Remove any non-printable characters
+        // Remove any remaining special characters
         clean = clean.replace(/[^\x20-\x7E]/g, ' ');
         // Normalize spaces
         clean = clean.replace(/\s+/g, ' ').trim();
@@ -2248,7 +2245,7 @@ class App {
     }
     
     // ================================================================
-    // REPORT GENERATION - FIXED with proper text cleaning
+    // REPORT GENERATION - SIMPLIFIED AND FIXED
     // ================================================================
     async generateReport(inspection) {
         if (this.isGenerating) {
@@ -2266,82 +2263,98 @@ class App {
         try {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
-            const pageWidth = 210, pageHeight = 297, margin = 18;
+            const pageWidth = 210;
+            const pageHeight = 297;
+            const margin = 18;
+            const contentWidth = pageWidth - 2 * margin;
             let y = margin;
+            
             const eco = inspection.ecologicalScore || Utils.calculateScore(inspection);
             const colour = '#1a5f4a';
             
-            // FIXED: Clean text specifically for PDF - removes HTML entities
-            const cleanPdfText = (text) => {
+            // Simple text cleaner
+            const clean = (text) => {
                 if (!text) return '';
-                let clean = String(text);
-                // Decode HTML entities first (this is the key fix for &amp; issues)
-                clean = clean.replace(/&amp;/g, '&')
-                             .replace(/&lt;/g, '<')
-                             .replace(/&gt;/g, '>')
-                             .replace(/&quot;/g, '"')
-                             .replace(/&#039;/g, "'")
-                             .replace(/&nbsp;/g, ' ')
-                             .replace(/&#x27;/g, "'")
-                             .replace(/&#x2F;/g, '/')
-                             .replace(/&#39;/g, "'")
-                             .replace(/&#47;/g, '/');
-                // Remove any remaining HTML tags
-                clean = clean.replace(/<[^>]*>/g, '');
-                // Remove Unicode special characters (but keep basic punctuation)
-                clean = clean.replace(/[\u2713\u2717\u2611\u2610\u2714\u274c\u25a0\u25cf\u2022\u25e6\uFEFF\u200B\u200C\u200D]/g, '');
-                // Keep only printable ASCII characters
-                clean = clean.replace(/[^\x20-\x7E]/g, ' ');
+                let s = String(text);
+                // Decode HTML entities
+                s = s.replace(/&amp;/g, '&')
+                     .replace(/&lt;/g, '<')
+                     .replace(/&gt;/g, '>')
+                     .replace(/&quot;/g, '"')
+                     .replace(/&#039;/g, "'")
+                     .replace(/&nbsp;/g, ' ');
+                // Remove HTML tags
+                s = s.replace(/<[^>]*>/g, '');
+                // Remove special chars
+                s = s.replace(/[^\x20-\x7E]/g, ' ');
                 // Normalize spaces
-                clean = clean.replace(/\s+/g, ' ').trim();
-                return clean;
+                s = s.replace(/\s+/g, ' ').trim();
+                return s;
             };
             
-            // Helper: Add text with auto-page breaks - using cleanPdfText
-            const addText = (text, size = 10, color = '#333') => {
+            // Add text with wrapping
+            const addText = (text, fontSize = 10, color = '#333') => {
                 if (!text) return;
-                const clean = cleanPdfText(text);
-                if (!clean) return;
-                doc.setFontSize(size);
+                const cleaned = clean(text);
+                if (!cleaned) return;
+                
+                doc.setFontSize(fontSize);
                 doc.setTextColor(color);
-                const lines = doc.splitTextToSize(clean, pageWidth - 2 * margin);
-                const lineHeight = size * 0.45;
-                const totalHeight = lines.length * lineHeight + 1.5;
-                if (y + totalHeight > pageHeight - margin - 8) {
+                
+                // Split text to fit within page width
+                const lines = doc.splitTextToSize(cleaned, contentWidth);
+                const lineHeight = fontSize * 0.45;
+                
+                // Check if we need a new page
+                const neededHeight = lines.length * lineHeight;
+                if (y + neededHeight > pageHeight - margin - 10) {
                     doc.addPage();
                     y = margin + 5;
                     addFooter();
                 }
+                
                 doc.text(lines, margin, y);
-                y += totalHeight;
+                y += neededHeight + 2;
             };
             
-            // Helper: Add title
-            const addTitle = (text, size = 18, color = colour) => {
-                const clean = cleanPdfText(text);
-                if (!clean) return;
-                doc.setFontSize(size);
+            // Add title
+            const addTitle = (text, fontSize = 18, color = colour) => {
+                const cleaned = clean(text);
+                if (!cleaned) return;
+                
+                if (y > pageHeight - 30) {
+                    doc.addPage();
+                    y = margin + 5;
+                    addFooter();
+                }
+                
+                doc.setFontSize(fontSize);
                 doc.setTextColor(color);
-                doc.text(clean, margin, y);
-                y += size * 0.4 + 2;
+                doc.text(cleaned, margin, y);
+                y += fontSize * 0.4 + 2;
             };
             
-            // Helper: Draw line
+            // Draw line
             const drawLine = () => {
+                if (y > pageHeight - 15) {
+                    doc.addPage();
+                    y = margin + 5;
+                    addFooter();
+                }
                 doc.setDrawColor(colour);
                 doc.setLineWidth(0.5);
                 doc.line(margin, y, pageWidth - margin, y);
                 y += 5;
             };
             
-            // Helper: Add footer
+            // Add footer
             const addFooter = () => {
                 doc.setDrawColor(colour);
                 doc.setLineWidth(0.3);
                 doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
                 doc.setFontSize(7);
                 doc.setTextColor('#aaa');
-                const id = cleanPdfText(inspection.id || 'N/A');
+                const id = clean(inspection.id || 'N/A');
                 doc.text(id, margin, pageHeight - 5);
                 const date = Utils.formatDate(inspection.dateTime);
                 doc.text(date, pageWidth - margin, pageHeight - 5, { align: 'right' });
@@ -2367,22 +2380,22 @@ class App {
             
             doc.setFontSize(20);
             doc.setTextColor('#222');
-            const siteName = cleanPdfText(inspection.siteName || 'Site Assessment');
+            const siteName = clean(inspection.siteName || 'Site Assessment');
             doc.text(siteName, margin, y);
             y += 12;
             
             doc.setFontSize(11);
             doc.setTextColor('#555');
-            const org = cleanPdfText(inspection.organization || 'Environmental Client');
+            const org = clean(inspection.organization || 'Environmental Client');
             doc.text(`Prepared for: ${org}`, margin, y);
             y += 6;
             const date = Utils.formatDate(inspection.dateTime);
             doc.text(`Date: ${date}`, margin, y);
             y += 6;
-            const id = cleanPdfText(inspection.id || 'N/A');
+            const id = clean(inspection.id || 'N/A');
             doc.text(`Report ID: ${id}`, margin, y);
             y += 6;
-            const author = cleanPdfText(inspection.inspector || 'Environmental Consultant');
+            const author = clean(inspection.inspector || 'Environmental Consultant');
             doc.text(`Author: ${author}`, margin, y);
             y += 10;
             
@@ -2398,7 +2411,7 @@ class App {
                     });
                     
                     if (imgData) {
-                        const maxImgWidth = pageWidth - 2 * margin - 20;
+                        const maxImgWidth = contentWidth - 20;
                         const maxImgHeight = 70;
                         let imgWidth = maxImgWidth;
                         let imgHeight = (imgData.height / imgData.width) * maxImgWidth;
@@ -2411,13 +2424,11 @@ class App {
                         y += imgHeight + 8;
                         doc.setFontSize(7);
                         doc.setTextColor('#999');
-                        const caption = cleanPdfText(inspection.siteName || 'Site Photo');
+                        const caption = clean(inspection.siteName || 'Site Photo');
                         doc.text(`Cover Photo: ${caption}`, margin + 10, y);
                         y += 6;
                     }
-                } catch (e) {
-                    // Skip photo on error
-                }
+                } catch (e) {}
             }
             
             doc.setFillColor(colour);
@@ -2453,8 +2464,7 @@ class App {
             doc.text(`Conservation Significance: ${eco.significance}`, margin, y);
             y += 10;
             
-            const summaryText = `This report presents findings of an ecological assessment at "${cleanPdfText(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`;
-            addText(summaryText, 10);
+            addText(`This report presents findings of an ecological assessment at "${clean(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`, 10);
             y += 4;
             
             doc.setFontSize(11);
@@ -2477,7 +2487,7 @@ class App {
             y += 6;
             
             // ============================================================
-            // CHECKLIST SUMMARY - FIXED: Using cleanPdfText on labels
+            // CHECKLIST SUMMARY
             // ============================================================
             if (y > pageHeight - 60) {
                 doc.addPage();
@@ -2541,18 +2551,17 @@ class App {
                 const isChecked = (item.value === true || item.value === 'true' || item.value === 1);
                 const symbol = isChecked ? '✓' : '✗';
                 const color = isChecked ? '#10b981' : '#dc2626';
+                const label = clean(item.label);
                 
-                // FIXED: Use cleanPdfText on the label
-                const cleanLabel = cleanPdfText(item.label);
                 doc.setFontSize(8);
                 doc.setTextColor(color);
-                doc.text(`${symbol}  ${cleanLabel}`, margin + 4, y);
+                doc.text(`${symbol}  ${label}`, margin + 4, y);
                 y += 5;
             });
             y += 3;
             
             // ============================================================
-            // SITE INFORMATION DETAILS
+            // SITE INFORMATION DETAILS - FIXED: Proper text with color
             // ============================================================
             if (y > pageHeight - 50) {
                 doc.addPage();
@@ -2564,17 +2573,17 @@ class App {
             y += 4;
             
             doc.setFontSize(9);
-            doc.setTextColor('#333');
+            doc.setTextColor('#333'); // Dark text for visibility
             const siteInfo = [
-                ['Site Name:', cleanPdfText(inspection.siteName || 'Not specified')],
-                ['Inspector:', cleanPdfText(inspection.inspector || 'Not specified')],
-                ['Organization:', cleanPdfText(inspection.organization || 'Not specified')],
+                ['Site Name:', clean(inspection.siteName || 'Not specified')],
+                ['Inspector:', clean(inspection.inspector || 'Not specified')],
+                ['Organization:', clean(inspection.organization || 'Not specified')],
                 ['Date/Time:', Utils.formatDate(inspection.dateTime)],
-                ['Coordinates:', cleanPdfText(inspection.coords || 'Not recorded')],
-                ['Vegetation Type:', cleanPdfText(inspection.vegetationType || 'Not specified')],
-                ['Tenure:', cleanPdfText(inspection.tenure || 'Not specified')],
-                ['Weather:', cleanPdfText(inspection.weather || 'Not recorded')],
-                ['Soil Condition:', cleanPdfText(inspection.soilCondition || 'Not recorded')]
+                ['Coordinates:', clean(inspection.coords || 'Not recorded')],
+                ['Vegetation Type:', clean(inspection.vegetationType || 'Not specified')],
+                ['Tenure:', clean(inspection.tenure || 'Not specified')],
+                ['Weather:', clean(inspection.weather || 'Not recorded')],
+                ['Soil Condition:', clean(inspection.soilCondition || 'Not recorded')]
             ];
             
             siteInfo.forEach(([label, value]) => {
@@ -2604,10 +2613,10 @@ class App {
             doc.setFontSize(9);
             doc.setTextColor('#333');
             const threats = [
-                ['Declared Weeds Present:', cleanPdfText(inspection.weedsList || 'None recorded')],
-                ['Feral Animals:', cleanPdfText(inspection.feralAnimals || 'Not assessed')],
-                ['Fire History:', cleanPdfText(inspection.fireHistory || 'Not recorded')],
-                ['Overall Threat Level:', cleanPdfText(inspection.threatLevel || 'Not assessed')]
+                ['Declared Weeds Present:', clean(inspection.weedsList || 'None recorded')],
+                ['Feral Animals:', clean(inspection.feralAnimals || 'Not assessed')],
+                ['Fire History:', clean(inspection.fireHistory || 'Not recorded')],
+                ['Overall Threat Level:', clean(inspection.threatLevel || 'Not assessed')]
             ];
             
             threats.forEach(([label, value]) => {
@@ -2636,19 +2645,19 @@ class App {
             
             doc.setFontSize(10);
             doc.setTextColor('#333');
-            const heritageSig = cleanPdfText(inspection.heritageSignificance || 'Not Assessed');
+            const heritageSig = clean(inspection.heritageSignificance || 'Not Assessed');
             doc.text(`Heritage Significance: ${heritageSig}`, margin, y);
             y += 6;
             
             doc.text('Cultural Sites / Artefacts:', margin, y);
             y += 4;
-            const culturalSites = cleanPdfText(inspection.culturalSites || 'No cultural sites recorded.');
+            const culturalSites = clean(inspection.culturalSites || 'No cultural sites recorded.');
             addText(culturalSites, 9);
             y += 4;
             
             doc.text('Heritage Management Notes:', margin, y);
             y += 4;
-            const heritageNotes = cleanPdfText(inspection.aboriginalHeritage || 'No heritage management notes.');
+            const heritageNotes = clean(inspection.aboriginalHeritage || 'No heritage management notes.');
             addText(heritageNotes, 9);
             y += 6;
             
@@ -2663,7 +2672,7 @@ class App {
             addTitle('OBSERVATIONS', 14);
             drawLine();
             y += 4;
-            const observations = cleanPdfText(inspection.observations || 'No observations recorded.');
+            const observations = clean(inspection.observations || 'No observations recorded.');
             addText(observations, 10);
             y += 4;
             
@@ -2678,7 +2687,7 @@ class App {
             addTitle('RECOMMENDATIONS', 14);
             drawLine();
             y += 4;
-            const recommendations = cleanPdfText(inspection.recommendations || 'No specific recommendations recorded.');
+            const recommendations = clean(inspection.recommendations || 'No specific recommendations recorded.');
             addText(recommendations, 10);
             y += 4;
             
@@ -2767,7 +2776,7 @@ class App {
                 const photos = inspection.photos.slice(0, 15);
                 const photoSize = 50;
                 const gap = 5;
-                const maxCols = Math.floor((pageWidth - 2 * margin + gap) / (photoSize + gap));
+                const maxCols = Math.floor((contentWidth + gap) / (photoSize + gap));
                 let row = 0, col = 0;
                 
                 for (let i = 0; i < photos.length; i++) {
