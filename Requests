@@ -1,84 +1,65 @@
-You're absolutely right - the checklist items in the PDF report have text that needs sanitizing. The issue is that when the checklist labels are rendered in the PDF, they contain the raw HTML checkbox markup and spaces. Let me provide just the fixed generateReport function section for the checklist summary:
+You're right, the issue is more fundamental. The problem is that the checklist labels in the PDF contain the checkbox HTML markup from the form. Let me provide the fix for the renderForm method where the checklist labels are created, as well as the PDF generation:
+
+Fix 1: In the renderForm method, clean the checkbox labels:
+
+Replace this section in renderForm:
 
 ```javascript
-// --- CHECKLIST SUMMARY (FIXED VERSION) ---
-if (y > pageHeight - 60) {
-    doc.addPage();
-    y = margin + 5;
-    addFooter(doc, inspection, pageWidth, pageHeight, margin);
-}
-addTitle('CHECKLIST SUMMARY', 16);
-drawLine();
-y += 4;
+const chkLabel = (id, label, val) => `<label>${chk(id, val)} ${label}</label>`;
+```
 
-const sections = [
-    { 
-        title: 'General Site Conditions', 
-        items: [
-            ['Verified site location and boundaries', inspection.siteLocation],
-            ['Assessed accessibility and entry points', inspection.accessibility],
-            ['Evaluated site conditions (topography, soil, vegetation, drainage)', inspection.siteConditions],
-            ['Identified existing infrastructure or features', inspection.infrastructure]
-        ]
-    },
-    { 
-        title: 'Environmental Considerations', 
-        items: [
-            ['Assessed presence of protected flora or fauna', inspection.protectedSpecies],
-            ['Evaluated potential environmental impacts', inspection.environmentalImpacts],
-            ['Verified compliance with environmental regulations', inspection.compliance],
-            ['Noted areas of conservation significance', inspection.conservation]
-        ]
-    },
-    { 
-        title: 'Work Practices & Procedures', 
-        items: [
-            ['Observed and evaluated work practices', inspection.workPractices],
-            ['Assessed compliance with health and safety regulations', inspection.healthSafety],
-            ['Identified potential risks and hazards', inspection.risksHazards],
-            ['Reviewed implementation of control measures', inspection.controlMeasures]
-        ]
-    },
-    { 
-        title: 'Equipment & Machinery', 
-        items: [
-            ['Inspected equipment and machinery', inspection.equipmentInspected],
-            ['Ensured equipment in safe working condition', inspection.safeCondition],
-            ['Checked maintenance and service records', inspection.maintenanceRecords],
-            ['Verified compliance with industry standards', inspection.industryStandards]
-        ]
-    }
-];
+With this:
 
-sections.forEach(section => {
-    if (y > pageHeight - 50) { 
-        doc.addPage(); 
-        y = margin + 5; 
-        addFooter(doc, inspection, pageWidth, pageHeight, margin); 
-    }
-    doc.setFontSize(11); 
-    doc.setTextColor(colour);
-    doc.text(section.title, margin, y);
+```javascript
+const chkLabel = (id, label, val) => {
+    // Clean the label text - remove any HTML or special characters
+    const cleanLabel = label.replace(/[✓✗]/g, '').replace(/\s+/g, ' ').trim();
+    return `<label>${chk(id, val)} ${cleanLabel}</label>`;
+};
+```
+
+Fix 2: In the generateReport function, clean the checklist labels properly:
+
+Replace this section in the checklist summary:
+
+```javascript
+section.items.forEach(([label, done]) => {
+    const status = done ? '✓' : '✗';
+    const color = done ? '#10b981' : '#dc2626';
+    doc.setTextColor(color);
+    // Clean the label text to remove any HTML/checkbox artifacts
+    const cleanLabel = label.replace(/✓\s*/g, '').replace(/\s+/g, ' ').trim();
+    doc.text(`${status}  ${cleanLabel}`, margin + 4, y);
     y += 5;
-    doc.setFontSize(8); 
-    doc.setTextColor('#333');
-    section.items.forEach(([label, done]) => {
-        const status = done ? '✓' : '✗';
-        const color = done ? '#10b981' : '#dc2626';
-        doc.setTextColor(color);
-        // Clean the label text to remove any HTML/checkbox artifacts
-        const cleanLabel = label.replace(/✓\s*/g, '').replace(/\s+/g, ' ').trim();
-        doc.text(`${status}  ${cleanLabel}`, margin + 4, y);
-        y += 5;
-    });
-    y += 4;
 });
 ```
 
-The key fix is the cleanLabel line:
+With this:
 
 ```javascript
-const cleanLabel = label.replace(/✓\s*/g, '').replace(/\s+/g, ' ').trim();
+section.items.forEach(([label, done]) => {
+    const status = done ? '✓' : '✗';
+    const color = done ? '#10b981' : '#dc2626';
+    doc.setTextColor(color);
+    // Stronger cleaning - remove any non-word characters and normalize spaces
+    let cleanLabel = label.replace(/[^\w\s.,!?\-()'"]/g, ' ').replace(/\s+/g, ' ').trim();
+    // If label still has strange characters, just use the raw label but remove common HTML
+    if (cleanLabel.length < 3 || cleanLabel.includes('&')) {
+        cleanLabel = label.replace(/<[^>]*>/g, '').replace(/&[^;]+;/g, '').replace(/\s+/g, ' ').trim();
+    }
+    doc.text(`${status}  ${cleanLabel}`, margin + 4, y);
+    y += 5;
+});
 ```
 
-This removes any stray checkmark characters and normalizes spaces. Just replace the existing checklist summary section in your generateReport function with this code block.
+Fix 3: Also ensure the data being saved has clean labels - in the collectForm method, add:
+
+```javascript
+// Add this at the beginning of collectForm:
+const cleanLabel = (str) => {
+    if (!str) return '';
+    return str.replace(/[^\w\s.,!?\-()'"]/g, ' ').replace(/\s+/g, ' ').trim();
+};
+```
+
+The real issue is that when the form data is saved, the checkbox labels might be storing HTML entities or special characters. The fixes above will clean the text at both the form rendering stage and the PDF generation stage, ensuring the checklist items appear as plain readable text in the PDF report.
