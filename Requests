@@ -1,22 +1,435 @@
-CHECKLIST SUMMARY
-Completion: 16/16 items (100%)
-General Site Conditions
-'  V e r i f i e d s i t e l o c a t i o n a n d b o u n d a r i e s
-'  A s s e s s e d a c c e s s i b i l i t y a n d e n t r y p o i n t s
-'  E v a l u a t e d s i t e c o n d i t i o n s
-'  I d e n t i f i e d e x i s t i n g i n f r a s t r u c t u r e o r f e a t u r e s
-Environmental Considerations
-'  A s s e s s e d p r e s e n c e o f p r o t e c t e d f l o r a o r f a u n a
-'  E v a l u a t e d p o t e n t i a l e n v i r o nme n t a l i mp a c t s
-'  V e r i f i e d c omp l i a n c e w i t h e n v i r o nme n t a l r e g u l a t i o n s
-'  N o t e d a r e a s o f c o n s e r v a t i o n s i g n i f i c a n c e
-Work Practices and Procedures
-'  Ob s e r v e d a n d e v a l u a t e d w o r k p r a c t i c e s
-'  A s s e s s e d c omp l i a n c e w i t h h e a l t h a n d s a f e t y r e g u l a t i o n s
-'  I d e n t i f i e d p o t e n t i a l r i s k s a n d h a z a r d s
-'  R e v i e w e d i mp l eme n t a t i o n o f c o n t r o l me a s u r e s
-Equipment and Machinery
-'  I n s p e c t e d e q u i pme n t a n d ma c h i n e r y
-'  E n s u r e d e q u i pme n t i n s a f e w o r k i n g c o n d i t i o n
-'  C h e c k e d ma i n t e n a n c e a n d s e r v i c e r e c o r d s
-'  V e r i f i e d c omp l i a n c e w i t h i n d u s t r y s t a n d a r d s
+// ================================================================
+// REPORT GENERATION - FIXED VERSION
+// ================================================================
+async generateReport(inspection) {
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        const pageWidth = 210, pageHeight = 297, margin = 18;
+        let y = margin;
+        const eco = inspection.ecologicalScore || Utils.calculateScore(inspection);
+        const colour = '#1a5f4a';
+        
+        // CRITICAL FIX: Proper text cleaning for jsPDF
+        const cleanText = (text) => {
+            if (!text) return '';
+            // Convert to string
+            let clean = String(text);
+            // Remove HTML tags
+            clean = clean.replace(/<[^>]*>/g, '');
+            // Remove all special Unicode characters (including checkmarks, bullets, etc.)
+            clean = clean.replace(/[\u2713\u2717\u2611\u2610\u2714\u274c\u25a0\u25cf\u2022\u25e6]/g, '');
+            // Remove any non-ASCII characters that might cause spacing issues
+            clean = clean.replace(/[^\x00-\x7F]/g, '');
+            // Keep only alphanumeric, spaces, and basic punctuation
+            clean = clean.replace(/[^a-zA-Z0-9\s.,!?\-()'"]/g, ' ');
+            // Normalize spaces - THIS IS CRITICAL
+            clean = clean.replace(/\s+/g, ' ').trim();
+            return clean;
+        };
+        
+        // Helper: Add text with auto-page breaks
+        const addText = (text, size = 10, color = '#333') => {
+            if (!text) return;
+            const clean = cleanText(text);
+            if (!clean) return;
+            doc.setFontSize(size);
+            doc.setTextColor(color);
+            const lines = doc.splitTextToSize(clean, pageWidth - 2 * margin);
+            const lineHeight = size * 0.45;
+            const totalHeight = lines.length * lineHeight + 1.5;
+            if (y + totalHeight > pageHeight - margin - 8) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+            }
+            doc.text(lines, margin, y);
+            y += totalHeight;
+        };
+        
+        // Helper: Add title
+        const addTitle = (text, size = 18, color = colour) => {
+            const clean = cleanText(text);
+            if (!clean) return;
+            doc.setFontSize(size);
+            doc.setTextColor(color);
+            doc.text(clean, margin, y);
+            y += size * 0.4 + 2;
+        };
+        
+        // Helper: Draw line
+        const drawLine = () => {
+            doc.setDrawColor(colour);
+            doc.setLineWidth(0.5);
+            doc.line(margin, y, pageWidth - margin, y);
+            y += 5;
+        };
+        
+        // Helper: Add footer
+        const addFooter = () => {
+            doc.setDrawColor(colour);
+            doc.setLineWidth(0.3);
+            doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
+            doc.setFontSize(7);
+            doc.setTextColor('#aaa');
+            const id = cleanText(inspection.id || 'N/A');
+            doc.text(id, margin, pageHeight - 5);
+            const date = Utils.formatDate(inspection.dateTime);
+            doc.text(date, pageWidth - margin, pageHeight - 5, { align: 'right' });
+            const pageNum = doc.internal.getCurrentPageInfo().pageNumber;
+            doc.text(`Page ${pageNum}`, pageWidth/2, pageHeight - 5, { align: 'center' });
+        };
+        
+        // ============================================================
+        // COVER PAGE
+        // ============================================================
+        doc.setFillColor(colour);
+        doc.rect(0, 0, pageWidth, 6, 'F');
+        y = 30;
+        
+        doc.setFontSize(32);
+        doc.setTextColor(colour);
+        doc.text('ENVIRONMENTAL', margin, y);
+        y += 14;
+        doc.text('ASSESSMENT REPORT', margin, y);
+        y += 12;
+        drawLine();
+        y += 6;
+        
+        doc.setFontSize(20);
+        doc.setTextColor('#222');
+        const siteName = cleanText(inspection.siteName || 'Site Assessment');
+        doc.text(siteName, margin, y);
+        y += 12;
+        
+        doc.setFontSize(11);
+        doc.setTextColor('#555');
+        const org = cleanText(inspection.organization || 'Environmental Client');
+        doc.text(`Prepared for: ${org}`, margin, y);
+        y += 6;
+        const date = Utils.formatDate(inspection.dateTime);
+        doc.text(`Date: ${date}`, margin, y);
+        y += 6;
+        const id = cleanText(inspection.id || 'N/A');
+        doc.text(`Report ID: ${id}`, margin, y);
+        y += 6;
+        const author = cleanText(inspection.inspector || 'Environmental Consultant');
+        doc.text(`Author: ${author}`, margin, y);
+        y += 10;
+        
+        // Cover photo
+        if (inspection.photos && inspection.photos.length > 0) {
+            const hero = inspection.photos.find(p => p.isHero) || inspection.photos[0];
+            try {
+                const img = new Image();
+                const imgData = await new Promise((resolve) => {
+                    img.onload = () => resolve({ width: img.width, height: img.height });
+                    img.onerror = () => resolve(null);
+                    img.src = hero.dataURL;
+                });
+                
+                if (imgData) {
+                    const maxImgWidth = pageWidth - 2 * margin - 20;
+                    const maxImgHeight = 70;
+                    let imgWidth = maxImgWidth;
+                    let imgHeight = (imgData.height / imgData.width) * maxImgWidth;
+                    if (imgHeight > maxImgHeight) {
+                        imgHeight = maxImgHeight;
+                        imgWidth = (imgData.width / imgData.height) * maxImgHeight;
+                    }
+                    const xOffset = margin + 10 + (maxImgWidth - imgWidth) / 2;
+                    doc.addImage(hero.dataURL, 'JPEG', xOffset, y, imgWidth, imgHeight);
+                    y += imgHeight + 8;
+                    doc.setFontSize(7);
+                    doc.setTextColor('#999');
+                    const caption = cleanText(inspection.siteName || 'Site Photo');
+                    doc.text(`Cover Photo: ${caption}`, margin + 10, y);
+                    y += 6;
+                }
+            } catch (e) {
+                // Skip photo on error
+            }
+        }
+        
+        doc.setFillColor(colour);
+        doc.rect(0, pageHeight - 6, pageWidth, 3, 'F');
+        doc.setFontSize(7);
+        doc.setTextColor('#999');
+        doc.text('© EcoMaintenance Professional v4.0', margin, pageHeight - 3);
+        doc.text('Environmental Assessment Report', pageWidth / 2, pageHeight - 3, { align: 'center' });
+        doc.text('Page 1', pageWidth - margin, pageHeight - 3, { align: 'right' });
+        
+        // ============================================================
+        // EXECUTIVE SUMMARY
+        // ============================================================
+        doc.addPage();
+        y = margin + 5;
+        addFooter();
+        addTitle('EXECUTIVE SUMMARY', 22);
+        drawLine();
+        y += 4;
+        
+        doc.setFontSize(14);
+        doc.setTextColor(colour);
+        doc.text(`Overall Condition Score: ${eco.conditionScore}/10`, margin, y);
+        y += 8;
+        
+        doc.setFontSize(11);
+        doc.setTextColor(eco.colour);
+        doc.text(`Risk Rating: ${eco.riskRating}`, margin, y);
+        y += 6;
+        doc.setTextColor('#333');
+        doc.text(`Management Priority: ${eco.priority}`, margin, y);
+        y += 6;
+        doc.text(`Conservation Significance: ${eco.significance}`, margin, y);
+        y += 10;
+        
+        const summaryText = `This report presents findings of an ecological assessment at "${cleanText(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`;
+        addText(summaryText, 10);
+        y += 4;
+        
+        doc.setFontSize(11);
+        doc.setTextColor(colour);
+        doc.text('Key Findings:', margin, y);
+        y += 5;
+        doc.setFontSize(9);
+        doc.setTextColor('#444');
+        const findings = [
+            `Vegetation Health: ${inspection.vegHealth || 6}/10`,
+            `Species Richness: ${inspection.speciesRichness || 5} species recorded`,
+            `Weed Cover: ${inspection.weedCover || 30}%`,
+            `Habitat Quality: ${inspection.habitatQuality || 5}/10`,
+            `Disturbance Level: ${inspection.disturbance || 3}/10`
+        ];
+        findings.forEach(f => {
+            doc.text(`• ${f}`, margin + 4, y);
+            y += 5;
+        });
+        y += 6;
+        
+        // ============================================================
+        // CHECKLIST SUMMARY - COMPLETELY REWRITTEN
+        // ============================================================
+        if (y > pageHeight - 60) {
+            doc.addPage();
+            y = margin + 5;
+            addFooter();
+        }
+        addTitle('CHECKLIST SUMMARY', 16);
+        drawLine();
+        y += 4;
+        
+        // Define checklist items with HARDCODED clean labels (no special characters)
+        const checklistItems = [
+            { section: 'General Site Conditions', label: 'Verified site location and boundaries', value: inspection.siteLocation },
+            { section: 'General Site Conditions', label: 'Assessed accessibility and entry points', value: inspection.accessibility },
+            { section: 'General Site Conditions', label: 'Evaluated site conditions', value: inspection.siteConditions },
+            { section: 'General Site Conditions', label: 'Identified existing infrastructure or features', value: inspection.infrastructure },
+            
+            { section: 'Environmental Considerations', label: 'Assessed presence of protected flora or fauna', value: inspection.protectedSpecies },
+            { section: 'Environmental Considerations', label: 'Evaluated potential environmental impacts', value: inspection.environmentalImpacts },
+            { section: 'Environmental Considerations', label: 'Verified compliance with environmental regulations', value: inspection.compliance },
+            { section: 'Environmental Considerations', label: 'Noted areas of conservation significance', value: inspection.conservation },
+            
+            { section: 'Work Practices and Procedures', label: 'Observed and evaluated work practices', value: inspection.workPractices },
+            { section: 'Work Practices and Procedures', label: 'Assessed compliance with health and safety regulations', value: inspection.healthSafety },
+            { section: 'Work Practices and Procedures', label: 'Identified potential risks and hazards', value: inspection.risksHazards },
+            { section: 'Work Practices and Procedures', label: 'Reviewed implementation of control measures', value: inspection.controlMeasures },
+            
+            { section: 'Equipment and Machinery', label: 'Inspected equipment and machinery', value: inspection.equipmentInspected },
+            { section: 'Equipment and Machinery', label: 'Ensured equipment in safe working condition', value: inspection.safeCondition },
+            { section: 'Equipment and Machinery', label: 'Checked maintenance and service records', value: inspection.maintenanceRecords },
+            { section: 'Equipment and Machinery', label: 'Verified compliance with industry standards', value: inspection.industryStandards }
+        ];
+        
+        // Calculate progress
+        let total = checklistItems.length;
+        let completed = checklistItems.filter(item => item.value === true || item.value === 'true' || item.value === 1).length;
+        
+        // Show progress
+        doc.setFontSize(9);
+        doc.setTextColor('#555');
+        doc.text(`Completion: ${completed}/${total} items (${Math.round((completed/total)*100)}%)`, margin, y);
+        y += 6;
+        
+        // Group by section
+        let currentSection = '';
+        checklistItems.forEach(item => {
+            // Check for page break
+            if (y > pageHeight - 25) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+                doc.setFontSize(9);
+                doc.setTextColor('#555');
+                doc.text(`Completion: ${completed}/${total} items (${Math.round((completed/total)*100)}%)`, margin, y);
+                y += 6;
+            }
+            
+            // Show section header if changed
+            if (item.section !== currentSection) {
+                currentSection = item.section;
+                doc.setFontSize(11);
+                doc.setTextColor(colour);
+                doc.text(currentSection, margin, y);
+                y += 5;
+            }
+            
+            // Show checklist item with status
+            const isChecked = (item.value === true || item.value === 'true' || item.value === 1);
+            const symbol = isChecked ? '✓' : '✗';
+            const color = isChecked ? '#10b981' : '#dc2626';
+            
+            doc.setFontSize(8);
+            doc.setTextColor(color);
+            // Use the clean hardcoded label directly - NO processing
+            doc.text(`${symbol}  ${item.label}`, margin + 4, y);
+            y += 5;
+        });
+        y += 3;
+        
+        // ============================================================
+        // ABORIGINAL HERITAGE
+        // ============================================================
+        if (y > pageHeight - 50) {
+            doc.addPage();
+            y = margin + 5;
+            addFooter();
+        }
+        addTitle('ABORIGINAL HERITAGE', 16);
+        drawLine();
+        y += 4;
+        
+        doc.setFontSize(10);
+        doc.setTextColor('#333');
+        const heritageSig = cleanText(inspection.heritageSignificance || 'Not Assessed');
+        doc.text(`Heritage Significance: ${heritageSig}`, margin, y);
+        y += 6;
+        
+        doc.text('Cultural Sites / Artefacts:', margin, y);
+        y += 4;
+        const culturalSites = cleanText(inspection.culturalSites || 'No cultural sites recorded.');
+        addText(culturalSites, 9);
+        y += 4;
+        
+        doc.text('Heritage Management Notes:', margin, y);
+        y += 4;
+        const heritageNotes = cleanText(inspection.aboriginalHeritage || 'No heritage management notes.');
+        addText(heritageNotes, 9);
+        y += 6;
+        
+        // ============================================================
+        // OBSERVATIONS
+        // ============================================================
+        if (y > pageHeight - 40) {
+            doc.addPage();
+            y = margin + 5;
+            addFooter();
+        }
+        addTitle('OBSERVATIONS', 14);
+        drawLine();
+        y += 4;
+        const observations = cleanText(inspection.observations || 'No observations recorded.');
+        addText(observations, 10);
+        y += 4;
+        
+        // ============================================================
+        // RECOMMENDATIONS
+        // ============================================================
+        if (y > pageHeight - 40) {
+            doc.addPage();
+            y = margin + 5;
+            addFooter();
+        }
+        addTitle('RECOMMENDATIONS', 14);
+        drawLine();
+        y += 4;
+        const recommendations = cleanText(inspection.recommendations || 'No specific recommendations recorded.');
+        addText(recommendations, 10);
+        
+        // ============================================================
+        // PHOTOS
+        // ============================================================
+        if (inspection.photos && inspection.photos.length > 0) {
+            doc.addPage();
+            y = margin + 5;
+            addFooter();
+            addTitle('PHOTO DOCUMENTATION', 18);
+            drawLine();
+            y += 6;
+            
+            const photos = inspection.photos.slice(0, 15);
+            const photoSize = 50;
+            const gap = 5;
+            const maxCols = Math.floor((pageWidth - 2 * margin + gap) / (photoSize + gap));
+            let row = 0, col = 0;
+            
+            for (let i = 0; i < photos.length; i++) {
+                const p = photos[i];
+                const px = margin + col * (photoSize + gap);
+                const py = y + row * (photoSize + gap + 8);
+                
+                if (py + photoSize + 10 > pageHeight - margin - 15) {
+                    doc.addPage();
+                    y = margin + 5;
+                    addFooter();
+                    addTitle('PHOTO DOCUMENTATION (continued)', 14);
+                    drawLine();
+                    y += 6;
+                    row = 0;
+                    col = 0;
+                }
+                
+                try {
+                    const img = new Image();
+                    const imgData = await new Promise((resolve) => {
+                        img.onload = () => resolve({ width: img.width, height: img.height });
+                        img.onerror = () => resolve(null);
+                        img.src = p.dataURL;
+                    });
+                    
+                    let imgWidth = photoSize;
+                    let imgHeight = photoSize * 0.75;
+                    if (imgData) {
+                        const aspectRatio = imgData.width / imgData.height;
+                        if (aspectRatio > 1) {
+                            imgWidth = photoSize;
+                            imgHeight = photoSize / aspectRatio;
+                        } else {
+                            imgHeight = photoSize;
+                            imgWidth = photoSize * aspectRatio;
+                        }
+                    }
+                    
+                    const xOffset = px + (photoSize - imgWidth) / 2;
+                    const yOffset = py + (photoSize * 0.75 - imgHeight) / 2;
+                    doc.addImage(p.dataURL, 'JPEG', xOffset, yOffset, imgWidth, imgHeight);
+                    doc.setFontSize(6);
+                    doc.setTextColor('#666');
+                    doc.text(`Photo ${i+1}`, px + 2, py + photoSize * 0.75 + 4);
+                } catch (e) {
+                    doc.setFillColor('#f0f0f0');
+                    doc.roundedRect(px, py, photoSize, photoSize * 0.75, 2, 2, 'F');
+                    doc.setFontSize(8);
+                    doc.setTextColor('#999');
+                    doc.text(`Photo ${i+1}`, px + photoSize/2 - 10, py + photoSize * 0.375);
+                }
+                
+                col++;
+                if (col >= maxCols) {
+                    col = 0;
+                    row++;
+                }
+            }
+        }
+        
+        // Save the PDF
+        const fileName = `EcoMaintenance_Report_${inspection.id || Date.now()}.pdf`;
+        doc.save(fileName);
+        Toast.success('Professional report generated successfully');
+        
+    } catch (e) {
+        console.error('Report generation error:', e);
+        Toast.error('Failed to generate report: ' + e.message);
+    }
+}
