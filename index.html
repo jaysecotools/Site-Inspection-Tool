@@ -2660,11 +2660,26 @@ if (y > pageHeight - 40) {
 addTitle('OBSERVATIONS', 14);
 drawLine();
 y += 4;
+
 doc.setFontSize(10);
-doc.setTextColor('#000000');  // FIXED: Black text
+doc.setTextColor('#000000');
 const observations = cleanText(inspection.observations || 'No observations recorded.');
-addText(observations, 10);
-y += 4;
+if (observations) {
+    const obsLines = doc.splitTextToSize(observations, pageWidth - 2 * margin);
+    const lineHeight = 5.5; // Fixed line height for readability
+    for (let i = 0; i < obsLines.length; i++) {
+        if (y + lineHeight > pageHeight - margin - 10) {
+            doc.addPage();
+            y = margin + 5;
+            addFooter();
+            doc.setFontSize(10);
+            doc.setTextColor('#000000');
+        }
+        doc.text(obsLines[i], margin, y);
+        y += lineHeight;
+    }
+    y += 3;
+}
 
 // ============================================================
 // RECOMMENDATIONS
@@ -2677,11 +2692,26 @@ if (y > pageHeight - 40) {
 addTitle('RECOMMENDATIONS', 14);
 drawLine();
 y += 4;
+
 doc.setFontSize(10);
-doc.setTextColor('#000000');  // FIXED: Black text
+doc.setTextColor('#000000');
 const recommendations = cleanText(inspection.recommendations || 'No specific recommendations recorded.');
-addText(recommendations, 10);
-y += 4;
+if (recommendations) {
+    const recLines = doc.splitTextToSize(recommendations, pageWidth - 2 * margin);
+    const lineHeight = 5.5; // Fixed line height for readability
+    for (let i = 0; i < recLines.length; i++) {
+        if (y + lineHeight > pageHeight - margin - 10) {
+            doc.addPage();
+            y = margin + 5;
+            addFooter();
+            doc.setFontSize(10);
+            doc.setTextColor('#000000');
+        }
+        doc.text(recLines[i], margin, y);
+        y += lineHeight;
+    }
+    y += 3;
+}
 
         // ============================================================
         // ECOLOGICAL HEALTH DETAILS
