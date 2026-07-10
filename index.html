@@ -1,12 +1,15 @@
 <!--
 
-    WORKING VERSION
+    WORKING VERSION - WITH MAP IMAGE SUPPORT FOR PDF REPORTS
 
     FIXED:
     GREYED OUT TEXT NOW DISPLAYS CORRECTLY
     TEXT FLOWING OFF PAGE IS FIXED
     PDF REPORT CHARACTERS AND SPACING ISSUES FIXED
     OBSERVATIONS SECTION TEXT ISSUE NOW FIXED
+    MAP IMAGES WITH MARKERS NOW SUPPORTED IN PDF REPORTS
+    MAP NOW PERSISTS IN JSON DATA WHEN EXPORTED AND RE-IMPORTED
+
 
 -->
 
@@ -852,7 +855,6 @@
 
 <div class="toast-container" id="toastContainer"></div>
 <div class="storage-status"><span class="dot online"></span> <span id="storageStatusBar">Local</span></div>
-
 <script>
 // ================================================================
 // UTILITY
@@ -1102,6 +1104,7 @@ class App {
         this.searchMarker = null;
         this.layers = {};
         this.isGenerating = false;
+        this._mapImage = null; // Store captured map image for report
     }
     
     // ================================================================
@@ -1188,6 +1191,8 @@ class App {
                 Toast.success(`Waypoint ${this.waypointCount}`);
             }
             this.drawnItems.addLayer(layer);
+            // Clear cached map image when map changes
+            this._mapImage = null;
         });
         
         this.map.on('click', (e) => {
@@ -1195,9 +1200,206 @@ class App {
             this.currentLng = e.latlng.lng;
         });
         
+        // Clear cached map image on any map interaction
+        this.map.on('moveend zoomend', () => {
+            this._mapImage = null;
+        });
+        
         document.getElementById('polygonCount').textContent = '0';
         document.getElementById('waypointCount').textContent = '0';
         document.getElementById('currentLayer').textContent = 'Streets';
+    }
+    
+    // ================================================================
+    // CAPTURE MAP IMAGE FOR PDF
+    // ================================================================
+    captureMapImage() {
+        return new Promise((resolve) => {
+            const mapContainer = document.getElementById('map');
+            
+            // Store current UI states to restore later
+            const status = document.querySelector('.map-status');
+            const tools = document.querySelector('.map-tools');
+            const controls = document.querySelector('.leaflet-control-zoom');
+            const layerControl = document.querySelector('.layer-control');
+            
+            let statusDisplay = status?.style.display;
+            let toolsDisplay = tools?.style.display;
+            let controlsDisplay = controls?.style.display;
+            let layerDisplay = layerControl?.style.display;
+            
+            // Hide UI overlays temporarily for cleaner capture
+            if (status) status.style.display = 'none';
+            if (tools) tools.style.display = 'none';
+            if (controls) controls.style.display = 'none';
+            if (layerControl) layerControl.style.display = 'none';
+            
+            // Wait for map to settle
+            this.map.invalidateSize(true);
+            
+            setTimeout(() => {
+                // Get the actual map container dimensions
+                const containerWidth = mapContainer.scrollWidth;
+                const containerHeight = mapContainer.scrollHeight;
+                
+                // Use html2canvas to capture the map
+                html2canvas(mapContainer, {
+                    useCORS: true,
+                    backgroundColor: null,
+                    scale: 1.8,
+                    logging: false,
+                    allowTaint: true,
+                    width: containerWidth,
+                    height: containerHeight,
+                    // Crop to actual map content
+                    x: 0,
+                    y: 0,
+                    windowWidth: containerWidth,
+                    windowHeight: containerHeight
+                }).then(canvas => {
+                    // Restore UI
+                    if (status) status.style.display = statusDisplay || '';
+                    if (tools) tools.style.display = toolsDisplay || '';
+                    if (controls) controls.style.display = controlsDisplay || '';
+                    if (layerControl) layerControl.style.display = layerDisplay || '';
+                    
+                    // Get the actual map content bounds
+                    // We'll crop out any excess black space
+                    const ctx = canvas.getContext('2d');
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const data = imageData.data;
+                    
+                    // Find the actual content bounds by looking for non-black pixels
+                    let minX = canvas.width, minY = canvas.height, maxX = 0, maxY = 0;
+                    let found = false;
+                    
+                    // Sample pixels to find content boundaries
+                    const step = 4; // Check every 4th pixel for performance
+                    for (let y = 0; y < canvas.height; y += step) {
+                        for (let x = 0; x < canvas.width; x += step) {
+                            const i = (y * canvas.width + x) * 4;
+                            // Check if pixel is not black (with some tolerance)
+                            const r = data[i];
+                            const g = data[i + 1];
+                            const b = data[i + 2];
+                            const isBlack = (r < 10 && g < 10 && b < 10);
+                            
+                            if (!isBlack) {
+                                found = true;
+                                if (x < minX) minX = x;
+                                if (y < minY) minY = y;
+                                if (x > maxX) maxX = x;
+                                if (y > maxY) maxY = y;
+                            }
+                        }
+                    }
+                    
+                    // If we found content, crop to it
+                    if (found) {
+                        // Add a small padding to avoid cutting off edges
+                        const padding = 4;
+                        minX = Math.max(0, minX - padding);
+                        minY = Math.max(0, minY - padding);
+                        maxX = Math.min(canvas.width, maxX + padding);
+                        maxY = Math.min(canvas.height, maxY + padding);
+                        
+                        const cropWidth = maxX - minX;
+                        const cropHeight = maxY - minY;
+                        
+                        // Create a cropped canvas
+                        const croppedCanvas = document.createElement('canvas');
+                        croppedCanvas.width = cropWidth;
+                        croppedCanvas.height = cropHeight;
+                        const cropCtx = croppedCanvas.getContext('2d');
+                        
+                        // Draw the cropped portion
+                        cropCtx.drawImage(canvas, minX, minY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+                        
+                        resolve(croppedCanvas.toDataURL('image/jpeg', 0.88));
+                    } else {
+                        // If no content found (shouldn't happen), return the full canvas
+                        resolve(canvas.toDataURL('image/jpeg', 0.88));
+                    }
+                }).catch(() => {
+                    // Fallback: try capturing with lower quality
+                    html2canvas(mapContainer, {
+                        useCORS: true,
+                        backgroundColor: '#1a2a32',
+                        scale: 1,
+                        logging: false,
+                        allowTaint: true,
+                        width: mapContainer.scrollWidth,
+                        height: mapContainer.scrollHeight
+                    }).then(canvas => {
+                        // Restore UI
+                        if (status) status.style.display = statusDisplay || '';
+                        if (tools) tools.style.display = toolsDisplay || '';
+                        if (controls) controls.style.display = controlsDisplay || '';
+                        if (layerControl) layerControl.style.display = layerDisplay || '';
+                        
+                        // Try to crop the fallback capture too
+                        try {
+                            const ctx = canvas.getContext('2d');
+                            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                            const data = imageData.data;
+                            
+                            let minX = canvas.width, minY = canvas.height, maxX = 0, maxY = 0;
+                            let found = false;
+                            const step = 4;
+                            
+                            for (let y = 0; y < canvas.height; y += step) {
+                                for (let x = 0; x < canvas.width; x += step) {
+                                    const i = (y * canvas.width + x) * 4;
+                                    const r = data[i];
+                                    const g = data[i + 1];
+                                    const b = data[i + 2];
+                                    const isBlack = (r < 10 && g < 10 && b < 10);
+                                    
+                                    if (!isBlack) {
+                                        found = true;
+                                        if (x < minX) minX = x;
+                                        if (y < minY) minY = y;
+                                        if (x > maxX) maxX = x;
+                                        if (y > maxY) maxY = y;
+                                    }
+                                }
+                            }
+                            
+                            if (found) {
+                                const padding = 4;
+                                minX = Math.max(0, minX - padding);
+                                minY = Math.max(0, minY - padding);
+                                maxX = Math.min(canvas.width, maxX + padding);
+                                maxY = Math.min(canvas.height, maxY + padding);
+                                
+                                const cropWidth = maxX - minX;
+                                const cropHeight = maxY - minY;
+                                
+                                const croppedCanvas = document.createElement('canvas');
+                                croppedCanvas.width = cropWidth;
+                                croppedCanvas.height = cropHeight;
+                                const cropCtx = croppedCanvas.getContext('2d');
+                                cropCtx.drawImage(canvas, minX, minY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+                                
+                                resolve(croppedCanvas.toDataURL('image/jpeg', 0.8));
+                            } else {
+                                resolve(canvas.toDataURL('image/jpeg', 0.8));
+                            }
+                        } catch (e) {
+                            resolve(canvas.toDataURL('image/jpeg', 0.8));
+                        }
+                    }).catch(() => {
+                        // Restore UI
+                        if (status) status.style.display = statusDisplay || '';
+                        if (tools) tools.style.display = toolsDisplay || '';
+                        if (controls) controls.style.display = controlsDisplay || '';
+                        if (layerControl) layerControl.style.display = layerDisplay || '';
+                        
+                        resolve(null);
+                    });
+                });
+            }, 400);
+        });
     }
     
     switchLayer(name) {
@@ -1235,6 +1437,9 @@ class App {
                 satBtn.style.background = '';
                 satBtn.style.color = '';
             }
+            
+            // Clear cached map image when layer changes
+            this._mapImage = null;
             
             Toast.info(`Switched to ${layerNames[name] || name} view`);
         }
@@ -1286,6 +1491,9 @@ class App {
             this.currentLat = lat;
             this.currentLng = lon;
             
+            // Clear cached map image
+            this._mapImage = null;
+            
             Toast.success(`Found: ${Utils.truncate(displayName, 50)}`);
             
         } catch (error) {
@@ -1325,6 +1533,9 @@ class App {
                 }).addTo(this.map);
                 this.searchMarker.bindPopup('Your Location').openPopup();
                 
+                // Clear cached map image
+                this._mapImage = null;
+                
                 Toast.success('Location found');
             },
             () => Toast.warning('Location unavailable. Please enable GPS.'),
@@ -1363,6 +1574,8 @@ class App {
                 } else {
                     this.gpsMarker.setLatLng([this.currentLat, this.currentLng]);
                 }
+                // Clear cached map image on GPS update
+                this._mapImage = null;
             },
             () => document.getElementById('gpsStatus').textContent = 'Error',
             { enableHighAccuracy: true }
@@ -1416,6 +1629,10 @@ class App {
                 });
                 this.measureMarkers.push(L.marker(mid, { icon: label, interactive: false }).addTo(this.map));
                 Toast.success(`Distance: ${distStr}`);
+                
+                // Clear cached map image
+                this._mapImage = null;
+                
                 setTimeout(() => this.stopMeasure(), 2000);
             }
         };
@@ -1447,10 +1664,14 @@ class App {
         this.waypointCount = 0;
         document.getElementById('polygonCount').textContent = '0';
         document.getElementById('waypointCount').textContent = '0';
+        this._mapImage = null;
         Toast.info('Map cleared');
     }
     
-    resetView() { this.map.flyTo([-42.8806, 147.3250], 10, { duration: 1 }); }
+    resetView() { 
+        this.map.flyTo([-42.8806, 147.3250], 10, { duration: 1 });
+        this._mapImage = null;
+    }
     
     toggleFullscreen() {
         const el = document.querySelector('.map-wrapper');
@@ -1499,6 +1720,7 @@ class App {
         });
         document.getElementById('polygonCount').textContent = this.polygonCount;
         document.getElementById('waypointCount').textContent = this.waypointCount;
+        this._mapImage = null;
     }
     
     // ================================================================
@@ -1598,6 +1820,9 @@ class App {
         const getNum = (id) => parseFloat(document.getElementById(id)?.value) || 0;
         const checklist = this.getChecklistData();
         
+        // Get current map state
+        const center = this.map.getCenter();
+        
         return {
             id: this.currentId || Utils.uuid(),
             status: this.isDraft ? 'draft' : 'finalised',
@@ -1661,7 +1886,15 @@ class App {
             waypoints: this.getWaypoints(),
             updatedAt: new Date().toISOString(),
             // Checklist count for display
-            checklistCount: this.getChecklistCount()
+            checklistCount: this.getChecklistCount(),
+            // Map state for persistence
+            mapState: {
+                center: { lat: center.lat, lng: center.lng },
+                zoom: this.map.getZoom(),
+                layer: this.currentLayer
+            },
+            // Store map image if available (for export)
+            mapImage: this._mapImage
         };
     }
     
@@ -1836,6 +2069,30 @@ class App {
                         </div>
                         <div class="checklist-progress">
                             <div class="fill" id="checklistProgress" style="width:0%;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- MAP CAPTURE SECTION -->
+                <div class="form-section" style="border-left: 4px solid #3b82f6;">
+                    <button type="button" class="section-header" style="color:#3b82f6;">
+                        <span><i class="fas fa-map"></i> Map Snapshot</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="section-content">
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+                            <button type="button" id="refreshMapBtn" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-sync"></i> Refresh Map
+                            </button>
+                            <button type="button" id="previewMapBtn" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-eye"></i> Preview
+                            </button>
+                        </div>
+                        <div id="mapPreviewContainer" style="margin-top:4px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);overflow:hidden;display:none;background:var(--gray-100);">
+                            <img id="mapPreviewImg" style="width:100%;display:block;">
+                        </div>
+                        <div id="mapStatus" class="text-muted text-xs" style="margin-top:4px;">
+                            <i class="fas fa-info-circle"></i> Click "Refresh Map" to capture all markers, polygons, and layers for inclusion in the PDF report.
                         </div>
                     </div>
                 </div>
@@ -2048,6 +2305,52 @@ class App {
         const finalBtn = document.getElementById('finaliseBtn');
         const cancelBtn = document.getElementById('cancelBtn');
         
+        // Map refresh button
+        const refreshBtn = document.getElementById('refreshMapBtn');
+        const previewBtn = document.getElementById('previewMapBtn');
+        
+        if (refreshBtn) {
+            refreshBtn.onclick = async () => {
+                Toast.info('Capturing map...');
+                const dataUrl = await this.captureMapImage();
+                if (dataUrl) {
+                    this._mapImage = dataUrl;
+                    const img = document.getElementById('mapPreviewImg');
+                    const container = document.getElementById('mapPreviewContainer');
+                    if (img && container) {
+                        img.src = dataUrl;
+                        container.style.display = 'block';
+                        // Scroll to the preview
+                        container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                    // Get geometry info for status
+                    const geoCount = this.getGeometry().length;
+                    const wpCount = this.getWaypoints().length;
+                    const statusEl = document.getElementById('mapStatus');
+                    if (statusEl) {
+                        statusEl.innerHTML = `<i class="fas fa-check-circle" style="color:var(--success);"></i> Map captured with ${geoCount} polygon(s) and ${wpCount} waypoint(s). Ready for report.`;
+                    }
+                    Toast.success('Map captured with markers and polygons');
+                } else {
+                    Toast.error('Failed to capture map - please try again');
+                }
+            };
+        }
+        
+        if (previewBtn) {
+            previewBtn.onclick = () => {
+                const container = document.getElementById('mapPreviewContainer');
+                if (container && container.style.display !== 'none') {
+                    const img = document.getElementById('mapPreviewImg');
+                    if (img && img.src) {
+                        window.open(img.src, '_blank');
+                    }
+                } else {
+                    Toast.warning('Please refresh the map first');
+                }
+            };
+        }
+        
         if (saveBtn) saveBtn.onclick = () => this.saveDraft();
         if (finalBtn) finalBtn.onclick = () => this.finalise();
         if (cancelBtn) cancelBtn.onclick = () => this.closePanel();
@@ -2198,6 +2501,7 @@ class App {
         this.currentId = Utils.uuid();
         this.currentPhotos = [];
         this.isDraft = false;
+        this._mapImage = null;
         this.clearMap();
         this.setPanel(this.renderForm({ id: this.currentId }), 'New Ecological Assessment');
         this.bindForm();
@@ -2210,6 +2514,7 @@ class App {
             this.currentId = data.id;
             this.currentPhotos = data.photos || [];
             this.isDraft = draft;
+            this._mapImage = null;
             this.clearMap();
             this.loadGeometry(data.geometry || []);
             (data.waypoints || []).forEach(w => {
@@ -2218,6 +2523,36 @@ class App {
                         .bindPopup(`<strong>${Utils.escapeHtml(w.label)}</strong>`)
                 );
             });
+            
+            // Restore map state if available
+            if (data.mapState) {
+                const { center, zoom, layer } = data.mapState;
+                if (center && zoom) {
+                    this.map.setView([center.lat, center.lng], zoom);
+                }
+                if (layer) {
+                    this.switchLayer(layer);
+                }
+            }
+            
+            // Restore map image if available
+            if (data.mapImage) {
+                this._mapImage = data.mapImage;
+                // Show preview if form is open
+                const img = document.getElementById('mapPreviewImg');
+                const container = document.getElementById('mapPreviewContainer');
+                if (img && container) {
+                    img.src = data.mapImage;
+                    container.style.display = 'block';
+                    const statusEl = document.getElementById('mapStatus');
+                    if (statusEl) {
+                        const geoCount = data.geometry?.length || 0;
+                        const wpCount = data.waypoints?.length || 0;
+                        statusEl.innerHTML = `<i class="fas fa-check-circle" style="color:var(--success);"></i> Map restored with ${geoCount} polygon(s) and ${wpCount} waypoint(s).`;
+                    }
+                }
+            }
+            
             this.setPanel(this.renderForm(data), draft ? 'Edit Draft' : 'View Inspection');
             this.bindForm();
             
@@ -2258,620 +2593,704 @@ class App {
         } catch (e) { console.error('Finalise error:', e); Toast.error('Failed to finalise'); }
     }
     
-// ================================================================
-// REPORT GENERATION - FIXED VERSION (Grey Text + Wrapping)
-// ================================================================
-async generateReport(inspection) {
-    try {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
-        const pageWidth = 210, pageHeight = 297, margin = 18;
-        let y = margin;
-        const eco = inspection.ecologicalScore || Utils.calculateScore(inspection);
-        const colour = '#1a5f4a';
-        
-        // CRITICAL FIX: Complete text cleaning
-        const cleanText = (text) => {
-            if (!text) return '';
-            let clean = String(text);
-            // Remove HTML tags
-            clean = clean.replace(/<[^>]*>/g, '');
-            // Remove all Unicode special characters including zero-width spaces
-            clean = clean.replace(/[\u2713\u2717\u2611\u2610\u2714\u274c\u25a0\u25cf\u2022\u25e6\uFEFF\u200B\u200C\u200D\u00A0]/g, '');
-            // Remove any non-ASCII characters (keep only printable ASCII)
-            clean = clean.replace(/[^\x20-\x7E]/g, ' ');
-            // Remove multiple spaces
-            clean = clean.replace(/\s+/g, ' ');
-            // Trim
-            clean = clean.trim();
-            return clean;
-        };
-        
-        // Helper: Add text with auto-page breaks
-        const addText = (text, size = 10, color = '#000000') => {
-            if (!text) return;
-            const clean = cleanText(text);
-            if (!clean) return;
-            doc.setFontSize(size);
-            doc.setTextColor(color);
-            const lines = doc.splitTextToSize(clean, pageWidth - 2 * margin);
-            const lineHeight = size * 0.45;
-            const totalHeight = lines.length * lineHeight + 1.5;
-            if (y + totalHeight > pageHeight - margin - 8) {
-                doc.addPage();
-                y = margin + 5;
-                addFooter();
-            }
-            doc.text(lines, margin, y);
-            y += totalHeight;
-        };
-        
-        // Helper: Add title
-        const addTitle = (text, size = 18, color = colour) => {
-            const clean = cleanText(text);
-            if (!clean) return;
-            doc.setFontSize(size);
-            doc.setTextColor(color);
-            doc.text(clean, margin, y);
-            y += size * 0.4 + 2;
-        };
-        
-        // Helper: Draw line
-        const drawLine = () => {
-            doc.setDrawColor(colour);
-            doc.setLineWidth(0.5);
-            doc.line(margin, y, pageWidth - margin, y);
-            y += 5;
-        };
-        
-        // Helper: Add footer
-        const addFooter = () => {
-            doc.setDrawColor(colour);
-            doc.setLineWidth(0.3);
-            doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
-            doc.setFontSize(7);
-            doc.setTextColor('#aaa');
-            const id = cleanText(inspection.id || 'N/A');
-            doc.text(id, margin, pageHeight - 5);
-            const date = Utils.formatDate(inspection.dateTime);
-            doc.text(date, pageWidth - margin, pageHeight - 5, { align: 'right' });
-            const pageNum = doc.internal.getCurrentPageInfo().pageNumber;
-            doc.text(`Page ${pageNum}`, pageWidth/2, pageHeight - 5, { align: 'center' });
-        };
-        
-        // ============================================================
-        // COVER PAGE
-        // ============================================================
-        doc.setFillColor(colour);
-        doc.rect(0, 0, pageWidth, 6, 'F');
-        y = 30;
-        
-        doc.setFontSize(32);
-        doc.setTextColor(colour);
-        doc.text('ENVIRONMENTAL', margin, y);
-        y += 14;
-        doc.text('ASSESSMENT REPORT', margin, y);
-        y += 12;
-        drawLine();
-        y += 6;
-        
-        doc.setFontSize(20);
-        doc.setTextColor('#000000');
-        const siteName = cleanText(inspection.siteName || 'Site Assessment');
-        doc.text(siteName, margin, y);
-        y += 12;
-        
-        doc.setFontSize(11);
-        doc.setTextColor('#000000');
-        const org = cleanText(inspection.organization || 'Environmental Client');
-        doc.text(`Prepared for: ${org}`, margin, y);
-        y += 6;
-        const date = Utils.formatDate(inspection.dateTime);
-        doc.text(`Date: ${date}`, margin, y);
-        y += 6;
-        const id = cleanText(inspection.id || 'N/A');
-        doc.text(`Report ID: ${id}`, margin, y);
-        y += 6;
-        const author = cleanText(inspection.inspector || 'Environmental Consultant');
-        doc.text(`Author: ${author}`, margin, y);
-        y += 10;
-        
-        // Cover photo
-        if (inspection.photos && inspection.photos.length > 0) {
-            const hero = inspection.photos.find(p => p.isHero) || inspection.photos[0];
-            try {
-                const img = new Image();
-                const imgData = await new Promise((resolve) => {
-                    img.onload = () => resolve({ width: img.width, height: img.height });
-                    img.onerror = () => resolve(null);
-                    img.src = hero.dataURL;
-                });
-                
-                if (imgData) {
-                    const maxImgWidth = pageWidth - 2 * margin - 20;
-                    const maxImgHeight = 70;
-                    let imgWidth = maxImgWidth;
-                    let imgHeight = (imgData.height / imgData.width) * maxImgWidth;
-                    if (imgHeight > maxImgHeight) {
-                        imgHeight = maxImgHeight;
-                        imgWidth = (imgData.width / imgData.height) * maxImgHeight;
-                    }
-                    const xOffset = margin + 10 + (maxImgWidth - imgWidth) / 2;
-                    doc.addImage(hero.dataURL, 'JPEG', xOffset, y, imgWidth, imgHeight);
-                    y += imgHeight + 8;
-                    doc.setFontSize(7);
-                    doc.setTextColor('#999');
-                    const caption = cleanText(inspection.siteName || 'Site Photo');
-                    doc.text(`Cover Photo: ${caption}`, margin + 10, y);
-                    y += 6;
-                }
-            } catch (e) {
-                // Skip photo on error
-            }
-        }
-        
-        doc.setFillColor(colour);
-        doc.rect(0, pageHeight - 6, pageWidth, 3, 'F');
-        doc.setFontSize(7);
-        doc.setTextColor('#999');
-        doc.text('© EcoMaintenance Professional v4.0', margin, pageHeight - 3);
-        doc.text('Environmental Assessment Report', pageWidth / 2, pageHeight - 3, { align: 'center' });
-        doc.text('Page 1', pageWidth - margin, pageHeight - 3, { align: 'right' });
-        
-        // ============================================================
-        // EXECUTIVE SUMMARY
-        // ============================================================
-        doc.addPage();
-        y = margin + 5;
-        addFooter();
-        addTitle('EXECUTIVE SUMMARY', 22);
-        drawLine();
-        y += 4;
-        
-        doc.setFontSize(14);
-        doc.setTextColor(colour);
-        doc.text(`Overall Condition Score: ${eco.conditionScore}/10`, margin, y);
-        y += 8;
-        
-        doc.setFontSize(11);
-        doc.setTextColor(eco.colour);
-        doc.text(`Risk Rating: ${eco.riskRating}`, margin, y);
-        y += 6;
-        doc.setTextColor('#000000');  // FIXED: Black text
-        doc.text(`Management Priority: ${eco.priority}`, margin, y);
-        y += 6;
-        doc.text(`Conservation Significance: ${eco.significance}`, margin, y);
-        y += 10;
-        
-        const summaryText = `This report presents findings of an ecological assessment at "${cleanText(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`;
-        addText(summaryText, 10);
-        y += 4;
-        
-        doc.setFontSize(11);
-        doc.setTextColor(colour);
-        doc.text('Key Findings:', margin, y);
-        y += 5;
-        doc.setFontSize(9);
-        doc.setTextColor('#000000');  // FIXED: Black text
-        const findings = [
-            `Vegetation Health: ${inspection.vegHealth || 6}/10`,
-            `Species Richness: ${inspection.speciesRichness || 5} species recorded`,
-            `Weed Cover: ${inspection.weedCover || 30}%`,
-            `Habitat Quality: ${inspection.habitatQuality || 5}/10`,
-            `Disturbance Level: ${inspection.disturbance || 3}/10`
-        ];
-        findings.forEach(f => {
-            doc.text(`• ${f}`, margin + 4, y);
-            y += 5;
-        });
-        y += 6;
-        
-        // ============================================================
-        // CHECKLIST SUMMARY
-        // ============================================================
-        if (y > pageHeight - 60) {
-            doc.addPage();
-            y = margin + 5;
-            addFooter();
-        }
-        addTitle('CHECKLIST SUMMARY', 16);
-        drawLine();
-        y += 4;
-        
-        const checklistItems = [
-            { section: 'General Site Conditions', label: 'Verified site location and boundaries', value: inspection.siteLocation },
-            { section: 'General Site Conditions', label: 'Assessed accessibility and entry points', value: inspection.accessibility },
-            { section: 'General Site Conditions', label: 'Evaluated site conditions', value: inspection.siteConditions },
-            { section: 'General Site Conditions', label: 'Identified existing infrastructure or features', value: inspection.infrastructure },
+    // ================================================================
+    // REPORT GENERATION - WITH MAP IMAGE SUPPORT
+    // ================================================================
+    async generateReport(inspection) {
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const pageWidth = 210, pageHeight = 297, margin = 18;
+            let y = margin;
+            const eco = inspection.ecologicalScore || Utils.calculateScore(inspection);
+            const colour = '#1a5f4a';
             
-            { section: 'Environmental Considerations', label: 'Assessed presence of protected flora or fauna', value: inspection.protectedSpecies },
-            { section: 'Environmental Considerations', label: 'Evaluated potential environmental impacts', value: inspection.environmentalImpacts },
-            { section: 'Environmental Considerations', label: 'Verified compliance with environmental regulations', value: inspection.compliance },
-            { section: 'Environmental Considerations', label: 'Noted areas of conservation significance', value: inspection.conservation },
+            // CRITICAL FIX: Complete text cleaning
+            const cleanText = (text) => {
+                if (!text) return '';
+                let clean = String(text);
+                // Remove HTML tags
+                clean = clean.replace(/<[^>]*>/g, '');
+                // Remove all Unicode special characters including zero-width spaces
+                clean = clean.replace(/[\u2713\u2717\u2611\u2610\u2714\u274c\u25a0\u25cf\u2022\u25e6\uFEFF\u200B\u200C\u200D\u00A0]/g, '');
+                // Remove any non-ASCII characters (keep only printable ASCII)
+                clean = clean.replace(/[^\x20-\x7E]/g, ' ');
+                // Remove multiple spaces
+                clean = clean.replace(/\s+/g, ' ');
+                // Trim
+                clean = clean.trim();
+                return clean;
+            };
             
-            { section: 'Work Practices and Procedures', label: 'Observed and evaluated work practices', value: inspection.workPractices },
-            { section: 'Work Practices and Procedures', label: 'Assessed compliance with health and safety regulations', value: inspection.healthSafety },
-            { section: 'Work Practices and Procedures', label: 'Identified potential risks and hazards', value: inspection.risksHazards },
-            { section: 'Work Practices and Procedures', label: 'Reviewed implementation of control measures', value: inspection.controlMeasures },
-            
-            { section: 'Equipment and Machinery', label: 'Inspected equipment and machinery', value: inspection.equipmentInspected },
-            { section: 'Equipment and Machinery', label: 'Ensured equipment in safe working condition', value: inspection.safeCondition },
-            { section: 'Equipment and Machinery', label: 'Checked maintenance and service records', value: inspection.maintenanceRecords },
-            { section: 'Equipment and Machinery', label: 'Verified compliance with industry standards', value: inspection.industryStandards }
-        ];
-        
-        let total = checklistItems.length;
-        let completed = checklistItems.filter(item => item.value === true || item.value === 'true' || item.value === 1).length;
-        
-        doc.setFontSize(9);
-        doc.setTextColor('#000000');
-        doc.text(`Completion: ${completed}/${total} items (${Math.round((completed/total)*100)}%)`, margin, y);
-        y += 6;
-        
-        let currentSection = '';
-        checklistItems.forEach(item => {
-            if (y > pageHeight - 25) {
-                doc.addPage();
-                y = margin + 5;
-                addFooter();
-                doc.setFontSize(9);
-                doc.setTextColor('#000000');
-                doc.text(`Completion: ${completed}/${total} items (${Math.round((completed/total)*100)}%)`, margin, y);
-                y += 6;
-            }
-            
-            if (item.section !== currentSection) {
-                currentSection = item.section;
-                doc.setFontSize(11);
-                doc.setTextColor(colour);
-                doc.text(currentSection, margin, y);
-                y += 5;
-            }
-            
-            const isChecked = (item.value === true || item.value === 'true' || item.value === 1);
-            const symbol = isChecked ? 'v' : 'x';
-            const color = isChecked ? '#10b981' : '#dc2626';
-            
-            doc.setFontSize(8);
-            doc.setTextColor(color);
-            doc.text(`${symbol}  ${item.label}`, margin + 4, y);
-            y += 5;
-        });
-        y += 3;
-        
-        // ============================================================
-        // SITE INFORMATION DETAILS - FIXED (Black text + Wrapping)
-        // ============================================================
-        if (y > pageHeight - 50) {
-            doc.addPage();
-            y = margin + 5;
-            addFooter();
-        }
-        addTitle('SITE INFORMATION', 16);
-        drawLine();
-        y += 4;
-        
-        const siteInfo = [
-            ['Site Name:', cleanText(inspection.siteName || 'Not specified')],
-            ['Inspector:', cleanText(inspection.inspector || 'Not specified')],
-            ['Organization:', cleanText(inspection.organization || 'Not specified')],
-            ['Date/Time:', Utils.formatDate(inspection.dateTime)],
-            ['Coordinates:', cleanText(inspection.coords || 'Not recorded')],
-            ['Vegetation Type:', cleanText(inspection.vegetationType || 'Not specified')],
-            ['Tenure:', cleanText(inspection.tenure || 'Not specified')],
-            ['Weather:', cleanText(inspection.weather || 'Not recorded')],
-            ['Soil Condition:', cleanText(inspection.soilCondition || 'Not recorded')]
-        ];
-        
-        doc.setFontSize(9);
-        doc.setTextColor('#000000');  // FIXED: Black text instead of grey
-        const maxWidth = pageWidth - 2 * margin;
-        
-        siteInfo.forEach(([label, value]) => {
-            if (y > pageHeight - 20) {
-                doc.addPage();
-                y = margin + 5;
-                addFooter();
-                doc.setFontSize(9);
-                doc.setTextColor('#000000');
-            }
-            
-            // FIXED: Wrap text to prevent overflow
-            const fullText = `${label} ${value}`;
-            const lines = doc.splitTextToSize(fullText, maxWidth);
-            doc.text(lines, margin, y);
-            y += (lines.length * 4.5) + 2;
-        });
-        y += 3;
-        
-        // ============================================================
-        // SPECIES AND THREATS
-        // ============================================================
-        if (y > pageHeight - 50) {
-            doc.addPage();
-            y = margin + 5;
-            addFooter();
-        }
-        addTitle('SPECIES AND THREATS', 16);
-        drawLine();
-        y += 4;
-        
-        doc.setFontSize(9);
-        doc.setTextColor('#000000');  // FIXED: Black text
-        const threats = [
-            ['Declared Weeds Present:', cleanText(inspection.weedsList || 'None recorded')],
-            ['Feral Animals:', cleanText(inspection.feralAnimals || 'Not assessed')],
-            ['Fire History:', cleanText(inspection.fireHistory || 'Not recorded')],
-            ['Overall Threat Level:', cleanText(inspection.threatLevel || 'Not assessed')]
-        ];
-        
-        threats.forEach(([label, value]) => {
-            if (y > pageHeight - 20) {
-                doc.addPage();
-                y = margin + 5;
-                addFooter();
-                doc.setFontSize(9);
-            }
-            const fullText = `${label} ${value}`;
-            const lines = doc.splitTextToSize(fullText, pageWidth - 2 * margin);
-            doc.text(lines, margin, y);
-            y += (lines.length * 4.5) + 2;
-        });
-        y += 3;
-        
-        // ============================================================
-        // ABORIGINAL HERITAGE
-        // ============================================================
-        if (y > pageHeight - 50) {
-            doc.addPage();
-            y = margin + 5;
-            addFooter();
-        }
-        addTitle('ABORIGINAL HERITAGE', 16);
-        drawLine();
-        y += 4;
-        
-        doc.setFontSize(10);
-        doc.setTextColor('#000000');
-        const heritageSig = cleanText(inspection.heritageSignificance || 'Not Assessed');
-        doc.text(`Heritage Significance: ${heritageSig}`, margin, y);
-        y += 6;
-        
-        doc.text('Cultural Sites / Artefacts:', margin, y);
-        y += 4;
-        const culturalSites = cleanText(inspection.culturalSites || 'No cultural sites recorded.');
-        addText(culturalSites, 9);
-        y += 4;
-        
-        doc.text('Heritage Management Notes:', margin, y);
-        y += 4;
-        const heritageNotes = cleanText(inspection.aboriginalHeritage || 'No heritage management notes.');
-        addText(heritageNotes, 9);
-        y += 6;
-        
-// ============================================================
-// OBSERVATIONS
-// ============================================================
-if (y > pageHeight - 40) {
-    doc.addPage();
-    y = margin + 5;
-    addFooter();
-}
-addTitle('OBSERVATIONS', 14);
-drawLine();
-y += 4;
-
-doc.setFontSize(10);
-doc.setTextColor('#000000');
-const observations = cleanText(inspection.observations || 'No observations recorded.');
-if (observations) {
-    const obsLines = doc.splitTextToSize(observations, pageWidth - 2 * margin);
-    const lineHeight = 5.5; // Fixed line height for readability
-    for (let i = 0; i < obsLines.length; i++) {
-        if (y + lineHeight > pageHeight - margin - 10) {
-            doc.addPage();
-            y = margin + 5;
-            addFooter();
-            doc.setFontSize(10);
-            doc.setTextColor('#000000');
-        }
-        doc.text(obsLines[i], margin, y);
-        y += lineHeight;
-    }
-    y += 3;
-}
-
-// ============================================================
-// RECOMMENDATIONS
-// ============================================================
-if (y > pageHeight - 40) {
-    doc.addPage();
-    y = margin + 5;
-    addFooter();
-}
-addTitle('RECOMMENDATIONS', 14);
-drawLine();
-y += 4;
-
-doc.setFontSize(10);
-doc.setTextColor('#000000');
-const recommendations = cleanText(inspection.recommendations || 'No specific recommendations recorded.');
-if (recommendations) {
-    const recLines = doc.splitTextToSize(recommendations, pageWidth - 2 * margin);
-    const lineHeight = 5.5; // Fixed line height for readability
-    for (let i = 0; i < recLines.length; i++) {
-        if (y + lineHeight > pageHeight - margin - 10) {
-            doc.addPage();
-            y = margin + 5;
-            addFooter();
-            doc.setFontSize(10);
-            doc.setTextColor('#000000');
-        }
-        doc.text(recLines[i], margin, y);
-        y += lineHeight;
-    }
-    y += 3;
-}
-
-        // ============================================================
-        // ECOLOGICAL HEALTH DETAILS
-        // ============================================================
-        if (y > pageHeight - 50) {
-            doc.addPage();
-            y = margin + 5;
-            addFooter();
-        }
-        addTitle('ECOLOGICAL HEALTH METRICS', 14);
-        drawLine();
-        y += 4;
-        
-        doc.setFontSize(9);
-        doc.setTextColor('#000000');  // FIXED: Black text
-        const metrics = [
-            ['Vegetation Health:', `${inspection.vegHealth || 6}/10`],
-            ['Species Richness:', `${inspection.speciesRichness || 5}/10`],
-            ['Weed Cover:', `${inspection.weedCover || 30}%`],
-            ['Habitat Quality:', `${inspection.habitatQuality || 5}/10`],
-            ['Disturbance Level:', `${inspection.disturbance || 3}/10`],
-            ['Regeneration:', `${inspection.regeneration || 5}/10`],
-            ['Overall Score:', `${eco.conditionScore}/10`]
-        ];
-        
-        metrics.forEach(([label, value]) => {
-            if (y > pageHeight - 20) {
-                doc.addPage();
-                y = margin + 5;
-                addFooter();
-                doc.setFontSize(9);
-            }
-            const fullText = `${label} ${value}`;
-            const lines = doc.splitTextToSize(fullText, pageWidth - 2 * margin);
-            doc.text(lines, margin, y);
-            y += (lines.length * 4.5) + 2;
-        });
-        y += 3;
-        
-        // ============================================================
-        // CHECKLIST NOTES
-        // ============================================================
-        const notes = [
-            { title: 'Site Conditions Notes:', text: inspection.siteConditionsNotes },
-            { title: 'Environmental Notes:', text: inspection.environmentalNotes },
-            { title: 'Work Practice Notes:', text: inspection.workPracticesNotes },
-            { title: 'Equipment Notes:', text: inspection.equipmentNotes }
-        ];
-        
-        let hasNotes = notes.some(n => n.text);
-        if (hasNotes) {
-            if (y > pageHeight - 50) {
-                doc.addPage();
-                y = margin + 5;
-                addFooter();
-            }
-            addTitle('ADDITIONAL NOTES', 14);
-            drawLine();
-            y += 4;
-            
-            notes.forEach(note => {
-                if (note.text) {
-                    doc.setFontSize(10);
-                    doc.setTextColor(colour);
-                    doc.text(note.title, margin, y);
-                    y += 4;
-                    doc.setFontSize(9);
-                    doc.setTextColor('#000000');  // FIXED: Black text
-                    addText(note.text, 9);
-                    y += 2;
-                }
-            });
-        }
-        
-        // ============================================================
-        // PHOTOS
-        // ============================================================
-        if (inspection.photos && inspection.photos.length > 0) {
-            doc.addPage();
-            y = margin + 5;
-            addFooter();
-            addTitle('PHOTO DOCUMENTATION', 18);
-            drawLine();
-            y += 6;
-            
-            const photos = inspection.photos.slice(0, 15);
-            const photoSize = 50;
-            const gap = 5;
-            const maxCols = Math.floor((pageWidth - 2 * margin + gap) / (photoSize + gap));
-            let row = 0, col = 0;
-            
-            for (let i = 0; i < photos.length; i++) {
-                const p = photos[i];
-                const px = margin + col * (photoSize + gap);
-                const py = y + row * (photoSize + gap + 8);
-                
-                if (py + photoSize + 10 > pageHeight - margin - 15) {
+            // Helper: Add text with auto-page breaks
+            const addText = (text, size = 10, color = '#000000') => {
+                if (!text) return;
+                const clean = cleanText(text);
+                if (!clean) return;
+                doc.setFontSize(size);
+                doc.setTextColor(color);
+                const lines = doc.splitTextToSize(clean, pageWidth - 2 * margin);
+                const lineHeight = size * 0.45;
+                const totalHeight = lines.length * lineHeight + 1.5;
+                if (y + totalHeight > pageHeight - margin - 8) {
                     doc.addPage();
                     y = margin + 5;
                     addFooter();
-                    addTitle('PHOTO DOCUMENTATION (continued)', 14);
-                    drawLine();
-                    y += 6;
-                    row = 0;
-                    col = 0;
                 }
-                
+                doc.text(lines, margin, y);
+                y += totalHeight;
+            };
+            
+            // Helper: Add title
+            const addTitle = (text, size = 18, color = colour) => {
+                const clean = cleanText(text);
+                if (!clean) return;
+                doc.setFontSize(size);
+                doc.setTextColor(color);
+                doc.text(clean, margin, y);
+                y += size * 0.4 + 2;
+            };
+            
+            // Helper: Draw line
+            const drawLine = () => {
+                doc.setDrawColor(colour);
+                doc.setLineWidth(0.5);
+                doc.line(margin, y, pageWidth - margin, y);
+                y += 5;
+            };
+            
+            // Helper: Add footer
+            const addFooter = () => {
+                doc.setDrawColor(colour);
+                doc.setLineWidth(0.3);
+                doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
+                doc.setFontSize(7);
+                doc.setTextColor('#aaa');
+                const id = cleanText(inspection.id || 'N/A');
+                doc.text(id, margin, pageHeight - 5);
+                const date = Utils.formatDate(inspection.dateTime);
+                doc.text(date, pageWidth - margin, pageHeight - 5, { align: 'right' });
+                const pageNum = doc.internal.getCurrentPageInfo().pageNumber;
+                doc.text(`Page ${pageNum}`, pageWidth/2, pageHeight - 5, { align: 'center' });
+            };
+            
+            // ============================================================
+            // COVER PAGE
+            // ============================================================
+            doc.setFillColor(colour);
+            doc.rect(0, 0, pageWidth, 6, 'F');
+            y = 30;
+            
+            doc.setFontSize(32);
+            doc.setTextColor(colour);
+            doc.text('ENVIRONMENTAL', margin, y);
+            y += 14;
+            doc.text('ASSESSMENT REPORT', margin, y);
+            y += 12;
+            drawLine();
+            y += 6;
+            
+            doc.setFontSize(20);
+            doc.setTextColor('#000000');
+            const siteName = cleanText(inspection.siteName || 'Site Assessment');
+            doc.text(siteName, margin, y);
+            y += 12;
+            
+            doc.setFontSize(11);
+            doc.setTextColor('#000000');
+            const org = cleanText(inspection.organization || 'Environmental Client');
+            doc.text(`Prepared for: ${org}`, margin, y);
+            y += 6;
+            const date = Utils.formatDate(inspection.dateTime);
+            doc.text(`Date: ${date}`, margin, y);
+            y += 6;
+            const id = cleanText(inspection.id || 'N/A');
+            doc.text(`Report ID: ${id}`, margin, y);
+            y += 6;
+            const author = cleanText(inspection.inspector || 'Environmental Consultant');
+            doc.text(`Author: ${author}`, margin, y);
+            y += 10;
+            
+            // Cover photo
+            if (inspection.photos && inspection.photos.length > 0) {
+                const hero = inspection.photos.find(p => p.isHero) || inspection.photos[0];
                 try {
                     const img = new Image();
                     const imgData = await new Promise((resolve) => {
                         img.onload = () => resolve({ width: img.width, height: img.height });
                         img.onerror = () => resolve(null);
-                        img.src = p.dataURL;
+                        img.src = hero.dataURL;
                     });
                     
-                    let imgWidth = photoSize;
-                    let imgHeight = photoSize * 0.75;
                     if (imgData) {
-                        const aspectRatio = imgData.width / imgData.height;
-                        if (aspectRatio > 1) {
-                            imgWidth = photoSize;
-                            imgHeight = photoSize / aspectRatio;
-                        } else {
-                            imgHeight = photoSize;
-                            imgWidth = photoSize * aspectRatio;
+                        const maxImgWidth = pageWidth - 2 * margin - 20;
+                        const maxImgHeight = 70;
+                        let imgWidth = maxImgWidth;
+                        let imgHeight = (imgData.height / imgData.width) * maxImgWidth;
+                        if (imgHeight > maxImgHeight) {
+                            imgHeight = maxImgHeight;
+                            imgWidth = (imgData.width / imgData.height) * maxImgHeight;
                         }
+                        const xOffset = margin + 10 + (maxImgWidth - imgWidth) / 2;
+                        doc.addImage(hero.dataURL, 'JPEG', xOffset, y, imgWidth, imgHeight);
+                        y += imgHeight + 8;
+                        doc.setFontSize(7);
+                        doc.setTextColor('#999');
+                        const caption = cleanText(inspection.siteName || 'Site Photo');
+                        doc.text(`Cover Photo: ${caption}`, margin + 10, y);
+                        y += 6;
                     }
-                    
-                    const xOffset = px + (photoSize - imgWidth) / 2;
-                    const yOffset = py + (photoSize * 0.75 - imgHeight) / 2;
-                    doc.addImage(p.dataURL, 'JPEG', xOffset, yOffset, imgWidth, imgHeight);
-                    doc.setFontSize(6);
-                    doc.setTextColor('#666');
-                    doc.text(`Photo ${i+1}`, px + 2, py + photoSize * 0.75 + 4);
                 } catch (e) {
-                    doc.setFillColor('#f0f0f0');
-                    doc.roundedRect(px, py, photoSize, photoSize * 0.75, 2, 2, 'F');
-                    doc.setFontSize(8);
-                    doc.setTextColor('#999');
-                    doc.text(`Photo ${i+1}`, px + photoSize/2 - 10, py + photoSize * 0.375);
-                }
-                
-                col++;
-                if (col >= maxCols) {
-                    col = 0;
-                    row++;
+                    // Skip photo on error
                 }
             }
+            
+            doc.setFillColor(colour);
+            doc.rect(0, pageHeight - 6, pageWidth, 3, 'F');
+            doc.setFontSize(7);
+            doc.setTextColor('#999');
+            doc.text('© EcoMaintenance Professional v4.0', margin, pageHeight - 3);
+            doc.text('Environmental Assessment Report', pageWidth / 2, pageHeight - 3, { align: 'center' });
+            doc.text('Page 1', pageWidth - margin, pageHeight - 3, { align: 'right' });
+            
+            // ============================================================
+            // MAP PAGE
+            // ============================================================
+            // Try to get map image from cache or capture fresh
+            let mapDataUrl = this._mapImage;
+            if (!mapDataUrl) {
+                // Try to capture the map now
+                const captured = await this.captureMapImage();
+                if (captured) {
+                    mapDataUrl = captured;
+                    this._mapImage = captured;
+                }
+            }
+            
+            if (mapDataUrl) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+                addTitle('SITE MAP', 18);
+                drawLine();
+                y += 6;
+
+                try {
+                    // Load image to get dimensions
+                    const img = new Image();
+                    await new Promise((resolve) => {
+                        img.onload = resolve;
+                        img.onerror = resolve;
+                        img.src = mapDataUrl;
+                    });
+
+                    const maxMapWidth = pageWidth - 2 * margin - 10;
+                    const maxMapHeight = pageHeight - margin * 2 - 45;
+                    let mapWidth = maxMapWidth;
+                    let mapHeight = maxMapWidth * (img.height / img.width);
+                    
+                    if (mapHeight > maxMapHeight) {
+                        mapHeight = maxMapHeight;
+                        mapWidth = maxMapHeight * (img.width / img.height);
+                    }
+
+                    const xOffset = margin + (maxMapWidth - mapWidth) / 2;
+                    doc.addImage(mapDataUrl, 'JPEG', xOffset, y, mapWidth, mapHeight);
+                    y += mapHeight + 8;
+
+                    // Add map info legend
+                    doc.setFontSize(8);
+                    doc.setTextColor('#444');
+                    const geoInfo = this.getGeometry().length || inspection.geometry?.length || 0;
+                    const waypoints = this.getWaypoints().length || inspection.waypoints?.length || 0;
+                    doc.text(`Map includes: ${geoInfo} polygon(s) and ${waypoints} waypoint(s)`, margin + 10, y);
+                    y += 4;
+                    const coords = inspection.coords || `${this.currentLat.toFixed(6)}, ${this.currentLng.toFixed(6)}`;
+                    doc.text(`Center: ${coords}`, margin + 10, y);
+                    y += 4;
+                    const layerName = this.currentLayer.charAt(0).toUpperCase() + this.currentLayer.slice(1);
+                    doc.text(`Basemap: ${layerName}`, margin + 10, y);
+                } catch (e) {
+                    console.warn('Could not add map image to PDF:', e);
+                    // Add text fallback
+                    doc.setFontSize(9);
+                    doc.setTextColor('#666');
+                    doc.text('Map image unavailable - check that markers and layers are visible on screen.', margin, y);
+                    y += 6;
+                }
+            } else {
+                // No map image available - add placeholder
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+                addTitle('SITE MAP', 18);
+                drawLine();
+                y += 6;
+                
+                doc.setFontSize(10);
+                doc.setTextColor('#666');
+                doc.text('Map image not available. Please ensure the map is visible', margin, y);
+                y += 6;
+                doc.text('and use the "Refresh Map" button before generating the report.', margin, y);
+                y += 6;
+                const geoInfo = this.getGeometry().length || inspection.geometry?.length || 0;
+                const waypoints = this.getWaypoints().length || inspection.waypoints?.length || 0;
+                doc.text(`Site contains: ${geoInfo} polygon(s) and ${waypoints} waypoint(s)`, margin, y);
+            }
+            
+            // ============================================================
+            // EXECUTIVE SUMMARY
+            // ============================================================
+            doc.addPage();
+            y = margin + 5;
+            addFooter();
+            addTitle('EXECUTIVE SUMMARY', 22);
+            drawLine();
+            y += 4;
+            
+            doc.setFontSize(14);
+            doc.setTextColor(colour);
+            doc.text(`Overall Condition Score: ${eco.conditionScore}/10`, margin, y);
+            y += 8;
+            
+            doc.setFontSize(11);
+            doc.setTextColor(eco.colour);
+            doc.text(`Risk Rating: ${eco.riskRating}`, margin, y);
+            y += 6;
+            doc.setTextColor('#000000');
+            doc.text(`Management Priority: ${eco.priority}`, margin, y);
+            y += 6;
+            doc.text(`Conservation Significance: ${eco.significance}`, margin, y);
+            y += 10;
+            
+            const summaryText = `This report presents findings of an ecological assessment at "${cleanText(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`;
+            addText(summaryText, 10);
+            y += 4;
+            
+            doc.setFontSize(11);
+            doc.setTextColor(colour);
+            doc.text('Key Findings:', margin, y);
+            y += 5;
+            doc.setFontSize(9);
+            doc.setTextColor('#000000');
+            const findings = [
+                `Vegetation Health: ${inspection.vegHealth || 6}/10`,
+                `Species Richness: ${inspection.speciesRichness || 5} species recorded`,
+                `Weed Cover: ${inspection.weedCover || 30}%`,
+                `Habitat Quality: ${inspection.habitatQuality || 5}/10`,
+                `Disturbance Level: ${inspection.disturbance || 3}/10`
+            ];
+            findings.forEach(f => {
+                doc.text(`• ${f}`, margin + 4, y);
+                y += 5;
+            });
+            y += 6;
+            
+            // ============================================================
+            // CHECKLIST SUMMARY
+            // ============================================================
+            if (y > pageHeight - 60) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+            }
+            addTitle('CHECKLIST SUMMARY', 16);
+            drawLine();
+            y += 4;
+            
+            const checklistItems = [
+                { section: 'General Site Conditions', label: 'Verified site location and boundaries', value: inspection.siteLocation },
+                { section: 'General Site Conditions', label: 'Assessed accessibility and entry points', value: inspection.accessibility },
+                { section: 'General Site Conditions', label: 'Evaluated site conditions', value: inspection.siteConditions },
+                { section: 'General Site Conditions', label: 'Identified existing infrastructure or features', value: inspection.infrastructure },
+                
+                { section: 'Environmental Considerations', label: 'Assessed presence of protected flora or fauna', value: inspection.protectedSpecies },
+                { section: 'Environmental Considerations', label: 'Evaluated potential environmental impacts', value: inspection.environmentalImpacts },
+                { section: 'Environmental Considerations', label: 'Verified compliance with environmental regulations', value: inspection.compliance },
+                { section: 'Environmental Considerations', label: 'Noted areas of conservation significance', value: inspection.conservation },
+                
+                { section: 'Work Practices and Procedures', label: 'Observed and evaluated work practices', value: inspection.workPractices },
+                { section: 'Work Practices and Procedures', label: 'Assessed compliance with health and safety regulations', value: inspection.healthSafety },
+                { section: 'Work Practices and Procedures', label: 'Identified potential risks and hazards', value: inspection.risksHazards },
+                { section: 'Work Practices and Procedures', label: 'Reviewed implementation of control measures', value: inspection.controlMeasures },
+                
+                { section: 'Equipment and Machinery', label: 'Inspected equipment and machinery', value: inspection.equipmentInspected },
+                { section: 'Equipment and Machinery', label: 'Ensured equipment in safe working condition', value: inspection.safeCondition },
+                { section: 'Equipment and Machinery', label: 'Checked maintenance and service records', value: inspection.maintenanceRecords },
+                { section: 'Equipment and Machinery', label: 'Verified compliance with industry standards', value: inspection.industryStandards }
+            ];
+            
+            let total = checklistItems.length;
+            let completed = checklistItems.filter(item => item.value === true || item.value === 'true' || item.value === 1).length;
+            
+            doc.setFontSize(9);
+            doc.setTextColor('#000000');
+            doc.text(`Completion: ${completed}/${total} items (${Math.round((completed/total)*100)}%)`, margin, y);
+            y += 6;
+            
+            let currentSection = '';
+            checklistItems.forEach(item => {
+                if (y > pageHeight - 25) {
+                    doc.addPage();
+                    y = margin + 5;
+                    addFooter();
+                    doc.setFontSize(9);
+                    doc.setTextColor('#000000');
+                    doc.text(`Completion: ${completed}/${total} items (${Math.round((completed/total)*100)}%)`, margin, y);
+                    y += 6;
+                }
+                
+                if (item.section !== currentSection) {
+                    currentSection = item.section;
+                    doc.setFontSize(11);
+                    doc.setTextColor(colour);
+                    doc.text(currentSection, margin, y);
+                    y += 5;
+                }
+                
+                const isChecked = (item.value === true || item.value === 'true' || item.value === 1);
+                const symbol = isChecked ? 'v' : 'x';
+                const color = isChecked ? '#10b981' : '#dc2626';
+                
+                doc.setFontSize(8);
+                doc.setTextColor(color);
+                doc.text(`${symbol}  ${item.label}`, margin + 4, y);
+                y += 5;
+            });
+            y += 3;
+            
+            // ============================================================
+            // SITE INFORMATION DETAILS
+            // ============================================================
+            if (y > pageHeight - 50) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+            }
+            addTitle('SITE INFORMATION', 16);
+            drawLine();
+            y += 4;
+            
+            const siteInfo = [
+                ['Site Name:', cleanText(inspection.siteName || 'Not specified')],
+                ['Inspector:', cleanText(inspection.inspector || 'Not specified')],
+                ['Organization:', cleanText(inspection.organization || 'Not specified')],
+                ['Date/Time:', Utils.formatDate(inspection.dateTime)],
+                ['Coordinates:', cleanText(inspection.coords || 'Not recorded')],
+                ['Vegetation Type:', cleanText(inspection.vegetationType || 'Not specified')],
+                ['Tenure:', cleanText(inspection.tenure || 'Not specified')],
+                ['Weather:', cleanText(inspection.weather || 'Not recorded')],
+                ['Soil Condition:', cleanText(inspection.soilCondition || 'Not recorded')]
+            ];
+            
+            doc.setFontSize(9);
+            doc.setTextColor('#000000');
+            const maxWidth = pageWidth - 2 * margin;
+            
+            siteInfo.forEach(([label, value]) => {
+                if (y > pageHeight - 20) {
+                    doc.addPage();
+                    y = margin + 5;
+                    addFooter();
+                    doc.setFontSize(9);
+                    doc.setTextColor('#000000');
+                }
+                
+                const fullText = `${label} ${value}`;
+                const lines = doc.splitTextToSize(fullText, maxWidth);
+                doc.text(lines, margin, y);
+                y += (lines.length * 4.5) + 2;
+            });
+            y += 3;
+            
+            // ============================================================
+            // SPECIES AND THREATS
+            // ============================================================
+            if (y > pageHeight - 50) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+            }
+            addTitle('SPECIES AND THREATS', 16);
+            drawLine();
+            y += 4;
+            
+            doc.setFontSize(9);
+            doc.setTextColor('#000000');
+            const threats = [
+                ['Declared Weeds Present:', cleanText(inspection.weedsList || 'None recorded')],
+                ['Feral Animals:', cleanText(inspection.feralAnimals || 'Not assessed')],
+                ['Fire History:', cleanText(inspection.fireHistory || 'Not recorded')],
+                ['Overall Threat Level:', cleanText(inspection.threatLevel || 'Not assessed')]
+            ];
+            
+            threats.forEach(([label, value]) => {
+                if (y > pageHeight - 20) {
+                    doc.addPage();
+                    y = margin + 5;
+                    addFooter();
+                    doc.setFontSize(9);
+                }
+                const fullText = `${label} ${value}`;
+                const lines = doc.splitTextToSize(fullText, pageWidth - 2 * margin);
+                doc.text(lines, margin, y);
+                y += (lines.length * 4.5) + 2;
+            });
+            y += 3;
+            
+            // ============================================================
+            // ABORIGINAL HERITAGE
+            // ============================================================
+            if (y > pageHeight - 50) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+            }
+            addTitle('ABORIGINAL HERITAGE', 16);
+            drawLine();
+            y += 4;
+            
+            doc.setFontSize(10);
+            doc.setTextColor('#000000');
+            const heritageSig = cleanText(inspection.heritageSignificance || 'Not Assessed');
+            doc.text(`Heritage Significance: ${heritageSig}`, margin, y);
+            y += 6;
+            
+            doc.text('Cultural Sites / Artefacts:', margin, y);
+            y += 4;
+            const culturalSites = cleanText(inspection.culturalSites || 'No cultural sites recorded.');
+            addText(culturalSites, 9);
+            y += 4;
+            
+            doc.text('Heritage Management Notes:', margin, y);
+            y += 4;
+            const heritageNotes = cleanText(inspection.aboriginalHeritage || 'No heritage management notes.');
+            addText(heritageNotes, 9);
+            y += 6;
+            
+            // ============================================================
+            // OBSERVATIONS
+            // ============================================================
+            if (y > pageHeight - 40) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+            }
+            addTitle('OBSERVATIONS', 14);
+            drawLine();
+            y += 4;
+
+            doc.setFontSize(10);
+            doc.setTextColor('#000000');
+            const observations = cleanText(inspection.observations || 'No observations recorded.');
+            if (observations) {
+                const obsLines = doc.splitTextToSize(observations, pageWidth - 2 * margin);
+                const lineHeight = 5.5;
+                for (let i = 0; i < obsLines.length; i++) {
+                    if (y + lineHeight > pageHeight - margin - 10) {
+                        doc.addPage();
+                        y = margin + 5;
+                        addFooter();
+                        doc.setFontSize(10);
+                        doc.setTextColor('#000000');
+                    }
+                    doc.text(obsLines[i], margin, y);
+                    y += lineHeight;
+                }
+                y += 3;
+            }
+
+            // ============================================================
+            // RECOMMENDATIONS
+            // ============================================================
+            if (y > pageHeight - 40) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+            }
+            addTitle('RECOMMENDATIONS', 14);
+            drawLine();
+            y += 4;
+
+            doc.setFontSize(10);
+            doc.setTextColor('#000000');
+            const recommendations = cleanText(inspection.recommendations || 'No specific recommendations recorded.');
+            if (recommendations) {
+                const recLines = doc.splitTextToSize(recommendations, pageWidth - 2 * margin);
+                const lineHeight = 5.5;
+                for (let i = 0; i < recLines.length; i++) {
+                    if (y + lineHeight > pageHeight - margin - 10) {
+                        doc.addPage();
+                        y = margin + 5;
+                        addFooter();
+                        doc.setFontSize(10);
+                        doc.setTextColor('#000000');
+                    }
+                    doc.text(recLines[i], margin, y);
+                    y += lineHeight;
+                }
+                y += 3;
+            }
+
+            // ============================================================
+            // ECOLOGICAL HEALTH DETAILS
+            // ============================================================
+            if (y > pageHeight - 50) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+            }
+            addTitle('ECOLOGICAL HEALTH METRICS', 14);
+            drawLine();
+            y += 4;
+            
+            doc.setFontSize(9);
+            doc.setTextColor('#000000');
+            const metrics = [
+                ['Vegetation Health:', `${inspection.vegHealth || 6}/10`],
+                ['Species Richness:', `${inspection.speciesRichness || 5}/10`],
+                ['Weed Cover:', `${inspection.weedCover || 30}%`],
+                ['Habitat Quality:', `${inspection.habitatQuality || 5}/10`],
+                ['Disturbance Level:', `${inspection.disturbance || 3}/10`],
+                ['Regeneration:', `${inspection.regeneration || 5}/10`],
+                ['Overall Score:', `${eco.conditionScore}/10`]
+            ];
+            
+            metrics.forEach(([label, value]) => {
+                if (y > pageHeight - 20) {
+                    doc.addPage();
+                    y = margin + 5;
+                    addFooter();
+                    doc.setFontSize(9);
+                }
+                const fullText = `${label} ${value}`;
+                const lines = doc.splitTextToSize(fullText, pageWidth - 2 * margin);
+                doc.text(lines, margin, y);
+                y += (lines.length * 4.5) + 2;
+            });
+            y += 3;
+            
+            // ============================================================
+            // CHECKLIST NOTES
+            // ============================================================
+            const notes = [
+                { title: 'Site Conditions Notes:', text: inspection.siteConditionsNotes },
+                { title: 'Environmental Notes:', text: inspection.environmentalNotes },
+                { title: 'Work Practice Notes:', text: inspection.workPracticesNotes },
+                { title: 'Equipment Notes:', text: inspection.equipmentNotes }
+            ];
+            
+            let hasNotes = notes.some(n => n.text);
+            if (hasNotes) {
+                if (y > pageHeight - 50) {
+                    doc.addPage();
+                    y = margin + 5;
+                    addFooter();
+                }
+                addTitle('ADDITIONAL NOTES', 14);
+                drawLine();
+                y += 4;
+                
+                notes.forEach(note => {
+                    if (note.text) {
+                        doc.setFontSize(10);
+                        doc.setTextColor(colour);
+                        doc.text(note.title, margin, y);
+                        y += 4;
+                        doc.setFontSize(9);
+                        doc.setTextColor('#000000');
+                        addText(note.text, 9);
+                        y += 2;
+                    }
+                });
+            }
+            
+            // ============================================================
+            // PHOTOS
+            // ============================================================
+            if (inspection.photos && inspection.photos.length > 0) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+                addTitle('PHOTO DOCUMENTATION', 18);
+                drawLine();
+                y += 6;
+                
+                const photos = inspection.photos.slice(0, 15);
+                const photoSize = 50;
+                const gap = 5;
+                const maxCols = Math.floor((pageWidth - 2 * margin + gap) / (photoSize + gap));
+                let row = 0, col = 0;
+                
+                for (let i = 0; i < photos.length; i++) {
+                    const p = photos[i];
+                    const px = margin + col * (photoSize + gap);
+                    const py = y + row * (photoSize + gap + 8);
+                    
+                    if (py + photoSize + 10 > pageHeight - margin - 15) {
+                        doc.addPage();
+                        y = margin + 5;
+                        addFooter();
+                        addTitle('PHOTO DOCUMENTATION (continued)', 14);
+                        drawLine();
+                        y += 6;
+                        row = 0;
+                        col = 0;
+                    }
+                    
+                    try {
+                        const img = new Image();
+                        const imgData = await new Promise((resolve) => {
+                            img.onload = () => resolve({ width: img.width, height: img.height });
+                            img.onerror = () => resolve(null);
+                            img.src = p.dataURL;
+                        });
+                        
+                        let imgWidth = photoSize;
+                        let imgHeight = photoSize * 0.75;
+                        if (imgData) {
+                            const aspectRatio = imgData.width / imgData.height;
+                            if (aspectRatio > 1) {
+                                imgWidth = photoSize;
+                                imgHeight = photoSize / aspectRatio;
+                            } else {
+                                imgHeight = photoSize;
+                                imgWidth = photoSize * aspectRatio;
+                            }
+                        }
+                        
+                        const xOffset = px + (photoSize - imgWidth) / 2;
+                        const yOffset = py + (photoSize * 0.75 - imgHeight) / 2;
+                        doc.addImage(p.dataURL, 'JPEG', xOffset, yOffset, imgWidth, imgHeight);
+                        doc.setFontSize(6);
+                        doc.setTextColor('#666');
+                        doc.text(`Photo ${i+1}`, px + 2, py + photoSize * 0.75 + 4);
+                    } catch (e) {
+                        doc.setFillColor('#f0f0f0');
+                        doc.roundedRect(px, py, photoSize, photoSize * 0.75, 2, 2, 'F');
+                        doc.setFontSize(8);
+                        doc.setTextColor('#999');
+                        doc.text(`Photo ${i+1}`, px + photoSize/2 - 10, py + photoSize * 0.375);
+                    }
+                    
+                    col++;
+                    if (col >= maxCols) {
+                        col = 0;
+                        row++;
+                    }
+                }
+            }
+            
+            // Save the PDF
+            const fileName = `EcoMaintenance_Report_${inspection.id || Date.now()}.pdf`;
+            doc.save(fileName);
+            Toast.success('Professional report generated successfully');
+            
+        } catch (e) {
+            console.error('Report generation error:', e);
+            Toast.error('Failed to generate report: ' + e.message);
         }
-        
-        // Save the PDF
-        const fileName = `EcoMaintenance_Report_${inspection.id || Date.now()}.pdf`;
-        doc.save(fileName);
-        Toast.success('Professional report generated successfully');
-        
-    } catch (e) {
-        console.error('Report generation error:', e);
-        Toast.error('Failed to generate report: ' + e.message);
     }
-}
     
     // ================================================================
     // VIEWS
@@ -3160,7 +3579,7 @@ if (recommendations) {
     }
     
     // ================================================================
-    // EXPORT/IMPORT
+    // EXPORT/IMPORT - ENHANCED WITH MAP STATE
     // ================================================================
     async exportCSV() {
         try {
@@ -3209,20 +3628,34 @@ if (recommendations) {
         try {
             const insp = await this.db.getAll('inspections');
             const drafts = await this.db.getAll('drafts');
+            
+            // Get current map state
+            const center = this.map.getCenter();
             const data = { 
                 exportDate: new Date().toISOString(), 
                 version: '4.0',
                 app: 'EcoMaintenance Professional',
                 inspections: insp, 
-                drafts: drafts 
+                drafts: drafts,
+                mapState: {
+                    center: { lat: center.lat, lng: center.lng },
+                    zoom: this.map.getZoom(),
+                    layer: this.currentLayer
+                }
             };
+            
+            // Include map image if available (will make file larger but preserves the captured map)
+            if (this._mapImage) {
+                data.mapImage = this._mapImage;
+            }
+            
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
             a.download = `EcoMaintenance_Data_${new Date().toISOString().slice(0,10)}.json`;
             a.click();
             URL.revokeObjectURL(a.href);
-            Toast.success('JSON export complete');
+            Toast.success('JSON export complete with map state');
         } catch (e) { console.error('Export error:', e); Toast.error('Export failed'); }
     }
     
@@ -3256,19 +3689,52 @@ if (recommendations) {
             try {
                 const data = JSON.parse(e.target.result);
                 let count = 0;
+                
+                // Import inspections
                 if (data.inspections) {
                     for (const insp of data.inspections) { 
                         await this.db.save(insp, false); 
                         count++; 
                     }
                 }
+                
+                // Import drafts
                 if (data.drafts) {
                     for (const draft of data.drafts) { 
                         await this.db.save(draft, true); 
                         count++; 
                     }
                 }
-                Toast.success(`Imported ${count} records successfully`);
+                
+                // Restore map state if available
+                if (data.mapState) {
+                    const { center, zoom, layer } = data.mapState;
+                    if (center && zoom) {
+                        this.map.setView([center.lat, center.lng], zoom);
+                    }
+                    if (layer) {
+                        this.switchLayer(layer);
+                    }
+                    Toast.info('Map state restored');
+                }
+                
+                // Restore map image if available
+                if (data.mapImage) {
+                    this._mapImage = data.mapImage;
+                    // Show preview if form is open
+                    const img = document.getElementById('mapPreviewImg');
+                    const container = document.getElementById('mapPreviewContainer');
+                    if (img && container) {
+                        img.src = data.mapImage;
+                        container.style.display = 'block';
+                        const statusEl = document.getElementById('mapStatus');
+                        if (statusEl) {
+                            statusEl.innerHTML = `<i class="fas fa-check-circle" style="color:var(--success);"></i> Map image restored from import.`;
+                        }
+                    }
+                }
+                
+                Toast.success(`Imported ${count} records successfully with map state`);
                 await this.updateStatus();
                 this.showDataManager();
             } catch (err) { 
