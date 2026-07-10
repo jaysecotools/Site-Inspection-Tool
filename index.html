@@ -1,46 +1,13 @@
 <!--
-Key Changes Made:
 
-1. Added html2canvas Library
+    WORKING VERSION
 
-```html
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-```
+    FIXED:
+    GREYED OUT TEXT NOW DISPLAYS CORRECTLY
+    TEXT FLOWING OFF PAGE IS FIXED
+    PDF REPORT CHARACTERS AND SPACING ISSUES FIXED
 
-2. Map Capture Using html2canvas
-
-The report generation now includes a working map capture section that:
-
-· Captures the actual Leaflet map element
-· Waits for tiles to load
-· Renders the map with all drawn polygons and waypoints
-· Adds a north arrow and scale bar overlay
-· Handles errors gracefully if capture fails
-
-3. Text Formatting Fixed
-
-· Both Observations and Recommendations use the exact same addText() function
-· Text is properly cleaned with Utils.cleanText()
-· Consistent formatting throughout the report
-
-How the Map Capture Works:
-
-1. The generateReport() function finds the map element
-2. Waits for map tiles to load (with a timeout fallback)
-3. Uses html2canvas to render the map to a canvas
-4. Converts the canvas to an image and embeds it in the PDF
-5. Adds a north arrow and scale bar for reference
-
-What's Fixed:
-
-· ✅ Map now appears in PDF - Captured directly from the UI
-· ✅ Observations text - Clean, plain text rendering
-· ✅ Recommendations text - Same formatting as Observations
-· ✅ All drawn elements - Polygons and waypoints visible in the captured map
-
-The map capture works reliably because it uses the actual rendered map from the UI, so it shows exactly what the user sees on screen.
 -->
-
 
 
 
@@ -50,8 +17,8 @@ The map capture works reliably because it uses the actual rendered map from the 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#0f3b2e">
-    <meta name="description" content="EcoMaintenance Professional - Enterprise Environmental Management Platform">
-    <title>EcoMaintenance Professional v4.0</title>
+    <meta name="description" content="EcoMaintenance Professional - Complete Site Inspection with Aboriginal Heritage">
+    <title>EcoMaintenance Professional v4.0 - Full Inspection</title>
     
     <!-- Core Libraries -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -183,6 +150,7 @@ The map capture works reliably because it uses the actual rendered map from the 
         .btn-danger { background: var(--danger); color: white; }
         .btn-danger:hover { background: #b91c1c; }
         .btn-sm { padding: 2px 7px; font-size: 0.55rem; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         
         /* Search box */
         .search-box {
@@ -307,7 +275,7 @@ The map capture works reliably because it uses the actual rendered map from the 
             position: fixed;
             top: 0;
             right: 0;
-            width: 680px;
+            width: 720px;
             max-width: 94vw;
             height: 100vh;
             background: white;
@@ -410,6 +378,56 @@ The map capture works reliably because it uses the actual rendered map from the 
         input[type="range"] { padding: 0; border: none; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+        
+        /* Checkbox Groups for Checklist */
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 10px;
+            padding: 4px 0;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--gray-700);
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: background var(--transition);
+        }
+        .checkbox-group label:hover { background: var(--gray-50); }
+        .checkbox-group input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .checklist-summary {
+            font-size: 0.6rem;
+            color: var(--gray-500);
+            padding: 4px 0;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .checklist-summary .done { color: var(--success); }
+        .checklist-summary .pending { color: var(--gray-400); }
+        .checklist-progress {
+            background: var(--gray-200);
+            border-radius: 20px;
+            height: 4px;
+            overflow: hidden;
+            margin: 2px 0 6px 0;
+        }
+        .checklist-progress .fill {
+            height: 100%;
+            border-radius: 20px;
+            transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        @media (max-width: 600px) { .checkbox-group { grid-template-columns: 1fr; } }
         
         /* Photos */
         .photo-grid {
@@ -619,6 +637,18 @@ The map capture works reliably because it uses the actual rendered map from the 
         .storage-status .dot.online { background: var(--success); }
         
         .sidebar-toggle { display: none; }
+        
+        /* Progress Spinner */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s ease-in-out infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
         
         /* Responsive */
         @media (max-width: 768px) {
@@ -845,6 +875,26 @@ const Utils = {
         return str.replace(/[^\w\s.,!?\-()'"]/g, ' ').trim();
     },
     
+    // Simple text cleaner for PDF - just removes HTML and normalizes
+    cleanForPdf(str) {
+        if (!str) return '';
+        let clean = String(str);
+        // Decode common HTML entities
+        clean = clean.replace(/&amp;/g, '&')
+                     .replace(/&lt;/g, '<')
+                     .replace(/&gt;/g, '>')
+                     .replace(/&quot;/g, '"')
+                     .replace(/&#039;/g, "'")
+                     .replace(/&nbsp;/g, ' ');
+        // Remove any HTML tags
+        clean = clean.replace(/<[^>]*>/g, '');
+        // Remove any remaining special characters
+        clean = clean.replace(/[^\x20-\x7E]/g, ' ');
+        // Normalize spaces
+        clean = clean.replace(/\s+/g, ' ').trim();
+        return clean;
+    },
+    
     formatDate(isoStr) {
         if (!isoStr) return '—';
         try {
@@ -933,7 +983,10 @@ const Utils = {
     },
     
     getThreatLevels() { return ['Low', 'Medium', 'High', 'Critical']; },
-    getFeralOptions() { return ['Nil', 'Low', 'Medium', 'High']; }
+    getFeralOptions() { return ['Nil', 'Low', 'Medium', 'High']; },
+    getHeritageOptions() { 
+        return ['High – known cultural site', 'Moderate – potential heritage', 'Low – minimal evidence', 'Not Assessed']; 
+    }
 };
 
 // ================================================================
@@ -1047,6 +1100,7 @@ class App {
         this.currentLayer = 'streets';
         this.searchMarker = null;
         this.layers = {};
+        this.isGenerating = false;
     }
     
     // ================================================================
@@ -1472,20 +1526,111 @@ class App {
     }
     
     // ================================================================
+    // CHECKLIST HELPERS
+    // ================================================================
+    getChecklistData() {
+        const getCheck = (id) => document.getElementById(id)?.checked || false;
+        return {
+            general: {
+                siteLocation: getCheck('chk_siteLocation'),
+                accessibility: getCheck('chk_accessibility'),
+                siteConditions: getCheck('chk_siteConditions'),
+                infrastructure: getCheck('chk_infrastructure')
+            },
+            environmental: {
+                protectedSpecies: getCheck('chk_protectedSpecies'),
+                environmentalImpacts: getCheck('chk_environmentalImpacts'),
+                compliance: getCheck('chk_compliance'),
+                conservation: getCheck('chk_conservation')
+            },
+            workPractices: {
+                workPractices: getCheck('chk_workPractices'),
+                healthSafety: getCheck('chk_healthSafety'),
+                risksHazards: getCheck('chk_risksHazards'),
+                controlMeasures: getCheck('chk_controlMeasures')
+            },
+            equipment: {
+                equipmentInspected: getCheck('chk_equipmentInspected'),
+                safeCondition: getCheck('chk_safeCondition'),
+                maintenanceRecords: getCheck('chk_maintenanceRecords'),
+                industryStandards: getCheck('chk_industryStandards')
+            }
+        };
+    }
+    
+    getChecklistCount() {
+        const data = this.getChecklistData();
+        let total = 0, done = 0;
+        Object.values(data).forEach(section => {
+            Object.values(section).forEach(val => {
+                total++;
+                if (val) done++;
+            });
+        });
+        return { total, done };
+    }
+    
+    updateChecklistDisplay() {
+        const { total, done } = this.getChecklistCount();
+        const summary = document.getElementById('checklistSummary');
+        if (summary) {
+            summary.innerHTML = `<span class="done">✓ ${done}/${total} completed</span> <span class="pending">${total - done} remaining</span>`;
+        }
+        const progress = document.getElementById('checklistProgress');
+        if (progress) {
+            const pct = total > 0 ? (done / total) * 100 : 0;
+            progress.style.width = pct + '%';
+            progress.style.background = pct >= 80 ? 'var(--success)' : pct >= 50 ? 'var(--warning)' : 'var(--danger)';
+        }
+    }
+    
+    // ================================================================
     // FORM
     // ================================================================
     collectForm() {
+        const cleanLabelForStorage = (str) => {
+            if (!str) return '';
+            return str.replace(/^✓\s*/, '').replace(/[^\w\s.,!?\-()'"]/g, ' ').trim();
+        };
+        
         const get = (id) => document.getElementById(id)?.value || '';
         const getNum = (id) => parseFloat(document.getElementById(id)?.value) || 0;
+        const checklist = this.getChecklistData();
         
         return {
             id: this.currentId || Utils.uuid(),
             status: this.isDraft ? 'draft' : 'finalised',
+            // Site Info
             siteName: get('siteName'),
             inspector: get('inspector'),
             organization: get('organization'),
             dateTime: get('dateTime') || new Date().toISOString().slice(0,16),
             coords: `${this.currentLat.toFixed(6)}, ${this.currentLng.toFixed(6)}`,
+            // General Site Conditions
+            siteLocation: checklist.general.siteLocation,
+            accessibility: checklist.general.accessibility,
+            siteConditions: checklist.general.siteConditions,
+            infrastructure: checklist.general.infrastructure,
+            siteConditionsNotes: get('siteConditionsNotes'),
+            // Environmental
+            protectedSpecies: checklist.environmental.protectedSpecies,
+            environmentalImpacts: checklist.environmental.environmentalImpacts,
+            compliance: checklist.environmental.compliance,
+            conservation: checklist.environmental.conservation,
+            environmentalNotes: get('environmentalNotes'),
+            // Work Practices
+            workPractices: checklist.workPractices.workPractices,
+            healthSafety: checklist.workPractices.healthSafety,
+            risksHazards: checklist.workPractices.risksHazards,
+            controlMeasures: checklist.workPractices.controlMeasures,
+            workPracticesNotes: get('workPracticesNotes'),
+            // Equipment
+            equipmentInspected: checklist.equipment.equipmentInspected,
+            safeCondition: checklist.equipment.safeCondition,
+            maintenanceRecords: checklist.equipment.maintenanceRecords,
+            industryStandards: checklist.equipment.industryStandards,
+            equipmentNotes: get('equipmentNotes'),
+            // Ecological Health
             vegetationType: get('vegetationType'),
             tenure: get('tenure'),
             vegHealth: getNum('vegHealth'),
@@ -1494,18 +1639,28 @@ class App {
             habitatQuality: getNum('habitatQuality'),
             disturbance: getNum('disturbance'),
             regeneration: getNum('regeneration'),
+            // Threats
             weedsList: get('weedsList'),
             feralAnimals: get('feralAnimals'),
             fireHistory: get('fireHistory'),
             threatLevel: get('threatLevel'),
+            // Observations & Recommendations
             observations: get('observations'),
             recommendations: get('recommendations'),
+            // Aboriginal Heritage
+            aboriginalHeritage: get('aboriginalHeritage'),
+            culturalSites: get('culturalSites'),
+            heritageSignificance: get('heritageSignificance'),
+            // Weather & Soil
             weather: get('weather'),
             soilCondition: get('soilCondition'),
+            // Photos
             photos: this.currentPhotos,
             geometry: this.getGeometry(),
             waypoints: this.getWaypoints(),
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(),
+            // Checklist count for display
+            checklistCount: this.getChecklistCount()
         };
     }
     
@@ -1515,12 +1670,19 @@ class App {
         const vegTypes = Utils.getVegetationTypes();
         const threats = Utils.getThreatLevels();
         const feral = Utils.getFeralOptions();
+        const heritageOpts = Utils.getHeritageOptions();
         
         const vegOpts = vegTypes.map(v => `<option ${d.vegetationType === v ? 'selected' : ''}>${v}</option>`).join('');
         const threatOpts = threats.map(t => `<option ${d.threatLevel === t ? 'selected' : ''}>${t}</option>`).join('');
         const feralOpts = feral.map(f => `<option ${d.feralAnimals === f ? 'selected' : ''}>${f}</option>`).join('');
+        const heritageOptions = heritageOpts.map(h => `<option ${d.heritageSignificance === h ? 'selected' : ''}>${h}</option>`).join('');
         
         const photoCount = this.currentPhotos.length;
+        const chk = (id, val) => `<input type="checkbox" id="${id}" ${val ? 'checked' : ''}>`;
+        const chkLabel = (id, label, val) => {
+            const cleanLabel = label.replace(/^✓\s*/, '').trim();
+            return `<label>${chk(id, val)} ${cleanLabel}</label>`;
+        };
         
         return `
             <form id="inspectionForm">
@@ -1581,6 +1743,103 @@ class App {
                     </div>
                 </div>
                 
+                <!-- CHECKLIST: General Site Conditions -->
+                <div class="form-section" style="border-left: 4px solid #3b82f6;">
+                    <button type="button" class="section-header" style="color:#3b82f6;">
+                        <span><i class="fas fa-map-pin"></i> General Site Conditions</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="section-content">
+                        <div class="checkbox-group">
+                            ${chkLabel('chk_siteLocation', '✓ Verified site location and boundaries', d.siteLocation)}
+                            ${chkLabel('chk_accessibility', '✓ Assessed accessibility and entry points', d.accessibility)}
+                            ${chkLabel('chk_siteConditions', '✓ Evaluated site conditions (topography, soil, vegetation, drainage)', d.siteConditions)}
+                            ${chkLabel('chk_infrastructure', '✓ Identified existing infrastructure or features impacting inspection', d.infrastructure)}
+                        </div>
+                        <div class="form-group">
+                            <label>Additional Notes</label>
+                            <textarea id="siteConditionsNotes" rows="1" placeholder="Observations about site conditions">${Utils.escapeHtml(d.siteConditionsNotes||'')}</textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- CHECKLIST: Environmental Considerations -->
+                <div class="form-section" style="border-left: 4px solid #10b981;">
+                    <button type="button" class="section-header" style="color:#10b981;">
+                        <span><i class="fas fa-leaf"></i> Environmental Considerations</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="section-content">
+                        <div class="checkbox-group">
+                            ${chkLabel('chk_protectedSpecies', '✓ Assessed presence of protected flora or fauna species', d.protectedSpecies)}
+                            ${chkLabel('chk_environmentalImpacts', '✓ Evaluated potential impacts on environment (erosion, habitat destruction, contamination)', d.environmentalImpacts)}
+                            ${chkLabel('chk_compliance', '✓ Verified compliance with environmental legislation and regulations', d.compliance)}
+                            ${chkLabel('chk_conservation', '✓ Noted areas of conservation significance or ecological value', d.conservation)}
+                        </div>
+                        <div class="form-group">
+                            <label>Environmental Notes</label>
+                            <textarea id="environmentalNotes" rows="1" placeholder="Key environmental observations">${Utils.escapeHtml(d.environmentalNotes||'')}</textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- CHECKLIST: Work Practices and Procedures -->
+                <div class="form-section" style="border-left: 4px solid #f59e0b;">
+                    <button type="button" class="section-header" style="color:#f59e0b;">
+                        <span><i class="fas fa-hard-hat"></i> Work Practices & Procedures</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="section-content">
+                        <div class="checkbox-group">
+                            ${chkLabel('chk_workPractices', '✓ Observed and evaluated work practices and procedures', d.workPractices)}
+                            ${chkLabel('chk_healthSafety', '✓ Assessed compliance with occupational health and safety regulations', d.healthSafety)}
+                            ${chkLabel('chk_risksHazards', '✓ Identified potential risks and hazards', d.risksHazards)}
+                            ${chkLabel('chk_controlMeasures', '✓ Reviewed implementation of control measures to mitigate risks', d.controlMeasures)}
+                        </div>
+                        <div class="form-group">
+                            <label>Work Practice Notes</label>
+                            <textarea id="workPracticesNotes" rows="1" placeholder="Observations on work practices">${Utils.escapeHtml(d.workPracticesNotes||'')}</textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- CHECKLIST: Equipment and Machinery -->
+                <div class="form-section" style="border-left: 4px solid #8b5cf6;">
+                    <button type="button" class="section-header" style="color:#8b5cf6;">
+                        <span><i class="fas fa-cogs"></i> Equipment & Machinery</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="section-content">
+                        <div class="checkbox-group">
+                            ${chkLabel('chk_equipmentInspected', '✓ Inspected equipment and machinery used on-site', d.equipmentInspected)}
+                            ${chkLabel('chk_safeCondition', '✓ Ensured equipment is in safe working condition', d.safeCondition)}
+                            ${chkLabel('chk_maintenanceRecords', '✓ Checked maintenance and service records', d.maintenanceRecords)}
+                            ${chkLabel('chk_industryStandards', '✓ Verified compliance with relevant industry standards', d.industryStandards)}
+                        </div>
+                        <div class="form-group">
+                            <label>Equipment Notes</label>
+                            <textarea id="equipmentNotes" rows="1" placeholder="Equipment observations">${Utils.escapeHtml(d.equipmentNotes||'')}</textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Checklist Progress -->
+                <div class="form-section" style="border-left: 4px solid var(--primary);">
+                    <div class="section-content" style="padding:8px 12px;">
+                        <div class="flex-between">
+                            <span class="text-sm" style="font-weight:600;">Checklist Progress</span>
+                            <span class="checklist-summary" id="checklistSummary">
+                                <span class="done">✓ 0/16 completed</span>
+                                <span class="pending">16 remaining</span>
+                            </span>
+                        </div>
+                        <div class="checklist-progress">
+                            <div class="fill" id="checklistProgress" style="width:0%;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Ecological Health -->
                 <div class="form-section">
                     <button type="button" class="section-header">
                         <span><i class="fas fa-chart-line"></i> Ecological Health</span>
@@ -1653,6 +1912,7 @@ class App {
                     </div>
                 </div>
                 
+                <!-- Species & Threats -->
                 <div class="form-section">
                     <button type="button" class="section-header">
                         <span><i class="fas fa-paw"></i> Species & Threats</span>
@@ -1662,7 +1922,6 @@ class App {
                         <div class="form-group">
                             <label>Declared Weeds Present</label>
                             <input id="weedsList" value="${Utils.escapeHtml(d.weedsList||'')}" placeholder="e.g., Gorse, Blackberry, Serrated Tussock">
-                            <div class="hint">List all declared weed species observed</div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
@@ -1678,17 +1937,53 @@ class App {
                             <label>Fire History</label>
                             <input id="fireHistory" value="${Utils.escapeHtml(d.fireHistory||'')}" placeholder="Years since last fire, fire frequency">
                         </div>
+                    </div>
+                </div>
+                
+                <!-- Aboriginal Heritage -->
+                <div class="form-section" style="border-left: 4px solid #d4a843;">
+                    <button type="button" class="section-header" style="color:#8b6b2a;">
+                        <span><i class="fas fa-hand-peace"></i> Aboriginal Heritage</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="section-content">
                         <div class="form-group">
-                            <label>Observations</label>
-                            <textarea id="observations" rows="2" placeholder="Detailed ecological observations, notable species, habitat features">${Utils.escapeHtml(d.observations||'')}</textarea>
+                            <label>Aboriginal Heritage Significance</label>
+                            <select id="heritageSignificance">${heritageOptions}</select>
                         </div>
                         <div class="form-group">
-                            <label>Management Recommendations</label>
-                            <textarea id="recommendations" rows="2" placeholder="Recommended management actions, priority interventions">${Utils.escapeHtml(d.recommendations||'')}</textarea>
+                            <label>Observed Cultural Sites / Artefacts</label>
+                            <textarea id="culturalSites" rows="2" placeholder="e.g., scarred trees, shell middens, stone artefacts, grinding grooves">${Utils.escapeHtml(d.culturalSites||'')}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Heritage Management Notes</label>
+                            <textarea id="aboriginalHeritage" rows="2" placeholder="Recommendations for cultural heritage protection, consultation requirements">${Utils.escapeHtml(d.aboriginalHeritage||'')}</textarea>
+                        </div>
+                        <div class="text-muted text-xs" style="margin-top:4px;">
+                            <i class="fas fa-info-circle"></i> Refer to the Aboriginal Heritage Act 1975 (Tas) for regulatory requirements.
                         </div>
                     </div>
                 </div>
                 
+                <!-- Observations & Recommendations -->
+                <div class="form-section">
+                    <button type="button" class="section-header">
+                        <span><i class="fas fa-pen"></i> Summary & Recommendations</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="section-content">
+                        <div class="form-group">
+                            <label>Observations</label>
+                            <textarea id="observations" rows="3" placeholder="Summarize your observations, findings, and any concerns">${Utils.escapeHtml(d.observations||'')}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Recommendations</label>
+                            <textarea id="recommendations" rows="3" placeholder="Potential improvements, corrective actions, management recommendations">${Utils.escapeHtml(d.recommendations||'')}</textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Photos -->
                 <div class="form-section">
                     <button type="button" class="section-header">
                         <span><i class="fas fa-camera"></i> Photos (${photoCount}${photoCount > 0 ? ' / 20' : ''})</span>
@@ -1780,6 +2075,14 @@ class App {
                 };
             }
         });
+        
+        // Checklist checkbox listeners
+        document.querySelectorAll('.checkbox-group input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', () => this.updateChecklistDisplay());
+        });
+        
+        // Initial checklist update
+        this.updateChecklistDisplay();
     }
     
     // ================================================================
@@ -1859,9 +2162,6 @@ class App {
         g.innerHTML = this.currentPhotos.map((p, i) => `
             <div class="photo-item" data-idx="${i}">
                 <img src="${p.dataURL}" alt="Photo ${i+1}" loading="lazy">
-                <div class="photo-overlay">
-                    <span>${new Date(p.timestamp).toLocaleTimeString()}</span>
-                </div>
                 <button class="remove-photo" data-idx="${i}" title="Remove photo">×</button>
                 ${p.isHero ? '<div class="hero-badge">Cover</div>' : ''}
             </div>
@@ -1922,6 +2222,9 @@ class App {
             
             const countEl = document.querySelector('.photo-count');
             if (countEl) countEl.textContent = `${this.currentPhotos.length} photos added`;
+            
+            // Update checklist state from saved data
+            this.updateChecklistDisplay();
         } catch (e) { console.error('Load error:', e); Toast.error('Failed to load'); }
     }
     
@@ -1938,6 +2241,8 @@ class App {
     }
     
     async finalise() {
+        if (this.isGenerating) return;
+        
         try {
             const data = this.collectForm();
             if (!data.siteName) { Toast.warning('Site name required'); return; }
@@ -1952,441 +2257,586 @@ class App {
         } catch (e) { console.error('Finalise error:', e); Toast.error('Failed to finalise'); }
     }
     
-    // ================================================================
-    // REPORT - WITH WORKING MAP CAPTURE USING html2canvas
-    // ================================================================
-    async generateReport(inspection) {
-        try {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('p', 'mm', 'a4');
-            const pageWidth = 210, pageHeight = 297, margin = 18;
-            let y = margin;
-            const eco = inspection.ecologicalScore || Utils.calculateScore(inspection);
-            const colour = '#1a5f4a';
-            
-            // Helper: Add plain text (SAME for Observations and Recommendations)
-            const addText = (text, size = 10, color = '#333') => {
-                if (!text) return;
-                const cleanText = Utils.cleanText(text);
-                if (!cleanText) return;
-                doc.setFontSize(size);
-                doc.setTextColor(color);
-                const lines = doc.splitTextToSize(cleanText, pageWidth - 2 * margin);
-                const lineHeight = size * 0.45;
-                const totalHeight = lines.length * lineHeight + 1.5;
-                if (y + totalHeight > pageHeight - margin - 8) {
-                    doc.addPage();
-                    y = margin + 5;
-                    addFooter(doc, inspection, pageWidth, pageHeight, margin);
+// ================================================================
+// REPORT GENERATION - FIXED VERSION (Grey Text + Wrapping)
+// ================================================================
+async generateReport(inspection) {
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        const pageWidth = 210, pageHeight = 297, margin = 18;
+        let y = margin;
+        const eco = inspection.ecologicalScore || Utils.calculateScore(inspection);
+        const colour = '#1a5f4a';
+        
+        // CRITICAL FIX: Complete text cleaning
+        const cleanText = (text) => {
+            if (!text) return '';
+            let clean = String(text);
+            // Remove HTML tags
+            clean = clean.replace(/<[^>]*>/g, '');
+            // Remove all Unicode special characters including zero-width spaces
+            clean = clean.replace(/[\u2713\u2717\u2611\u2610\u2714\u274c\u25a0\u25cf\u2022\u25e6\uFEFF\u200B\u200C\u200D\u00A0]/g, '');
+            // Remove any non-ASCII characters (keep only printable ASCII)
+            clean = clean.replace(/[^\x20-\x7E]/g, ' ');
+            // Remove multiple spaces
+            clean = clean.replace(/\s+/g, ' ');
+            // Trim
+            clean = clean.trim();
+            return clean;
+        };
+        
+        // Helper: Add text with auto-page breaks
+        const addText = (text, size = 10, color = '#000000') => {
+            if (!text) return;
+            const clean = cleanText(text);
+            if (!clean) return;
+            doc.setFontSize(size);
+            doc.setTextColor(color);
+            const lines = doc.splitTextToSize(clean, pageWidth - 2 * margin);
+            const lineHeight = size * 0.45;
+            const totalHeight = lines.length * lineHeight + 1.5;
+            if (y + totalHeight > pageHeight - margin - 8) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+            }
+            doc.text(lines, margin, y);
+            y += totalHeight;
+        };
+        
+        // Helper: Add title
+        const addTitle = (text, size = 18, color = colour) => {
+            const clean = cleanText(text);
+            if (!clean) return;
+            doc.setFontSize(size);
+            doc.setTextColor(color);
+            doc.text(clean, margin, y);
+            y += size * 0.4 + 2;
+        };
+        
+        // Helper: Draw line
+        const drawLine = () => {
+            doc.setDrawColor(colour);
+            doc.setLineWidth(0.5);
+            doc.line(margin, y, pageWidth - margin, y);
+            y += 5;
+        };
+        
+        // Helper: Add footer
+        const addFooter = () => {
+            doc.setDrawColor(colour);
+            doc.setLineWidth(0.3);
+            doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
+            doc.setFontSize(7);
+            doc.setTextColor('#aaa');
+            const id = cleanText(inspection.id || 'N/A');
+            doc.text(id, margin, pageHeight - 5);
+            const date = Utils.formatDate(inspection.dateTime);
+            doc.text(date, pageWidth - margin, pageHeight - 5, { align: 'right' });
+            const pageNum = doc.internal.getCurrentPageInfo().pageNumber;
+            doc.text(`Page ${pageNum}`, pageWidth/2, pageHeight - 5, { align: 'center' });
+        };
+        
+        // ============================================================
+        // COVER PAGE
+        // ============================================================
+        doc.setFillColor(colour);
+        doc.rect(0, 0, pageWidth, 6, 'F');
+        y = 30;
+        
+        doc.setFontSize(32);
+        doc.setTextColor(colour);
+        doc.text('ENVIRONMENTAL', margin, y);
+        y += 14;
+        doc.text('ASSESSMENT REPORT', margin, y);
+        y += 12;
+        drawLine();
+        y += 6;
+        
+        doc.setFontSize(20);
+        doc.setTextColor('#000000');
+        const siteName = cleanText(inspection.siteName || 'Site Assessment');
+        doc.text(siteName, margin, y);
+        y += 12;
+        
+        doc.setFontSize(11);
+        doc.setTextColor('#000000');
+        const org = cleanText(inspection.organization || 'Environmental Client');
+        doc.text(`Prepared for: ${org}`, margin, y);
+        y += 6;
+        const date = Utils.formatDate(inspection.dateTime);
+        doc.text(`Date: ${date}`, margin, y);
+        y += 6;
+        const id = cleanText(inspection.id || 'N/A');
+        doc.text(`Report ID: ${id}`, margin, y);
+        y += 6;
+        const author = cleanText(inspection.inspector || 'Environmental Consultant');
+        doc.text(`Author: ${author}`, margin, y);
+        y += 10;
+        
+        // Cover photo
+        if (inspection.photos && inspection.photos.length > 0) {
+            const hero = inspection.photos.find(p => p.isHero) || inspection.photos[0];
+            try {
+                const img = new Image();
+                const imgData = await new Promise((resolve) => {
+                    img.onload = () => resolve({ width: img.width, height: img.height });
+                    img.onerror = () => resolve(null);
+                    img.src = hero.dataURL;
+                });
+                
+                if (imgData) {
+                    const maxImgWidth = pageWidth - 2 * margin - 20;
+                    const maxImgHeight = 70;
+                    let imgWidth = maxImgWidth;
+                    let imgHeight = (imgData.height / imgData.width) * maxImgWidth;
+                    if (imgHeight > maxImgHeight) {
+                        imgHeight = maxImgHeight;
+                        imgWidth = (imgData.width / imgData.height) * maxImgHeight;
+                    }
+                    const xOffset = margin + 10 + (maxImgWidth - imgWidth) / 2;
+                    doc.addImage(hero.dataURL, 'JPEG', xOffset, y, imgWidth, imgHeight);
+                    y += imgHeight + 8;
+                    doc.setFontSize(7);
+                    doc.setTextColor('#999');
+                    const caption = cleanText(inspection.siteName || 'Site Photo');
+                    doc.text(`Cover Photo: ${caption}`, margin + 10, y);
+                    y += 6;
                 }
-                doc.text(lines, margin, y);
-                y += totalHeight;
-            };
+            } catch (e) {
+                // Skip photo on error
+            }
+        }
+        
+        doc.setFillColor(colour);
+        doc.rect(0, pageHeight - 6, pageWidth, 3, 'F');
+        doc.setFontSize(7);
+        doc.setTextColor('#999');
+        doc.text('© EcoMaintenance Professional v4.0', margin, pageHeight - 3);
+        doc.text('Environmental Assessment Report', pageWidth / 2, pageHeight - 3, { align: 'center' });
+        doc.text('Page 1', pageWidth - margin, pageHeight - 3, { align: 'right' });
+        
+        // ============================================================
+        // EXECUTIVE SUMMARY
+        // ============================================================
+        doc.addPage();
+        y = margin + 5;
+        addFooter();
+        addTitle('EXECUTIVE SUMMARY', 22);
+        drawLine();
+        y += 4;
+        
+        doc.setFontSize(14);
+        doc.setTextColor(colour);
+        doc.text(`Overall Condition Score: ${eco.conditionScore}/10`, margin, y);
+        y += 8;
+        
+        doc.setFontSize(11);
+        doc.setTextColor(eco.colour);
+        doc.text(`Risk Rating: ${eco.riskRating}`, margin, y);
+        y += 6;
+        doc.setTextColor('#000000');  // FIXED: Black text
+        doc.text(`Management Priority: ${eco.priority}`, margin, y);
+        y += 6;
+        doc.text(`Conservation Significance: ${eco.significance}`, margin, y);
+        y += 10;
+        
+        const summaryText = `This report presents findings of an ecological assessment at "${cleanText(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`;
+        addText(summaryText, 10);
+        y += 4;
+        
+        doc.setFontSize(11);
+        doc.setTextColor(colour);
+        doc.text('Key Findings:', margin, y);
+        y += 5;
+        doc.setFontSize(9);
+        doc.setTextColor('#000000');  // FIXED: Black text
+        const findings = [
+            `Vegetation Health: ${inspection.vegHealth || 6}/10`,
+            `Species Richness: ${inspection.speciesRichness || 5} species recorded`,
+            `Weed Cover: ${inspection.weedCover || 30}%`,
+            `Habitat Quality: ${inspection.habitatQuality || 5}/10`,
+            `Disturbance Level: ${inspection.disturbance || 3}/10`
+        ];
+        findings.forEach(f => {
+            doc.text(`• ${f}`, margin + 4, y);
+            y += 5;
+        });
+        y += 6;
+        
+        // ============================================================
+        // CHECKLIST SUMMARY
+        // ============================================================
+        if (y > pageHeight - 60) {
+            doc.addPage();
+            y = margin + 5;
+            addFooter();
+        }
+        addTitle('CHECKLIST SUMMARY', 16);
+        drawLine();
+        y += 4;
+        
+        const checklistItems = [
+            { section: 'General Site Conditions', label: 'Verified site location and boundaries', value: inspection.siteLocation },
+            { section: 'General Site Conditions', label: 'Assessed accessibility and entry points', value: inspection.accessibility },
+            { section: 'General Site Conditions', label: 'Evaluated site conditions', value: inspection.siteConditions },
+            { section: 'General Site Conditions', label: 'Identified existing infrastructure or features', value: inspection.infrastructure },
             
-            const addTitle = (text, size = 18, color = colour) => {
-                const cleanText = Utils.cleanText(text);
-                if (!cleanText) return;
-                doc.setFontSize(size);
-                doc.setTextColor(color);
-                doc.text(cleanText, margin, y);
-                y += size * 0.4 + 2;
-            };
+            { section: 'Environmental Considerations', label: 'Assessed presence of protected flora or fauna', value: inspection.protectedSpecies },
+            { section: 'Environmental Considerations', label: 'Evaluated potential environmental impacts', value: inspection.environmentalImpacts },
+            { section: 'Environmental Considerations', label: 'Verified compliance with environmental regulations', value: inspection.compliance },
+            { section: 'Environmental Considerations', label: 'Noted areas of conservation significance', value: inspection.conservation },
             
-            const drawLine = () => { 
-                doc.setDrawColor(colour); 
-                doc.setLineWidth(0.5); 
-                doc.line(margin, y, pageWidth - margin, y); 
-                y += 5; 
-            };
+            { section: 'Work Practices and Procedures', label: 'Observed and evaluated work practices', value: inspection.workPractices },
+            { section: 'Work Practices and Procedures', label: 'Assessed compliance with health and safety regulations', value: inspection.healthSafety },
+            { section: 'Work Practices and Procedures', label: 'Identified potential risks and hazards', value: inspection.risksHazards },
+            { section: 'Work Practices and Procedures', label: 'Reviewed implementation of control measures', value: inspection.controlMeasures },
             
-            const addFooter = (doc, inspection, pageWidth, pageHeight, margin) => {
-                doc.setDrawColor(colour);
-                doc.setLineWidth(0.3);
-                doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
-                doc.setFontSize(7);
-                doc.setTextColor('#aaa');
-                doc.text(inspection.id, margin, pageHeight - 5);
-                doc.text(Utils.formatDate(inspection.dateTime), pageWidth - margin, pageHeight - 5, { align: 'right' });
-                const pageNum = doc.internal.getCurrentPageInfo().pageNumber;
-                doc.text(`Page ${pageNum}`, pageWidth/2, pageHeight - 5, { align: 'center' });
-            };
+            { section: 'Equipment and Machinery', label: 'Inspected equipment and machinery', value: inspection.equipmentInspected },
+            { section: 'Equipment and Machinery', label: 'Ensured equipment in safe working condition', value: inspection.safeCondition },
+            { section: 'Equipment and Machinery', label: 'Checked maintenance and service records', value: inspection.maintenanceRecords },
+            { section: 'Equipment and Machinery', label: 'Verified compliance with industry standards', value: inspection.industryStandards }
+        ];
+        
+        let total = checklistItems.length;
+        let completed = checklistItems.filter(item => item.value === true || item.value === 'true' || item.value === 1).length;
+        
+        doc.setFontSize(9);
+        doc.setTextColor('#000000');
+        doc.text(`Completion: ${completed}/${total} items (${Math.round((completed/total)*100)}%)`, margin, y);
+        y += 6;
+        
+        let currentSection = '';
+        checklistItems.forEach(item => {
+            if (y > pageHeight - 25) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+                doc.setFontSize(9);
+                doc.setTextColor('#000000');
+                doc.text(`Completion: ${completed}/${total} items (${Math.round((completed/total)*100)}%)`, margin, y);
+                y += 6;
+            }
             
-            // --- COVER PAGE ---
-            doc.setFillColor(colour);
-            doc.rect(0, 0, pageWidth, 6, 'F');
-            y = 30;
+            if (item.section !== currentSection) {
+                currentSection = item.section;
+                doc.setFontSize(11);
+                doc.setTextColor(colour);
+                doc.text(currentSection, margin, y);
+                y += 5;
+            }
             
-            doc.setFontSize(32);
-            doc.setTextColor(colour);
-            doc.text('ENVIRONMENTAL', margin, y);
-            y += 14;
-            doc.text('ASSESSMENT REPORT', margin, y);
-            y += 12;
+            const isChecked = (item.value === true || item.value === 'true' || item.value === 1);
+            const symbol = isChecked ? 'v' : 'x';
+            const color = isChecked ? '#10b981' : '#dc2626';
+            
+            doc.setFontSize(8);
+            doc.setTextColor(color);
+            doc.text(`${symbol}  ${item.label}`, margin + 4, y);
+            y += 5;
+        });
+        y += 3;
+        
+        // ============================================================
+        // SITE INFORMATION DETAILS - FIXED (Black text + Wrapping)
+        // ============================================================
+        if (y > pageHeight - 50) {
+            doc.addPage();
+            y = margin + 5;
+            addFooter();
+        }
+        addTitle('SITE INFORMATION', 16);
+        drawLine();
+        y += 4;
+        
+        const siteInfo = [
+            ['Site Name:', cleanText(inspection.siteName || 'Not specified')],
+            ['Inspector:', cleanText(inspection.inspector || 'Not specified')],
+            ['Organization:', cleanText(inspection.organization || 'Not specified')],
+            ['Date/Time:', Utils.formatDate(inspection.dateTime)],
+            ['Coordinates:', cleanText(inspection.coords || 'Not recorded')],
+            ['Vegetation Type:', cleanText(inspection.vegetationType || 'Not specified')],
+            ['Tenure:', cleanText(inspection.tenure || 'Not specified')],
+            ['Weather:', cleanText(inspection.weather || 'Not recorded')],
+            ['Soil Condition:', cleanText(inspection.soilCondition || 'Not recorded')]
+        ];
+        
+        doc.setFontSize(9);
+        doc.setTextColor('#000000');  // FIXED: Black text instead of grey
+        const maxWidth = pageWidth - 2 * margin;
+        
+        siteInfo.forEach(([label, value]) => {
+            if (y > pageHeight - 20) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+                doc.setFontSize(9);
+                doc.setTextColor('#000000');
+            }
+            
+            // FIXED: Wrap text to prevent overflow
+            const fullText = `${label} ${value}`;
+            const lines = doc.splitTextToSize(fullText, maxWidth);
+            doc.text(lines, margin, y);
+            y += (lines.length * 4.5) + 2;
+        });
+        y += 3;
+        
+        // ============================================================
+        // SPECIES AND THREATS
+        // ============================================================
+        if (y > pageHeight - 50) {
+            doc.addPage();
+            y = margin + 5;
+            addFooter();
+        }
+        addTitle('SPECIES AND THREATS', 16);
+        drawLine();
+        y += 4;
+        
+        doc.setFontSize(9);
+        doc.setTextColor('#000000');  // FIXED: Black text
+        const threats = [
+            ['Declared Weeds Present:', cleanText(inspection.weedsList || 'None recorded')],
+            ['Feral Animals:', cleanText(inspection.feralAnimals || 'Not assessed')],
+            ['Fire History:', cleanText(inspection.fireHistory || 'Not recorded')],
+            ['Overall Threat Level:', cleanText(inspection.threatLevel || 'Not assessed')]
+        ];
+        
+        threats.forEach(([label, value]) => {
+            if (y > pageHeight - 20) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+                doc.setFontSize(9);
+            }
+            const fullText = `${label} ${value}`;
+            const lines = doc.splitTextToSize(fullText, pageWidth - 2 * margin);
+            doc.text(lines, margin, y);
+            y += (lines.length * 4.5) + 2;
+        });
+        y += 3;
+        
+        // ============================================================
+        // ABORIGINAL HERITAGE
+        // ============================================================
+        if (y > pageHeight - 50) {
+            doc.addPage();
+            y = margin + 5;
+            addFooter();
+        }
+        addTitle('ABORIGINAL HERITAGE', 16);
+        drawLine();
+        y += 4;
+        
+        doc.setFontSize(10);
+        doc.setTextColor('#000000');
+        const heritageSig = cleanText(inspection.heritageSignificance || 'Not Assessed');
+        doc.text(`Heritage Significance: ${heritageSig}`, margin, y);
+        y += 6;
+        
+        doc.text('Cultural Sites / Artefacts:', margin, y);
+        y += 4;
+        const culturalSites = cleanText(inspection.culturalSites || 'No cultural sites recorded.');
+        addText(culturalSites, 9);
+        y += 4;
+        
+        doc.text('Heritage Management Notes:', margin, y);
+        y += 4;
+        const heritageNotes = cleanText(inspection.aboriginalHeritage || 'No heritage management notes.');
+        addText(heritageNotes, 9);
+        y += 6;
+        
+        // ============================================================
+        // OBSERVATIONS
+        // ============================================================
+        if (y > pageHeight - 40) {
+            doc.addPage();
+            y = margin + 5;
+            addFooter();
+        }
+        addTitle('OBSERVATIONS', 14);
+        drawLine();
+        y += 4;
+        const observations = cleanText(inspection.observations || 'No observations recorded.');
+        addText(observations, 10);
+        y += 4;
+        
+        // ============================================================
+        // RECOMMENDATIONS
+        // ============================================================
+        if (y > pageHeight - 40) {
+            doc.addPage();
+            y = margin + 5;
+            addFooter();
+        }
+        addTitle('RECOMMENDATIONS', 14);
+        drawLine();
+        y += 4;
+        const recommendations = cleanText(inspection.recommendations || 'No specific recommendations recorded.');
+        addText(recommendations, 10);
+        y += 4;
+        
+        // ============================================================
+        // ECOLOGICAL HEALTH DETAILS
+        // ============================================================
+        if (y > pageHeight - 50) {
+            doc.addPage();
+            y = margin + 5;
+            addFooter();
+        }
+        addTitle('ECOLOGICAL HEALTH METRICS', 14);
+        drawLine();
+        y += 4;
+        
+        doc.setFontSize(9);
+        doc.setTextColor('#000000');  // FIXED: Black text
+        const metrics = [
+            ['Vegetation Health:', `${inspection.vegHealth || 6}/10`],
+            ['Species Richness:', `${inspection.speciesRichness || 5}/10`],
+            ['Weed Cover:', `${inspection.weedCover || 30}%`],
+            ['Habitat Quality:', `${inspection.habitatQuality || 5}/10`],
+            ['Disturbance Level:', `${inspection.disturbance || 3}/10`],
+            ['Regeneration:', `${inspection.regeneration || 5}/10`],
+            ['Overall Score:', `${eco.conditionScore}/10`]
+        ];
+        
+        metrics.forEach(([label, value]) => {
+            if (y > pageHeight - 20) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+                doc.setFontSize(9);
+            }
+            const fullText = `${label} ${value}`;
+            const lines = doc.splitTextToSize(fullText, pageWidth - 2 * margin);
+            doc.text(lines, margin, y);
+            y += (lines.length * 4.5) + 2;
+        });
+        y += 3;
+        
+        // ============================================================
+        // CHECKLIST NOTES
+        // ============================================================
+        const notes = [
+            { title: 'Site Conditions Notes:', text: inspection.siteConditionsNotes },
+            { title: 'Environmental Notes:', text: inspection.environmentalNotes },
+            { title: 'Work Practice Notes:', text: inspection.workPracticesNotes },
+            { title: 'Equipment Notes:', text: inspection.equipmentNotes }
+        ];
+        
+        let hasNotes = notes.some(n => n.text);
+        if (hasNotes) {
+            if (y > pageHeight - 50) {
+                doc.addPage();
+                y = margin + 5;
+                addFooter();
+            }
+            addTitle('ADDITIONAL NOTES', 14);
+            drawLine();
+            y += 4;
+            
+            notes.forEach(note => {
+                if (note.text) {
+                    doc.setFontSize(10);
+                    doc.setTextColor(colour);
+                    doc.text(note.title, margin, y);
+                    y += 4;
+                    doc.setFontSize(9);
+                    doc.setTextColor('#000000');  // FIXED: Black text
+                    addText(note.text, 9);
+                    y += 2;
+                }
+            });
+        }
+        
+        // ============================================================
+        // PHOTOS
+        // ============================================================
+        if (inspection.photos && inspection.photos.length > 0) {
+            doc.addPage();
+            y = margin + 5;
+            addFooter();
+            addTitle('PHOTO DOCUMENTATION', 18);
             drawLine();
             y += 6;
             
-            doc.setFontSize(20);
-            doc.setTextColor('#222');
-            doc.text(Utils.cleanText(inspection.siteName || 'Site Assessment'), margin, y);
-            y += 12;
+            const photos = inspection.photos.slice(0, 15);
+            const photoSize = 50;
+            const gap = 5;
+            const maxCols = Math.floor((pageWidth - 2 * margin + gap) / (photoSize + gap));
+            let row = 0, col = 0;
             
-            doc.setFontSize(11);
-            doc.setTextColor('#555');
-            doc.text(`Prepared for: ${Utils.cleanText(inspection.organization || 'Environmental Client')}`, margin, y);
-            y += 6;
-            doc.text(`Date: ${Utils.formatDate(inspection.dateTime)}`, margin, y);
-            y += 6;
-            doc.text(`Report ID: ${inspection.id}`, margin, y);
-            y += 6;
-            doc.text(`Author: ${Utils.cleanText(inspection.inspector || 'Environmental Consultant')}`, margin, y);
-            y += 10;
-            
-            // Hero image
-            if (inspection.photos && inspection.photos.length > 0) {
-                const hero = inspection.photos.find(p => p.isHero) || inspection.photos[0];
+            for (let i = 0; i < photos.length; i++) {
+                const p = photos[i];
+                const px = margin + col * (photoSize + gap);
+                const py = y + row * (photoSize + gap + 8);
+                
+                if (py + photoSize + 10 > pageHeight - margin - 15) {
+                    doc.addPage();
+                    y = margin + 5;
+                    addFooter();
+                    addTitle('PHOTO DOCUMENTATION (continued)', 14);
+                    drawLine();
+                    y += 6;
+                    row = 0;
+                    col = 0;
+                }
+                
                 try {
                     const img = new Image();
                     const imgData = await new Promise((resolve) => {
                         img.onload = () => resolve({ width: img.width, height: img.height });
                         img.onerror = () => resolve(null);
-                        img.src = hero.dataURL;
+                        img.src = p.dataURL;
                     });
                     
+                    let imgWidth = photoSize;
+                    let imgHeight = photoSize * 0.75;
                     if (imgData) {
-                        const maxImgWidth = pageWidth - 2*margin - 20;
-                        const maxImgHeight = 70;
-                        let imgWidth = maxImgWidth;
-                        let imgHeight = (imgData.height / imgData.width) * maxImgWidth;
-                        if (imgHeight > maxImgHeight) {
-                            imgHeight = maxImgHeight;
-                            imgWidth = (imgData.width / imgData.height) * maxImgHeight;
-                        }
-                        const xOffset = margin + 10 + (maxImgWidth - imgWidth) / 2;
-                        doc.addImage(hero.dataURL, 'JPEG', xOffset, y, imgWidth, imgHeight);
-                        y += imgHeight + 8;
-                        doc.setFontSize(7);
-                        doc.setTextColor('#999');
-                        doc.text(`Cover Photo: ${Utils.cleanText(inspection.siteName)}`, margin + 10, y);
-                        y += 6;
-                    } else {
-                        doc.setFillColor('#f5f5f5');
-                        doc.roundedRect(margin+10, y, pageWidth-2*margin-20, 45, 4, 4, 'F');
-                        doc.setFontSize(10);
-                        doc.setTextColor('#999');
-                        doc.text('Project Photograph', pageWidth/2, y+22, { align: 'center' });
-                        y += 50;
-                    }
-                } catch(e) {
-                    doc.setFillColor('#f5f5f5');
-                    doc.roundedRect(margin+10, y, pageWidth-2*margin-20, 45, 4, 4, 'F');
-                    doc.setFontSize(10);
-                    doc.setTextColor('#999');
-                    doc.text('Project Photograph', pageWidth/2, y+22, { align: 'center' });
-                    y += 50;
-                }
-            }
-            
-            doc.setFillColor(colour);
-            doc.rect(0, pageHeight-6, pageWidth, 3, 'F');
-            doc.setFontSize(7);
-            doc.setTextColor('#999');
-            doc.text('© EcoMaintenance Professional v4.0', margin, pageHeight-3);
-            doc.text('Environmental Assessment Report', pageWidth/2, pageHeight-3, { align: 'center' });
-            doc.text(`Page 1`, pageWidth - margin, pageHeight-3, { align: 'right' });
-            
-            // --- EXECUTIVE SUMMARY ---
-            doc.addPage();
-            y = margin + 5;
-            addFooter(doc, inspection, pageWidth, pageHeight, margin);
-            addTitle('EXECUTIVE SUMMARY', 22);
-            drawLine();
-            y += 4;
-            
-            doc.setFontSize(14);
-            doc.setTextColor(colour);
-            doc.text(`Overall Condition Score: ${eco.conditionScore}/10`, margin, y);
-            y += 8;
-            
-            doc.setFontSize(11);
-            doc.setTextColor(eco.colour);
-            doc.text(`Risk Rating: ${eco.riskRating}`, margin, y);
-            y += 6;
-            doc.setTextColor('#333');
-            doc.text(`Management Priority: ${eco.priority}`, margin, y);
-            y += 6;
-            doc.text(`Conservation Significance: ${eco.significance}`, margin, y);
-            y += 10;
-            
-            addText(`This report presents findings of an ecological assessment at "${Utils.cleanText(inspection.siteName)}" conducted on ${Utils.formatDate(inspection.dateTime)}.`, 10);
-            y += 4;
-            
-            doc.setFontSize(11);
-            doc.setTextColor(colour);
-            doc.text('Key Findings:', margin, y);
-            y += 5;
-            doc.setFontSize(9);
-            doc.setTextColor('#444');
-            const findings = [
-                `• Vegetation Health: ${inspection.vegHealth || 6}/10`,
-                `• Species Richness: ${inspection.speciesRichness || 5} species recorded`,
-                `• Weed Cover: ${inspection.weedCover || 30}%`,
-                `• Habitat Quality: ${inspection.habitatQuality || 5}/10`,
-                `• Disturbance Level: ${inspection.disturbance || 3}/10`
-            ];
-            findings.forEach(f => { doc.text(f, margin + 4, y); y += 5; });
-            y += 6;
-            
-            // --- ASSESSMENT DETAILS ---
-            if (y > pageHeight - 60) {
-                doc.addPage();
-                y = margin + 5;
-                addFooter(doc, inspection, pageWidth, pageHeight, margin);
-            }
-            addTitle('ASSESSMENT DETAILS', 16);
-            drawLine();
-            y += 4;
-            
-            function getStatus(value, max) {
-                const ratio = value / max;
-                if (ratio >= 0.8) return 'Good';
-                if (ratio >= 0.5) return 'Moderate';
-                return 'Poor';
-            }
-            
-            const tableData = [
-                ['Vegetation Health', `${inspection.vegHealth || 6}/10`, getStatus(inspection.vegHealth || 6, 10)],
-                ['Species Richness', `${inspection.speciesRichness || 5}/10`, getStatus(inspection.speciesRichness || 5, 10)],
-                ['Regeneration', `${inspection.regeneration || 5}/10`, getStatus(inspection.regeneration || 5, 10)],
-                ['Weed Cover', `${inspection.weedCover || 30}%`, getStatus(100 - (inspection.weedCover || 30), 100)],
-                ['Habitat Quality', `${inspection.habitatQuality || 5}/10`, getStatus(inspection.habitatQuality || 5, 10)],
-                ['Disturbance', `${inspection.disturbance || 3}/10`, getStatus(10 - (inspection.disturbance || 3), 10)]
-            ];
-            
-            doc.autoTable({
-                startY: y,
-                head: [['Parameter', 'Value', 'Status']],
-                body: tableData,
-                theme: 'striped',
-                headStyles: { fillColor: colour, textColor: '#fff', fontSize: 9 },
-                bodyStyles: { fontSize: 8 },
-                columnStyles: { 0: { cellWidth: 60 }, 1: { cellWidth: 40 }, 2: { cellWidth: 70 } },
-                didDrawCell: function(data) {
-                    if (data.section === 'body' && data.column.index === 2) {
-                        const text = data.cell.raw;
-                        let color = '#10b981';
-                        if (text === 'Moderate') color = '#f59e0b';
-                        if (text === 'Poor') color = '#dc2626';
-                        data.cell.styles.textColor = color;
-                    }
-                },
-                margin: { left: margin, right: margin }
-            });
-            y = doc.lastAutoTable.finalY + 8;
-            
-            // --- SITE INFORMATION ---
-            if (y > pageHeight - 50) {
-                doc.addPage();
-                y = margin + 5;
-                addFooter(doc, inspection, pageWidth, pageHeight, margin);
-            }
-            addTitle('SITE INFORMATION', 14);
-            drawLine();
-            y += 4;
-            
-            const siteInfo = [
-                ['Vegetation Type', inspection.vegetationType || 'Not specified'],
-                ['Tenure', inspection.tenure || 'Not specified'],
-                ['Coordinates', inspection.coords || 'Not recorded'],
-                ['Weather', inspection.weather || 'Not recorded'],
-                ['Soil Condition', inspection.soilCondition || 'Not recorded'],
-                ['Threat Level', inspection.threatLevel || 'Not assessed'],
-                ['Feral Animals', inspection.feralAnimals || 'Not assessed']
-            ];
-            
-            doc.autoTable({
-                startY: y,
-                head: [['Attribute', 'Details']],
-                body: siteInfo,
-                theme: 'striped',
-                headStyles: { fillColor: colour, textColor: '#fff', fontSize: 9 },
-                bodyStyles: { fontSize: 8 },
-                columnStyles: { 0: { cellWidth: 50 }, 1: { cellWidth: 120 } },
-                margin: { left: margin, right: margin }
-            });
-            y = doc.lastAutoTable.finalY + 8;
-            
-            // --- LOCATION MAP (using html2canvas to capture the actual map) ---
-            if (y > pageHeight - 70) {
-                doc.addPage();
-                y = margin + 5;
-                addFooter(doc, inspection, pageWidth, pageHeight, margin);
-            }
-            
-            addTitle('LOCATION MAP', 14);
-            drawLine();
-            y += 4;
-            
-            try {
-                // Capture the map using html2canvas
-                const mapElement = document.getElementById('map');
-                
-                // Wait for tiles to load
-                await new Promise(resolve => {
-                    let tilesLoaded = 0;
-                    const checkTiles = () => {
-                        const tiles = mapElement.querySelectorAll('.leaflet-tile-loaded');
-                        if (tiles.length > 0) {
-                            resolve();
+                        const aspectRatio = imgData.width / imgData.height;
+                        if (aspectRatio > 1) {
+                            imgWidth = photoSize;
+                            imgHeight = photoSize / aspectRatio;
                         } else {
-                            setTimeout(checkTiles, 200);
+                            imgHeight = photoSize;
+                            imgWidth = photoSize * aspectRatio;
                         }
-                    };
-                    checkTiles();
-                    // Fallback: resolve after 3 seconds anyway
-                    setTimeout(resolve, 3000);
-                });
-                
-                const canvas = await html2canvas(mapElement, {
-                    scale: 2,
-                    useCORS: true,
-                    backgroundColor: '#ffffff',
-                    logging: false,
-                    width: mapElement.offsetWidth,
-                    height: mapElement.offsetHeight
-                });
-                
-                const imgData = canvas.toDataURL('image/png');
-                const imgWidth = pageWidth - 2 * margin;
-                const imgHeight = imgWidth * (canvas.height / canvas.width);
-                const maxHeight = 140;
-                
-                let finalHeight = Math.min(imgHeight, maxHeight);
-                let finalWidth = imgWidth;
-                if (imgHeight > maxHeight) {
-                    finalWidth = imgWidth * (maxHeight / imgHeight);
-                    finalHeight = maxHeight;
-                }
-                
-                const xOffset = margin + (imgWidth - finalWidth) / 2;
-                doc.addImage(imgData, 'PNG', xOffset, y, finalWidth, finalHeight);
-                
-                // Add north arrow and scale bar
-                doc.setFontSize(8);
-                doc.setTextColor('#666');
-                doc.text('↑ North', pageWidth - margin - 20, y + 20);
-                doc.text('Scale: 1:10,000', pageWidth - margin - 30, y + 30);
-                
-                y += finalHeight + 10;
-            } catch (e) {
-                console.error('Map capture error:', e);
-                doc.setFontSize(9);
-                doc.setTextColor('#555');
-                doc.text('Map capture unavailable. Please ensure map is visible.', margin, y);
-                y += 6;
-            }
-            
-            // --- OBSERVATIONS (plain text using addText) ---
-            if (y > pageHeight - 40) {
-                doc.addPage();
-                y = margin + 5;
-                addFooter(doc, inspection, pageWidth, pageHeight, margin);
-            }
-            addTitle('OBSERVATIONS', 14);
-            drawLine();
-            y += 4;
-            addText(inspection.observations || 'No observations recorded.', 10);
-            y += 4;
-            
-            // --- RECOMMENDATIONS (plain text using addText - SAME as Observations) ---
-            if (y > pageHeight - 40) {
-                doc.addPage();
-                y = margin + 5;
-                addFooter(doc, inspection, pageWidth, pageHeight, margin);
-            }
-            addTitle('RECOMMENDATIONS', 14);
-            drawLine();
-            y += 4;
-            // Use the SAME addText function for plain text rendering
-            addText(inspection.recommendations || 'No specific recommendations recorded.', 10);
-            
-            // --- PHOTOS ---
-            if (inspection.photos && inspection.photos.length > 0) {
-                doc.addPage();
-                y = margin + 5;
-                addFooter(doc, inspection, pageWidth, pageHeight, margin);
-                addTitle('PHOTO DOCUMENTATION', 18);
-                drawLine();
-                y += 6;
-                
-                const photos = inspection.photos.slice(0, 15);
-                const photoSize = 50;
-                const gap = 5;
-                const maxCols = Math.floor((pageWidth - 2 * margin + gap) / (photoSize + gap));
-                let row = 0, col = 0;
-                
-                for (let i = 0; i < photos.length; i++) {
-                    const p = photos[i];
-                    const px = margin + col * (photoSize + gap);
-                    const py = y + row * (photoSize + gap + 8);
-                    
-                    if (py + photoSize + 10 > pageHeight - margin - 15) {
-                        doc.addPage();
-                        y = margin + 5;
-                        addFooter(doc, inspection, pageWidth, pageHeight, margin);
-                        addTitle('PHOTO DOCUMENTATION (continued)', 14);
-                        drawLine();
-                        y += 6;
-                        row = 0;
-                        col = 0;
                     }
                     
-                    try {
-                        const img = new Image();
-                        const imgData = await new Promise((resolve) => {
-                            img.onload = () => resolve({ width: img.width, height: img.height });
-                            img.onerror = () => resolve(null);
-                            img.src = p.dataURL;
-                        });
-                        
-                        let imgWidth = photoSize;
-                        let imgHeight = photoSize * 0.75;
-                        if (imgData) {
-                            const aspectRatio = imgData.width / imgData.height;
-                            if (aspectRatio > 1) {
-                                imgWidth = photoSize;
-                                imgHeight = photoSize / aspectRatio;
-                            } else {
-                                imgHeight = photoSize;
-                                imgWidth = photoSize * aspectRatio;
-                            }
-                        }
-                        
-                        const xOffset = px + (photoSize - imgWidth) / 2;
-                        const yOffset = py + (photoSize * 0.75 - imgHeight) / 2;
-                        doc.addImage(p.dataURL, 'JPEG', xOffset, yOffset, imgWidth, imgHeight);
-                        doc.setFontSize(6);
-                        doc.setTextColor('#666');
-                        doc.text(`Photo ${i+1}`, px + 2, py + photoSize * 0.75 + 4);
-                    } catch(e) {
-                        doc.setFillColor('#f0f0f0');
-                        doc.roundedRect(px, py, photoSize, photoSize * 0.75, 2, 2, 'F');
-                        doc.setFontSize(8);
-                        doc.setTextColor('#999');
-                        doc.text(`Photo ${i+1}`, px + photoSize/2 - 10, py + photoSize * 0.375);
-                    }
-                    
-                    col++;
-                    if (col >= maxCols) { col = 0; row++; }
+                    const xOffset = px + (photoSize - imgWidth) / 2;
+                    const yOffset = py + (photoSize * 0.75 - imgHeight) / 2;
+                    doc.addImage(p.dataURL, 'JPEG', xOffset, yOffset, imgWidth, imgHeight);
+                    doc.setFontSize(6);
+                    doc.setTextColor('#666');
+                    doc.text(`Photo ${i+1}`, px + 2, py + photoSize * 0.75 + 4);
+                } catch (e) {
+                    doc.setFillColor('#f0f0f0');
+                    doc.roundedRect(px, py, photoSize, photoSize * 0.75, 2, 2, 'F');
+                    doc.setFontSize(8);
+                    doc.setTextColor('#999');
+                    doc.text(`Photo ${i+1}`, px + photoSize/2 - 10, py + photoSize * 0.375);
+                }
+                
+                col++;
+                if (col >= maxCols) {
+                    col = 0;
+                    row++;
                 }
             }
-            
-            doc.save(`EcoMaintenance_Report_${inspection.id}.pdf`);
-            Toast.success('Professional report generated');
-        } catch (e) { 
-            console.error('Report error:', e); 
-            Toast.error('Failed to generate report: ' + e.message); 
         }
+        
+        // Save the PDF
+        const fileName = `EcoMaintenance_Report_${inspection.id || Date.now()}.pdf`;
+        doc.save(fileName);
+        Toast.success('Professional report generated successfully');
+        
+    } catch (e) {
+        console.error('Report generation error:', e);
+        Toast.error('Failed to generate report: ' + e.message);
     }
+}
     
     // ================================================================
     // VIEWS
@@ -2399,6 +2849,7 @@ class App {
             const avg = total > 0 ? insp.reduce((s, i) => s + (i.ecologicalScore?.conditionScore || 0), 0) / total : 0;
             const high = insp.filter(i => (i.ecologicalScore?.conditionScore || 0) >= 7).length;
             const crit = insp.filter(i => (i.ecologicalScore?.conditionScore || 0) < 4).length;
+            const heritageCount = insp.filter(i => i.heritageSignificance && i.heritageSignificance !== 'Not Assessed').length;
             
             const html = `
                 <div class="dashboard-grid">
@@ -2425,25 +2876,28 @@ class App {
                         <span class="stat-change ${crit > 0 ? 'negative' : 'positive'}">${crit > 0 ? 'Urgent action' : 'None'}</span>
                     </div>
                 </div>
-                
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
-                    <div class="stat-card" style="cursor:pointer;padding:10px;" onclick="app.showInspections()">
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <span><i class="fas fa-folder-open" style="color:var(--primary);"></i> <strong>${total}</strong> Reports</span>
-                            <span class="text-muted text-xs">View →</span>
-                        </div>
+                <div class="dashboard-grid" style="grid-template-columns:1fr 1fr 1fr;">
+                    <div class="stat-card">
+                        <div class="stat-value">${heritageCount}</div>
+                        <div class="stat-label">Heritage Sites</div>
+                        <span class="stat-change neutral">${heritageCount > 0 ? 'Recorded' : 'None'}</span>
                     </div>
-                    <div class="stat-card" style="cursor:pointer;padding:10px;" onclick="app.showDrafts()">
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <span><i class="fas fa-save" style="color:var(--warning);"></i> <strong>${drafts.length}</strong> Drafts</span>
-                            <span class="text-muted text-xs">View →</span>
-                        </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${drafts.length}</div>
+                        <div class="stat-label">Drafts</div>
+                        <span class="stat-change neutral">${drafts.length > 0 ? 'In progress' : 'None'}</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${insp.reduce((s, i) => s + (i.photos?.length || 0), 0)}</div>
+                        <div class="stat-label">Photos</div>
+                        <span class="stat-change neutral">Documentation</span>
                     </div>
                 </div>
                 
                 <div style="display:flex;gap:6px;flex-wrap:wrap;">
                     <button class="btn btn-primary" onclick="app.newInspection()"><i class="fas fa-plus"></i> New Assessment</button>
-                    <button class="btn btn-secondary" onclick="app.showDataManager()"><i class="fas fa-database"></i> Data Manager</button>
+                    <button class="btn btn-secondary" onclick="app.showInspections()"><i class="fas fa-folder-open"></i> View Reports</button>
+                    <button class="btn btn-secondary" onclick="app.showDrafts()"><i class="fas fa-save"></i> Drafts</button>
                 </div>
                 
                 <div style="margin-top:10px;padding:6px 10px;background:var(--gray-50);border-radius:var(--radius-sm);border:1px solid var(--gray-200);">
@@ -2452,6 +2906,7 @@ class App {
                         <span><i class="fas fa-database"></i> LocalStorage</span>
                         <span><i class="fas fa-map-pin"></i> ${total} assessments</span>
                         <span><i class="fas fa-camera"></i> ${insp.reduce((s, i) => s + (i.photos?.length || 0), 0)} photos</span>
+                        <span><i class="fas fa-hand-peace"></i> ${heritageCount} heritage</span>
                     </div>
                 </div>
             `;
@@ -2492,6 +2947,8 @@ class App {
             inspections.forEach(ins => {
                 const eco = ins.ecologicalScore || Utils.calculateScore(ins);
                 const cls = Utils.getRatingClass(eco.conditionScore);
+                const heritage = ins.heritageSignificance || 'Not Assessed';
+                const checklist = ins.checklistCount || { done: 0, total: 16 };
                 html += `
                     <div class="inspection-card" style="border-left-color:${eco.colour};" data-search="${Utils.escapeHtml(ins.siteName||'').toLowerCase()} ${Utils.escapeHtml(ins.inspector||'').toLowerCase()}">
                         <div class="card-title">${Utils.escapeHtml(ins.siteName || 'Unnamed')}</div>
@@ -2502,7 +2959,9 @@ class App {
                         <div class="flex gap-2" style="margin:4px 0;">
                             <span class="rating-badge ${cls}"><i class="fas ${eco.icon}"></i> ${eco.conditionScore}/10</span>
                             <span class="text-muted text-sm">${eco.riskRating}</span>
-                            <span class="text-muted text-sm">${ins.photos?.length || 0} photos</span>
+                            <span class="text-muted text-sm"><i class="fas fa-hand-peace"></i> ${heritage}</span>
+                            <span class="text-muted text-sm"><i class="fas fa-camera"></i> ${ins.photos?.length || 0}</span>
+                            <span class="text-muted text-sm"><i class="fas fa-check-double"></i> ${checklist.done}/${checklist.total}</span>
                         </div>
                         <div class="health-meter">
                             <div class="health-fill" style="width:${eco.conditionScore*10}%;background:${eco.colour};"></div>
@@ -2580,6 +3039,7 @@ class App {
             
             drafts.forEach(d => {
                 const age = Math.round((Date.now() - new Date(d.updatedAt).getTime()) / (1000 * 60 * 60 * 24));
+                const checklist = d.checklistCount || { done: 0, total: 16 };
                 html += `
                     <div class="inspection-card" style="border-left-color:var(--warning);">
                         <div class="card-title">${Utils.escapeHtml(d.siteName || 'Unnamed Draft')}</div>
@@ -2587,6 +3047,7 @@ class App {
                             <span><i class="fas fa-clock"></i> ${age > 0 ? `${age} days ago` : 'Today'}</span>
                             <span><i class="fas fa-user"></i> ${d.inspector || 'No inspector'}</span>
                             <span><i class="fas fa-camera"></i> ${d.photos?.length || 0} photos</span>
+                            <span><i class="fas fa-check-double"></i> ${checklist.done}/${checklist.total}</span>
                         </div>
                         <div class="card-actions">
                             <button class="btn btn-secondary btn-sm resume-draft" data-id="${d.id}"><i class="fas fa-pen"></i> Resume</button>
@@ -2681,7 +3142,25 @@ class App {
                 'Priority': i.ecologicalScore?.priority || '',
                 'Vegetation': i.vegetationType || '',
                 'Weed Cover': i.weedCover || '',
-                'Photos': i.photos?.length || 0
+                'Heritage Significance': i.heritageSignificance || '',
+                'Cultural Sites': i.culturalSites || '',
+                'Photos': i.photos?.length || 0,
+                'Location Verified': i.siteLocation ? 'Yes' : 'No',
+                'Accessibility': i.accessibility ? 'Yes' : 'No',
+                'Site Conditions': i.siteConditions ? 'Yes' : 'No',
+                'Infrastructure': i.infrastructure ? 'Yes' : 'No',
+                'Protected Species': i.protectedSpecies ? 'Yes' : 'No',
+                'Environmental Impacts': i.environmentalImpacts ? 'Yes' : 'No',
+                'Compliance': i.compliance ? 'Yes' : 'No',
+                'Conservation': i.conservation ? 'Yes' : 'No',
+                'Work Practices': i.workPractices ? 'Yes' : 'No',
+                'Health & Safety': i.healthSafety ? 'Yes' : 'No',
+                'Risks': i.risksHazards ? 'Yes' : 'No',
+                'Control Measures': i.controlMeasures ? 'Yes' : 'No',
+                'Equipment Inspected': i.equipmentInspected ? 'Yes' : 'No',
+                'Safe Condition': i.safeCondition ? 'Yes' : 'No',
+                'Maintenance': i.maintenanceRecords ? 'Yes' : 'No',
+                'Industry Standards': i.industryStandards ? 'Yes' : 'No'
             }));
             const ws = XLSX.utils.json_to_sheet(data);
             const wb = XLSX.utils.book_new();
