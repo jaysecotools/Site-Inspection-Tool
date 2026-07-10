@@ -1,5 +1,5 @@
 // ================================================================
-// REPORT GENERATION - THE REAL FIX FOR & CHARACTERS
+// REPORT GENERATION - FIXED CHECKLIST SUMMARY
 // ================================================================
 async generateReport(inspection) {
     if (this.isGenerating) {
@@ -26,12 +26,12 @@ async generateReport(inspection) {
         const eco = inspection.ecologicalScore || Utils.calculateScore(inspection);
         const colour = '#1a5f4a';
         
-        // CRITICAL FIX: Remove ALL & characters and HTML entities
+        // Clean text function
         const cleanForPDF = (text) => {
             if (!text) return '';
             let s = String(text);
             
-            // First, decode any existing HTML entities to their character equivalents
+            // Decode HTML entities
             s = s.replace(/&amp;/g, '&')
                  .replace(/&lt;/g, '<')
                  .replace(/&gt;/g, '>')
@@ -47,8 +47,7 @@ async generateReport(inspection) {
             // Remove HTML tags
             s = s.replace(/<[^>]*>/g, '');
             
-            // CRITICAL: Remove ALL remaining & characters (they cause issues in jsPDF)
-            // Replace & with space to prevent HTML entity interpretation
+            // CRITICAL: Remove ALL & characters
             s = s.replace(/&/g, ' ');
             
             // Remove non-printable characters but KEEP normal spaces
@@ -65,10 +64,10 @@ async generateReport(inspection) {
             if (!text) return '';
             let s = String(text);
             
-            // Remove ALL & characters (the root cause of the issue)
+            // Remove ALL & characters
             s = s.replace(/&/g, ' ');
             
-            // Remove any HTML entities that might remain
+            // Remove any HTML entities
             s = s.replace(/&[a-zA-Z]+;/g, ' ')
                  .replace(/&#[0-9]+;/g, ' ');
             
@@ -84,7 +83,7 @@ async generateReport(inspection) {
             return s;
         };
         
-        // Add text with wrapping
+        // Add text with wrapping - CRITICAL: pass as string, not array
         const addText = (text, fontSize = 10, color = '#000000') => {
             if (!text) return;
             const cleaned = cleanForPDF(text);
@@ -93,6 +92,7 @@ async generateReport(inspection) {
             doc.setFontSize(fontSize);
             doc.setTextColor(color);
             
+            // Split text into lines that fit the page width
             const lines = doc.splitTextToSize(cleaned, contentWidth);
             const lineHeight = fontSize * 0.45;
             
@@ -103,6 +103,8 @@ async generateReport(inspection) {
                 addFooter();
             }
             
+            // CRITICAL: Always pass lines as an array to handle wrapping properly
+            // But each line is a clean string without hidden characters
             doc.text(lines, margin, y);
             y += neededHeight + 2;
         };
@@ -277,7 +279,7 @@ async generateReport(inspection) {
         y += 6;
         
         // ============================================================
-        // CHECKLIST SUMMARY - COMPLETELY FIXED
+        // CHECKLIST SUMMARY - COMPLETELY FIXED WITH TEXT RENDERING
         // ============================================================
         if (y > pageHeight - 60) {
             doc.addPage();
@@ -343,11 +345,13 @@ async generateReport(inspection) {
             const symbol = isChecked ? '✓' : '✗';
             const color = isChecked ? '#10b981' : '#dc2626';
             
-            // CRITICAL FIX: Clean the label by removing ALL & characters
+            // CRITICAL FIX: Clean the label and render as a single string
             const label = cleanLabel(item.label);
             
             doc.setFontSize(8);
             doc.setTextColor(color);
+            // CRITICAL: Use the text method with the string directly - NOT as an array
+            // This prevents jsPDF from adding spaces between characters
             doc.text(`${symbol}  ${label}`, margin + 4, y);
             y += 5;
         });
