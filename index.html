@@ -6,6 +6,20 @@
     GREYED OUT TEXT NOW DISPLAYS CORRECTLY
     TEXT FLOWING OFF PAGE IS FIXED
     PDF REPORT CHARACTERS AND SPACING ISSUES FIXED
+    OBSERVATIONS SECTION TEXT ISSUE NOW FIXED
+
+-->
+
+
+
+<!--
+
+    WORKING VERSION
+
+    FIXED:
+    GREYED OUT TEXT NOW DISPLAYS CORRECTLY
+    TEXT FLOWING OFF PAGE IS FIXED
+    PDF REPORT CHARACTERS AND SPACING ISSUES FIXED
 
 -->
 
@@ -2648,36 +2662,40 @@ async generateReport(inspection) {
         addText(heritageNotes, 9);
         y += 6;
         
-        // ============================================================
-        // OBSERVATIONS
-        // ============================================================
-        if (y > pageHeight - 40) {
-            doc.addPage();
-            y = margin + 5;
-            addFooter();
-        }
-        addTitle('OBSERVATIONS', 14);
-        drawLine();
-        y += 4;
-        const observations = cleanText(inspection.observations || 'No observations recorded.');
-        addText(observations, 10);
-        y += 4;
-        
-        // ============================================================
-        // RECOMMENDATIONS
-        // ============================================================
-        if (y > pageHeight - 40) {
-            doc.addPage();
-            y = margin + 5;
-            addFooter();
-        }
-        addTitle('RECOMMENDATIONS', 14);
-        drawLine();
-        y += 4;
-        const recommendations = cleanText(inspection.recommendations || 'No specific recommendations recorded.');
-        addText(recommendations, 10);
-        y += 4;
-        
+// ============================================================
+// OBSERVATIONS
+// ============================================================
+if (y > pageHeight - 40) {
+    doc.addPage();
+    y = margin + 5;
+    addFooter();
+}
+addTitle('OBSERVATIONS', 14);
+drawLine();
+y += 4;
+doc.setFontSize(10);
+doc.setTextColor('#000000');  // FIXED: Black text
+const observations = cleanText(inspection.observations || 'No observations recorded.');
+addText(observations, 10);
+y += 4;
+
+// ============================================================
+// RECOMMENDATIONS
+// ============================================================
+if (y > pageHeight - 40) {
+    doc.addPage();
+    y = margin + 5;
+    addFooter();
+}
+addTitle('RECOMMENDATIONS', 14);
+drawLine();
+y += 4;
+doc.setFontSize(10);
+doc.setTextColor('#000000');  // FIXED: Black text
+const recommendations = cleanText(inspection.recommendations || 'No specific recommendations recorded.');
+addText(recommendations, 10);
+y += 4;
+
         // ============================================================
         // ECOLOGICAL HEALTH DETAILS
         // ============================================================
